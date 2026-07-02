@@ -1,0 +1,1757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Y4 Exam Control — T3/T4 2026</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --ink:#1A2332;
+    --ink2:#232F44;
+    --paper:#F7F4ED;
+    --paper2:#EFEAE0;
+    --line:#D8D2C4;
+    --red:#C1432E;
+    --amber:#D9A441;
+    --sage:#5B7A6B;
+    --sage-dim:#5B7A6B33;
+    --red-dim:#C1432E22;
+    --amber-dim:#D9A44122;
+    --ink-dim:#1A233214;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{background:var(--paper); color:var(--ink); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased;}
+  body{padding-bottom:60px;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  .disp{font-family:'Archivo Expanded',sans-serif;}
+
+  a{color:inherit;}
+  button{font-family:'Inter',sans-serif; cursor:pointer; border:none; background:none;}
+  input, select, textarea{font-family:'Inter',sans-serif;}
+  :focus-visible{outline:2px solid var(--red); outline-offset:2px;}
+
+  /* ===== Header / Masthead ===== */
+  .masthead{
+    background:var(--ink);
+    color:var(--paper);
+    padding:20px 28px 16px;
+    border-bottom:4px solid var(--red);
+  }
+  .masthead-row{display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:10px; max-width:1180px; margin:0 auto;}
+  .masthead-title{font-family:'Archivo Expanded',sans-serif; font-weight:800; font-size:26px; letter-spacing:0.5px;}
+  .masthead-sub{font-family:'IBM Plex Mono',monospace; font-size:11px; opacity:0.65; letter-spacing:1.5px; text-transform:uppercase; margin-top:4px;}
+  .masthead-stamp{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1px; text-transform:uppercase;
+    border:1px solid var(--paper); padding:4px 10px; opacity:0.85; white-space:nowrap;
+  }
+
+  .wrap{max-width:1180px; margin:0 auto; padding:0 28px;}
+
+  /* ===== Tabs ===== */
+  .tabs{display:flex; gap:2px; margin-top:18px; border-bottom:2px solid var(--ink); flex-wrap:wrap;}
+  .tab{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; text-transform:uppercase; letter-spacing:1px;
+    padding:10px 16px; background:var(--paper2); color:var(--ink); opacity:0.55;
+    border-top:2px solid transparent; transition:opacity .15s;
+  }
+  .tab:hover{opacity:0.85;}
+  .tab.active{opacity:1; background:var(--paper); border-top:2px solid var(--red); font-weight:600;}
+  .panel{display:none; padding-top:22px;}
+  .panel.active{display:block;}
+
+  /* ===== Save banner ===== */
+  .save-banner{
+    display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap;
+    border:2px solid var(--ink); background:var(--paper2); padding:10px 14px; margin-bottom:14px;
+    font-size:12.5px;
+  }
+  .save-banner strong{font-weight:700;}
+  .save-actions{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+
+  /* ===== Countdown hero ===== */
+  .hero{
+    display:grid; grid-template-columns: 1.3fr 1fr; gap:0; border:2px solid var(--ink); margin-top:0;
+  }
+  @media(max-width:760px){.hero{grid-template-columns:1fr;}}
+  .hero-left{padding:26px; border-right:2px solid var(--ink); background:var(--paper);}
+  @media(max-width:760px){.hero-left{border-right:none; border-bottom:2px solid var(--ink);}}
+  .hero-eyebrow{font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; opacity:0.6;}
+  .hero-next-name{font-family:'Archivo Expanded',sans-serif; font-weight:800; font-size:30px; margin-top:6px; line-height:1.05;}
+  .hero-next-date{font-family:'IBM Plex Mono',monospace; font-size:13px; margin-top:8px; opacity:0.75;}
+  .hero-count{display:flex; gap:18px; margin-top:18px;}
+  .hero-count-num{font-family:'Archivo Expanded',sans-serif; font-weight:800; font-size:52px; line-height:1; color:var(--red);}
+  .hero-count-lbl{font-family:'IBM Plex Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:1px; opacity:0.6; margin-top:4px;}
+  .hero-right{background:var(--ink); color:var(--paper); padding:26px;}
+  .hero-right-title{font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; opacity:0.65;}
+  .upnext-list{margin-top:14px; display:flex; flex-direction:column; gap:10px;}
+  .upnext-row{display:flex; justify-content:space-between; align-items:baseline; border-bottom:1px solid #ffffff22; padding-bottom:8px; font-size:13px; gap:8px;}
+  .upnext-name{font-weight:600;}
+  .upnext-date{font-family:'IBM Plex Mono',monospace; font-size:11px; opacity:0.7; white-space:nowrap; margin-left:10px;}
+  .upnext-days{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--amber); margin-left:10px; white-space:nowrap;}
+
+  /* ===== Stats row ===== */
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--ink); margin-top:1px; border:2px solid var(--ink); border-top:none;}
+  @media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr);}}
+  .stat{background:var(--paper); padding:16px 20px;}
+  .stat-num{font-family:'Archivo Expanded',sans-serif; font-weight:800; font-size:26px;}
+  .stat-lbl{font-family:'IBM Plex Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:1px; opacity:0.55; margin-top:2px;}
+
+  /* ===== Section heading ===== */
+  .sec-head{display:flex; justify-content:space-between; align-items:baseline; margin:34px 0 14px; border-bottom:2px solid var(--ink); padding-bottom:8px; gap:12px; flex-wrap:wrap;}
+  .sec-title{font-family:'Archivo Expanded',sans-serif; font-weight:800; font-size:18px; text-transform:uppercase; letter-spacing:0.5px;}
+  .sec-note{font-family:'IBM Plex Mono',monospace; font-size:11px; opacity:0.55;}
+
+  /* ===== Calendar ===== */
+  .cal-controls{display:flex; gap:8px; align-items:center; margin-bottom:14px; flex-wrap:wrap;}
+  .cal-btn,.mini-btn{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; border:1px solid var(--ink); padding:6px 12px; background:var(--paper);
+  }
+  .cal-btn:hover,.mini-btn:hover{background:var(--ink); color:var(--paper);}
+  .mini-btn.primary{background:var(--ink); color:var(--paper); border:2px solid var(--ink);}
+  .mini-btn.primary:hover{background:var(--red); border-color:var(--red);}
+  .mini-btn.danger{color:var(--red); border-color:var(--red);}
+  .mini-btn.danger:hover{background:var(--red); color:var(--paper);}
+  .mini-btn.ghost{opacity:0.7;}
+  .cal-month-label{font-family:'Archivo Expanded',sans-serif; font-weight:700; font-size:16px; margin:0 8px;}
+  .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); border:2px solid var(--ink); border-bottom:none;}
+  .cal-dow{font-family:'IBM Plex Mono',monospace; font-size:10px; text-transform:uppercase; text-align:center; padding:6px 2px; background:var(--ink); color:var(--paper); border-right:1px solid #ffffff22;}
+  .cal-dow:last-child{border-right:none;}
+  .cal-cell{
+    min-height:96px; border-right:1px solid var(--line); border-bottom:2px solid var(--ink);
+    padding:6px; position:relative; background:var(--paper);
+  }
+  .cal-cell:nth-child(7n){border-right:none;}
+  .cal-cell.empty{background:var(--paper2);}
+  .cal-daynum{font-family:'IBM Plex Mono',monospace; font-size:11px; opacity:0.5;}
+  .cal-cell.today .cal-daynum{color:var(--red); font-weight:700; opacity:1;}
+  .cal-cell.today{box-shadow:inset 0 0 0 2px var(--red);}
+  .cal-event{
+    font-family:'IBM Plex Mono',monospace; font-size:9.5px; line-height:1.3; margin-top:4px;
+    padding:2px 4px; border-radius:2px; background:var(--red-dim); color:var(--red); font-weight:600;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+
+  /* ===== Subject grid ===== */
+  .subj-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px;}
+  @media(max-width:900px){.subj-grid{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:520px){.subj-grid{grid-template-columns:1fr;}}
+  .subj-card{
+    border:2px solid var(--ink); background:var(--paper); padding:14px; cursor:pointer; transition:transform .1s;
+    display:flex; flex-direction:column; justify-content:space-between; min-height:120px;
+  }
+  .subj-card:hover{transform:translateY(-2px);}
+  .subj-card.selected{background:var(--ink); color:var(--paper);}
+  .subj-code{font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1px; opacity:0.55;}
+  .subj-card.selected .subj-code{opacity:0.7;}
+  .subj-name{font-family:'Archivo Expanded',sans-serif; font-weight:700; font-size:15px; margin-top:4px;}
+  .subj-bar-track{height:6px; background:var(--ink-dim); margin-top:12px; border-radius:3px; overflow:hidden;}
+  .subj-card.selected .subj-bar-track{background:#ffffff22;}
+  .subj-bar-fill{height:100%; background:var(--sage); border-radius:3px;}
+  .subj-pct{font-family:'IBM Plex Mono',monospace; font-size:11px; margin-top:6px; opacity:0.7;}
+
+  /* ===== Topic checklist ===== */
+  .topic-section{border:2px solid var(--ink); margin-top:0; background:var(--paper);}
+  .topic-section-head{background:var(--ink); color:var(--paper); padding:14px 18px; display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px;}
+  .topic-section-title{font-family:'Archivo Expanded',sans-serif; font-weight:700; font-size:16px;}
+  .topic-section-meta{font-family:'IBM Plex Mono',monospace; font-size:11px; opacity:0.7;}
+  .topic-list{display:flex; flex-direction:column;}
+  .topic-row{
+    display:flex; align-items:flex-start; gap:12px; padding:12px 18px; border-bottom:1px solid var(--line);
+  }
+  .topic-row:last-child{border-bottom:none;}
+  .topic-row.clickable{cursor:pointer;}
+  .topic-row.clickable:hover{background:var(--paper2);}
+  .topic-check{
+    width:20px; height:20px; min-width:20px; border:2px solid var(--ink); margin-top:2px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; background:var(--paper);
+  }
+  .topic-check.checked{background:var(--sage); border-color:var(--sage); color:var(--paper);}
+  .topic-text{flex:1; font-size:13.5px; line-height:1.45;}
+  .topic-row.done .topic-text{text-decoration:line-through; opacity:0.45;}
+  .topic-tag{font-family:'IBM Plex Mono',monospace; font-size:9.5px; text-transform:uppercase; padding:2px 6px; border-radius:2px; white-space:nowrap; align-self:center;}
+  .tag-core{background:var(--sage-dim); color:var(--sage);}
+  .tag-enrich{background:var(--amber-dim); color:var(--amber);}
+
+  /* ===== Goal / planner ===== */
+  .goal-box{border:2px solid var(--ink); padding:18px; background:var(--paper); margin-bottom:14px;}
+  .goal-input-row{display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap;}
+  .goal-input,.text-input,.date-input,.select-input{
+    flex:1; font-family:'Inter',sans-serif; font-size:13px; padding:9px 12px; border:1px solid var(--ink); background:var(--paper); color:var(--ink);
+  }
+  .select-input{min-width:140px;}
+  .date-input{min-width:155px;}
+  .goal-add-btn{font-family:'IBM Plex Mono',monospace; font-size:12px; padding:9px 16px; border:2px solid var(--ink); background:var(--ink); color:var(--paper);}
+  .goal-add-btn:hover{background:var(--red); border-color:var(--red);}
+  .goal-row{display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--line);}
+  .goal-row:last-child{border-bottom:none;}
+  .goal-text{flex:1; font-size:13.5px;}
+  .goal-text.done{text-decoration:line-through; opacity:0.45;}
+  .goal-del{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--red); opacity:0.6;}
+  .goal-del:hover{opacity:1;}
+  .empty-state{font-family:'IBM Plex Mono',monospace; font-size:12px; opacity:0.55; padding:14px 0; text-align:center;}
+
+  /* ===== Week planner ===== */
+  .week-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-top:6px;}
+  @media(max-width:760px){.week-grid{grid-template-columns:repeat(2,1fr);}}
+  .week-day{border:1.5px solid var(--ink); background:var(--paper); padding:10px; min-height:140px;}
+  .week-day-name{font-family:'IBM Plex Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:1px; opacity:0.6; border-bottom:1px solid var(--line); padding-bottom:6px; margin-bottom:6px;}
+  .week-slot{font-size:11.5px; padding:4px 0; border-bottom:1px dashed var(--line); cursor:pointer;}
+  .week-slot:last-child{border-bottom:none;}
+  .week-slot.filled{font-weight:600;}
+  .week-slot.empty-slot{opacity:0.3;}
+
+  /* ===== Editors ===== */
+  .editor-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:start;}
+  @media(max-width:820px){.editor-grid{grid-template-columns:1fr;}}
+  .editor-card{border:2px solid var(--ink); background:var(--paper); padding:16px;}
+  .editor-title{font-family:'Archivo Expanded',sans-serif; font-weight:700; font-size:15px; margin-bottom:10px;}
+  .editor-note{font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:1.45; opacity:0.6; margin-bottom:12px;}
+  .form-grid{display:grid; grid-template-columns:150px 140px 1fr; gap:8px; margin-bottom:8px;}
+  @media(max-width:760px){.form-grid{grid-template-columns:1fr;}}
+  .form-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;}
+  .button-row{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;}
+  .editor-list{border:2px solid var(--ink); background:var(--paper);}
+  .editor-item{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 12px; border-bottom:1px solid var(--line);}
+  .editor-item:last-child{border-bottom:none;}
+  .editor-main{min-width:0;}
+  .editor-item-title{font-size:13.5px; font-weight:700; line-height:1.35;}
+  .editor-item-meta{font-family:'IBM Plex Mono',monospace; font-size:10.5px; opacity:0.55; margin-top:2px;}
+  .inline-actions{display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;}
+  .section-editor{border:2px solid var(--ink); background:var(--paper); margin-bottom:14px;}
+  .section-editor-head{background:var(--ink); color:var(--paper); padding:12px 14px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center;}
+  .section-tools{display:flex; gap:6px; flex-wrap:wrap;}
+  .section-tools .mini-btn{background:transparent; color:var(--paper); border-color:#ffffff77;}
+  .section-tools .mini-btn:hover{background:var(--paper); color:var(--ink);}
+  .add-topic-bar{display:grid; grid-template-columns:1fr 110px auto; gap:8px; padding:12px 14px; border-bottom:1px solid var(--line); background:var(--paper2);}
+  @media(max-width:760px){.add-topic-bar{grid-template-columns:1fr;}}
+  .small-muted{font-family:'IBM Plex Mono',monospace; font-size:10.5px; opacity:0.55;}
+  .hidden{display:none !important;}
+
+  body.auth-locked > .masthead,
+  body.auth-locked > .wrap,
+  body.auth-locked > footer{display:none;}
+  .auth-screen{min-height:100vh; display:grid; place-items:center; padding:28px; background:var(--paper);}
+  .auth-card{width:min(480px,100%); border:2px solid var(--ink); background:var(--paper); padding:24px;}
+  .auth-title{font-family:'Archivo Expanded',sans-serif; font-size:24px; font-weight:800; line-height:1.1;}
+  .auth-copy{font-size:13.5px; line-height:1.5; margin:10px 0 18px; opacity:0.75;}
+  .auth-form{display:flex; flex-direction:column; gap:10px;}
+  .auth-actions{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:2px;}
+  @media(max-width:480px){.auth-actions{grid-template-columns:1fr;}}
+  .auth-status{min-height:18px; font-size:12px; line-height:1.4; margin-top:12px;}
+  .auth-status.error{color:var(--red);}
+  .account-box{display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end;}
+  .account-email{font-family:'IBM Plex Mono',monospace; font-size:11px; opacity:0.75;}
+  .account-box .mini-btn{border-color:var(--paper); color:var(--paper); padding:4px 9px;}
+  .account-box .mini-btn:hover{background:var(--paper); color:var(--ink);}
+
+  footer{text-align:center; font-family:'IBM Plex Mono',monospace; font-size:10px; opacity:0.4; margin-top:40px; padding:20px;}
+
+  .legend{display:flex; gap:16px; margin-top:10px; flex-wrap:wrap;}
+  .legend-item{display:flex; align-items:center; gap:6px; font-family:'IBM Plex Mono',monospace; font-size:10px; opacity:0.7;}
+  .legend-dot{width:10px; height:10px; border-radius:2px;}
+</style>
+</head>
+<body>
+
+<div class="auth-screen hidden" id="authScreen">
+  <div class="auth-card">
+    <div class="auth-title disp">EXAM CONTROL</div>
+    <div class="auth-copy">
+      Sign up or log in to keep your checked topics, goals, timetable edits, and weekly plan synced to your account.
+    </div>
+    <div class="auth-form">
+      <input class="text-input" id="authEmail" type="email" autocomplete="email" placeholder="Email">
+      <input class="text-input" id="authPassword" type="password" autocomplete="current-password" placeholder="Password">
+      <div class="auth-actions">
+        <button class="mini-btn primary" id="loginBtn">Log in</button>
+        <button class="mini-btn" id="signupBtn">Create account</button>
+      </div>
+    </div>
+    <div class="auth-status mono" id="authStatus"></div>
+  </div>
+</div>
+
+<div class="masthead">
+  <div class="masthead-row">
+    <div>
+      <div class="masthead-title">EXAM CONTROL — Y4 2026</div>
+      <div class="masthead-sub">Triple Science · Geography · Math 1 &amp; 2 · EL · HCL · Inquiry &amp; Advocacy · Spanish</div>
+    </div>
+    <div class="account-box">
+      <div>
+        <div class="masthead-stamp mono" id="todayStamp">—</div>
+        <div class="account-email" id="accountEmail"></div>
+      </div>
+      <button class="mini-btn hidden" id="logoutBtn">Log out</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="tabs">
+    <button class="tab active" data-tab="overview">Overview</button>
+    <button class="tab" data-tab="calendar">Calendar</button>
+    <button class="tab" data-tab="study">Study Tracker</button>
+    <button class="tab" data-tab="goals">Goals &amp; Weekly Plan</button>
+    <button class="tab" data-tab="edit">Edit Data</button>
+  </div>
+
+  <!-- ============ OVERVIEW ============ -->
+  <div class="panel active" id="panel-overview">
+    <div class="save-banner">
+      <div><strong>Autosave is on.</strong> Exams, syllabus edits, checked topics, goals, and weekly plan are saved to your account when logged in.</div>
+      <div class="save-actions mono"><span id="saveStamp">—</span><button class="mini-btn" data-go-tab="edit">Edit exams/syllabus</button></div>
+    </div>
+
+    <div class="hero">
+      <div class="hero-left">
+        <div class="hero-eyebrow mono">Next on the timetable</div>
+        <div class="hero-next-name disp" id="nextExamName">—</div>
+        <div class="hero-next-date mono" id="nextExamDate">—</div>
+        <div class="hero-count">
+          <div>
+            <div class="hero-count-num disp" id="countDays">0</div>
+            <div class="hero-count-lbl mono">days</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-right">
+        <div class="hero-right-title">Up next, in order</div>
+        <div class="upnext-list" id="upnextList"></div>
+      </div>
+    </div>
+
+    <div class="stats" id="statsRow"></div>
+
+    <div class="sec-head">
+      <div class="sec-title">Subject Coverage Snapshot</div>
+      <div class="sec-note">click a subject for the full syllabus checklist</div>
+    </div>
+    <div class="subj-grid" id="overviewSubjGrid"></div>
+  </div>
+
+  <!-- ============ CALENDAR ============ -->
+  <div class="panel" id="panel-calendar">
+    <div class="cal-controls">
+      <button class="cal-btn mono" id="prevMonth">← Prev</button>
+      <div class="cal-month-label" id="calMonthLabel">—</div>
+      <button class="cal-btn mono" id="nextMonth">Next →</button>
+      <button class="cal-btn mono" id="jumpNextExam">Next exam month</button>
+      <button class="cal-btn mono" data-go-tab="edit">+ Add exam</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Exam / deadline day</div>
+    </div>
+
+    <div class="sec-head">
+      <div class="sec-title">Full Timetable, in Order</div>
+      <div class="sec-note">manual exam edits update this list, countdown, and calendar</div>
+    </div>
+    <div id="fullListWrap"></div>
+  </div>
+
+  <!-- ============ STUDY TRACKER ============ -->
+  <div class="panel" id="panel-study">
+    <div class="sec-head">
+      <div class="sec-title">Select a Subject</div>
+      <div class="sec-note">progress is saved as you check off topics</div>
+    </div>
+    <div class="subj-grid" id="studySubjGrid"></div>
+
+    <div style="margin-top:24px;">
+      <div class="button-row" style="margin-bottom:12px;">
+        <button class="mini-btn primary" id="quickAddTopicBtn">+ Add topic to selected subject</button>
+        <button class="mini-btn" data-go-tab="edit">Open full syllabus editor</button>
+      </div>
+      <div id="topicSectionsWrap"></div>
+    </div>
+  </div>
+
+  <!-- ============ GOALS ============ -->
+  <div class="panel" id="panel-goals">
+    <div class="sec-head">
+      <div class="sec-title">Term Goals</div>
+      <div class="sec-note">saved automatically</div>
+    </div>
+    <div class="goal-box">
+      <div class="goal-input-row">
+        <input class="goal-input" id="goalInput" placeholder="e.g. Finish Chem Organic Chemistry topic by 20 Jul">
+        <button class="goal-add-btn mono" id="goalAddBtn">+ Add</button>
+      </div>
+      <div id="goalList"></div>
+    </div>
+
+    <div class="sec-head">
+      <div class="sec-title">This Week's Study Plan</div>
+      <div class="sec-note">click a slot to type in what you're studying</div>
+    </div>
+    <div class="week-grid" id="weekGrid"></div>
+  </div>
+
+  <!-- ============ EDIT DATA ============ -->
+  <div class="panel" id="panel-edit">
+    <div class="save-banner">
+      <div><strong>Data editor.</strong> Add exams/deadlines and edit any subject syllabus. Account sync keeps progress across devices; local backup still works.</div>
+      <div class="save-actions mono"><span id="editSaveStamp">—</span></div>
+    </div>
+
+    <div class="editor-grid">
+      <div class="editor-card">
+        <div class="editor-title">Add / Edit Exam or Deadline</div>
+        <div class="editor-note">Use a normal date. Times can go in the title, e.g. “Spanish Oral Prelim — 2:30pm”.</div>
+        <div class="form-grid">
+          <input class="date-input" id="examDateInput" type="date">
+          <select class="select-input" id="examSubjectInput"></select>
+          <input class="text-input" id="examNameInput" placeholder="Exam / deadline name">
+        </div>
+        <div class="button-row">
+          <button class="mini-btn primary" id="examSaveBtn">+ Add exam</button>
+          <button class="mini-btn ghost hidden" id="examCancelBtn">Cancel edit</button>
+        </div>
+      </div>
+
+      <div class="editor-card">
+        <div class="editor-title">Backups / Reset</div>
+        <div class="editor-note">Export a backup before major edits. Importing replaces the current dashboard data.</div>
+        <div class="button-row">
+          <button class="mini-btn" id="exportBtn">Export backup JSON</button>
+          <label class="mini-btn" for="importInput" style="display:inline-block;">Import backup</label>
+          <input id="importInput" type="file" accept="application/json,.json" class="hidden">
+          <button class="mini-btn danger" id="resetBtn">Reset to defaults</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-head">
+      <div class="sec-title">Exam Editor</div>
+      <div class="sec-note">edit/delete any item; added items sort by date automatically</div>
+    </div>
+    <div id="examEditorList" class="editor-list"></div>
+
+    <div class="sec-head">
+      <div class="sec-title">Syllabus Editor</div>
+      <div class="sec-note">works for Math, English, Chinese, Spanish, INA, and all sciences</div>
+    </div>
+
+    <div class="editor-card" style="margin-bottom:14px;">
+      <div class="form-row">
+        <select class="select-input" id="topicSubjectSelect"></select>
+        <input class="text-input" id="sectionTitleInput" placeholder="New section title, e.g. Algebra / Essay Skills">
+        <input class="text-input" id="sectionWeightInput" placeholder="Assessed in, e.g. CBA2 · EYA">
+        <button class="mini-btn primary" id="sectionAddBtn">+ Add section</button>
+      </div>
+      <div class="small-muted">Tip: add a “Custom Syllabus” section first, then add topics underneath it.</div>
+    </div>
+
+    <div id="syllabusEditorWrap"></div>
+  </div>
+</div>
+
+<footer>Hostable static file · account sync with Supabase · export backups before major edits</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================================================
+   CONFIG + DEFAULT DATA
+   ============================================================ */
+const STORAGE_KEY = "examControlY4_2026_v3";
+const SUPABASE_URL = "https://vnsupnqmzpetgjgjbhep.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_7ImvwLt7mhaZDnuhrdmj4A_5-EC-tPz";
+
+const SUBJECTS = {
+  BIO:{name:"Biology", color:"#5B7A6B"},
+  CHEM:{name:"Chemistry", color:"#C1432E"},
+  PHY:{name:"Physics", color:"#D9A441"},
+  GEOG:{name:"Geography", color:"#1A2332"},
+  MA1:{name:"Math 1", color:"#5B7A6B"},
+  MA2:{name:"Math 2 (Higher)", color:"#C1432E"},
+  EL:{name:"English Language", color:"#D9A441"},
+  HCL:{name:"Higher Chinese", color:"#1A2332"},
+  INA:{name:"Inquiry & Advocacy", color:"#5B7A6B"},
+  SPA:{name:"Spanish", color:"#C1432E"},
+};
+
+const DEFAULT_EXAMS_RAW = [
+  {date:"2026-07-08", name:"Spanish Oral Prelim — 2:30pm", subj:"SPA"},
+  {date:"2026-07-09", name:"INA AA Due", subj:"INA"},
+  {date:"2026-07-09", name:"Math 1 CBA2", subj:"MA1"},
+  {date:"2026-07-16", name:"EL AANR Due — 3pm", subj:"EL"},
+  {date:"2026-07-16", name:"HCL Oral O-Level", subj:"HCL"},
+  {date:"2026-07-31", name:"Spanish O-Level Oral", subj:"SPA"},
+  {date:"2026-08-03", name:"Spanish Oral O-Levels (Day 1/2)", subj:"SPA"},
+  {date:"2026-08-03", name:"Geography CBA2", subj:"GEOG"},
+  {date:"2026-08-04", name:"Spanish Oral O-Levels (Day 2/2)", subj:"SPA"},
+  {date:"2026-08-11", name:"Math 2 CBA2", subj:"MA2"},
+  {date:"2026-09-01", name:"Spanish Prelim Writing", subj:"SPA"},
+  {date:"2026-09-02", name:"Spanish Prelim LC and Reading", subj:"SPA"},
+  {date:"2026-09-15", name:"Chem AAPR", subj:"CHEM"},
+  {date:"2026-09-18", name:"Bio AAPR", subj:"BIO"},
+  {date:"2026-09-29", name:"Phys AAPR", subj:"PHY"},
+  {date:"2026-09-30", name:"EL EYA", subj:"EL"},
+  {date:"2026-10-01", name:"HCL EYA", subj:"HCL"},
+  {date:"2026-10-02", name:"INA EYA", subj:"INA"},
+  {date:"2026-10-06", name:"MA2 EYA", subj:"MA2"},
+  {date:"2026-10-07", name:"Geog EYA", subj:"GEOG"},
+  {date:"2026-10-07", name:"MA1 EYA", subj:"MA1"},
+  {date:"2026-10-08", name:"Chem EYA", subj:"CHEM"},
+  {date:"2026-10-09", name:"Bio EYA", subj:"BIO"},
+  {date:"2026-10-12", name:"Spanish O-Levels Paper 1 — 8am", subj:"SPA"},
+  {date:"2026-10-12", name:"Physics EYA", subj:"PHY"},
+  {date:"2026-10-14", name:"Spanish O-Levels Paper 2 (Main + LC)", subj:"SPA"},
+  {date:"2026-11-04", name:"HCL O-Levels Written (Day 1/2)", subj:"HCL"},
+  {date:"2026-11-05", name:"HCL O-Levels Written (Day 2/2)", subj:"HCL"},
+];
+
+/* Raw format is kept readable; normaliseTopics() adds stable ids for checking/editing. */
+const DEFAULT_TOPICS_RAW = {
+  BIO: [
+    {sec:"Natural Selection & Reproduction", weight:"CBA-1 · CBA-2 · EYA", items:[
+      ["Natural selection: variation & competition drive differential survival", "core"],
+      ["Environmental factors as forces of natural selection", "core"],
+      ["Natural selection as a mechanism for evolution", "core"],
+      ["Artificial selection examples", "enrich"],
+      ["Asexual vs sexual reproduction — definitions", "core"],
+      ["Flower structure: sepals, petals, stamens, carpels (insect-pollinated)", "core"],
+      ["Wind-pollinated flowers: stamens & stigmas", "core"],
+      ["Self- vs cross-pollination", "core"],
+      ["Pollen tube growth, entry into ovule, fertilisation", "core"],
+      ["Male reproductive system: structures & functions", "core"],
+      ["Female reproductive system: structures & functions", "core"],
+      ["Menstrual cycle: FSH, LH, progesterone, oestrogen", "core"],
+      ["Fertilisation & early zygote development (implantation)", "core"],
+      ["Amniotic sac/fluid, placenta & umbilical cord function", "core"],
+      ["Contraception methods", "enrich"],
+      ["IVF", "enrich"],
+      ["HIV transmission & reduction", "core"],
+    ]},
+    {sec:"DNA, Nuclear & Cellular Division", weight:"CBA-2 · AA-PR · EYA", items:[
+      ["DNA, genes, chromosomes relationship", "core"],
+      ["DNA double helix structure: nucleotides, bases", "core"],
+      ["Complementary base pairing", "core"],
+      ["Semi-conservative DNA replication", "enrich"],
+      ["Mitosis: purpose, chromosome number maintained", "core"],
+      ["Mitosis importance: growth, repair, asexual reproduction", "core"],
+      ["Mitosis stages with diagrams", "enrich"],
+      ["Causative factors of cancerous growth", "core"],
+      ["Cell cycle regulation & cancer development", "enrich"],
+      ["Haploid vs diploid, reduction division", "core"],
+      ["Homologous chromosome pairs", "core"],
+      ["Meiosis: chromosome number halved", "core"],
+      ["Meiosis stages with diagrams", "enrich"],
+      ["Meiosis & fertilisation → genetic variation", "enrich"],
+      ["Mutation: gene vs chromosome number (sickle cell, Down syndrome)", "core"],
+      ["Stem cells — normal functions", "enrich"],
+    ]},
+    {sec:"Inheritance", weight:"EYA", items:[
+      ["Gene vs allele", "core"],
+      ["Dominant, recessive, codominant, homo/heterozygous, genotype/phenotype", "core"],
+      ["Predict simple cross ratios (3:1, 1:1)", "core"],
+      ["Why observed ratios differ from expected", "core"],
+      ["Genetic diagrams: monohybrid, codominance, dihybrid", "enrich"],
+      ["ABO blood group codominance & multiple alleles", "core"],
+      ["Sex determination: XX/XY", "core"],
+      ["Pedigree chart interpretation", "enrich"],
+      ["Environment's effect on phenotype", "enrich"],
+      ["Incomplete dominance & sex linkage", "enrich"],
+      ["Mutagens: ionising radiation, chemical mutagens", "core"],
+      ["Continuous vs discontinuous variation", "core"],
+    ]},
+    {sec:"Infectious Diseases & Molecular Genetics", weight:"EYA", items:[
+      ["Infectious vs non-infectious diseases", "core"],
+      ["Pathogens: bacteria & viruses, transmission routes", "core"],
+      ["Virus structure & reproduction in host cells", "core"],
+      ["Bacteria structure: cell wall, no nucleus", "core"],
+      ["Influenza: signs, symptoms, transmission, reduction", "core"],
+      ["Pneumococcal disease: signs, symptoms, transmission, reduction", "core"],
+      ["Vaccines & antibody response", "core"],
+      ["Antibiotics: mechanism, ineffective against viruses", "core"],
+      ["Antibiotic resistance — misuse & overuse", "core"],
+      ["Gene = nucleotide sequence, codes for polypeptide, unit of inheritance", "core"],
+      ["DNA → genetic code → polypeptides (no transcription/translation detail)", "core"],
+      ["Genetic code features", "enrich"],
+      ["DNA vs RNA structure/function comparison", "enrich"],
+      ["Base substitution → amino acid change → phenotype (sickle cell)", "enrich"],
+      ["Frameshift mutation effects", "enrich"],
+      ["Transgenic organisms — gene transfer concept", "core"],
+      ["Restriction enzymes & DNA ligase", "enrich"],
+      ["Recombinant DNA formation & screening", "enrich"],
+      ["Gel electrophoresis", "enrich"],
+      ["Human insulin production via bacteria", "core"],
+      ["Benefits & ethics of genetic engineering", "core"],
+    ]},
+  ],
+  CHEM: [
+    {sec:"Patterns in the Periodic Table", weight:"PPA-CBA1 · AA-PR · EYA", items:[
+      ["Periodic Table arrangement by proton number", "core"],
+      ["Position ↔ proton number ↔ electronic configuration", "core"],
+      ["Outer electrons ↔ ionic charge (first 20 elements)", "core"],
+      ["Group similarities via electronic configuration", "core"],
+      ["Metallic → non-metallic character across a period", "core"],
+      ["Atomic radius trends — shielding & nuclear charge", "core"],
+      ["Predict Group 1 / Group 17 properties", "core"],
+      ["Reactivity series: Ca, Cu, Fe, Pb, Mg, K, Ag, Na, Zn", "core"],
+      ["Deduce reactivity order from experimental data", "core"],
+      ["Group 1 (alkali metals): trends in m.p. & reaction with water", "core"],
+      ["Group 17 (halogens): colour, state, displacement reactions", "core"],
+      ["Group 18 (noble gases): unreactivity & uses", "core"],
+      ["Transition elements: high m.p./density, variable oxidation state, coloured compounds, catalysts", "core"],
+      ["Action of heat on carbonates & thermal stability", "core"],
+      ["Obtaining metals from ores via reactivity series", "core"],
+      ["Rusting: conditions & prevention", "core"],
+      ["Sacrificial protection", "core"],
+    ]},
+    {sec:"Redox Chemistry & Electrochemistry", weight:"PPA-CBA2 · AA-PR · EYA", items:[
+      ["Electrolysis: conduction through molten/dissolved ionic compounds", "core"],
+      ["Electrolysis as evidence for ions", "core"],
+      ["Electrolysis of molten NaCl with inert electrodes", "core"],
+      ["Predict products of molten binary ionic compound electrolysis", "core"],
+      ["Selective discharge: cations (reactivity series)", "core"],
+      ["Selective discharge: anions (halides, hydroxides, sulfates)", "core"],
+      ["Concentration effects in electrolysis", "core"],
+      ["Purification of copper by electrolysis", "core"],
+      ["Electroplating — process & one use", "core"],
+      ["Simple cells: electrodes + electrolyte, link to reactivity series", "core"],
+      ["Hydrogen fuel cells (concept)", "core"],
+      ["Aluminium manufacture via electrolysis", "enrich"],
+      ["Predict products of aqueous electrolyte electrolysis", "core"],
+      ["Ionic equations for electrode reactions", "core"],
+      ["Calculate mass/volume liberated during electrolysis", "core"],
+      ["Electrochemical cell diagram: anode, cathode, electron/ion flow", "enrich"],
+    ]},
+    {sec:"Chemical Energetics", weight:"AA-PR · EYA", items:[
+      ["Enthalpy & relationship to system stability", "core"],
+      ["Exothermic (ΔH−) vs endothermic (ΔH+)", "core"],
+      ["Bond breaking endothermic, bond making exothermic", "core"],
+      ["Overall enthalpy change from bond energy changes", "core"],
+      ["Energy profile diagrams incl. activation energy", "core"],
+    ]},
+    {sec:"Rate of Reactions", weight:"AA-PR · EYA", items:[
+      ["Effect of concentration, pressure, particle size, temperature on rate", "core"],
+      ["Collision theory explanation of rate effects", "core"],
+      ["Catalysts (incl. enzymes) and their effect on rate", "core"],
+      ["Lower activation energy pathways → faster rate", "core"],
+      ["Catalysts in industrial processes; enzymes as biological catalysts", "core"],
+      ["Suggest method to investigate rate variable", "core"],
+      ["Interpret rate-of-reaction experimental data", "core"],
+    ]},
+    {sec:"Chemical Equilibrium", weight:"EYA", items:[
+      ["N2 + H2 sourcing for ammonia manufacture", "core"],
+      ["Reversible reactions — examples", "core"],
+      ["Dynamic equilibrium in terms of forward/reverse rates", "core"],
+      ["Le Chatelier's Principle: concentration, pressure, temperature", "core"],
+      ["Haber Process industrial conditions — interpret data", "core"],
+      ["Equilibrium constants Kc / Kp", "enrich"],
+      ["Ethical dilemma — Fritz Haber", "enrich"],
+    ]},
+    {sec:"Experimental Chemistry", weight:"AA-PR", items:[
+      ["Separation methods: solvent/filtration/crystallisation, sublimation, distillation, separating funnel, paper chromatography", "core"],
+      ["Suggest separation method for solid-solid / solid-liquid / liquid-liquid mixtures", "core"],
+      ["Interpret paper chromatograms & Rf values", "core"],
+      ["Deduce identity/purity from m.p./b.p. data", "core"],
+      ["MMO / PDO / ACE practical skill points", "core"],
+      ["Planning skills (P1–P4)", "core"],
+    ]},
+    {sec:"Organic Chemistry", weight:"EYA", items:[
+      ["Natural gas & crude oil as non-renewable sources", "core"],
+      ["Crude oil fractional distillation", "core"],
+      ["Biofuel (bioethanol) as renewable alternative", "core"],
+      ["Homologous series concept", "core"],
+      ["Alkanes: structure, naming C1–C4, general unreactivity", "core"],
+      ["Isomerism — definition & identification", "core"],
+      ["Alkenes: structure, naming C2–C4, addition reactions", "core"],
+      ["Cracking hydrocarbons", "core"],
+      ["Saturated vs unsaturated — bromine water test", "core"],
+      ["Polyunsaturated fats & margarine manufacture", "core"],
+      ["Alcohols: structure, naming, combustion & oxidation", "core"],
+      ["Ethanol formation: steam addition & fermentation", "core"],
+      ["Carboxylic acids: structure, naming, weak acid reactions", "core"],
+      ["Ethanoic acid formation by oxidation", "core"],
+      ["Esters: formation & naming", "core"],
+      ["Polymers: addition (poly(ethene)) vs condensation (nylon, Terylene)", "core"],
+      ["Plastic pollution, recycling methods, depolymerisation", "core"],
+    ]},
+    {sec:"Maintaining Air Quality", weight:"EYA", items:[
+      ["Composition of dry air", "core"],
+      ["Common pollutants: CO, NOx, ozone, SO2, hydrocarbons", "core"],
+      ["Sources of pollutants", "core"],
+      ["Health/environment effects incl. acid rain", "core"],
+      ["Catalytic converters & flue gas desulfurisation", "core"],
+      ["Ozone layer & CFCs", "core"],
+      ["Carbon cycle: combustion, respiration, photosynthesis", "core"],
+      ["Greenhouse gases & global warming effects", "core"],
+    ]},
+  ],
+  PHY: [
+    {sec:"Kinetic Particle Model of Matter", weight:"CBA-1 · AA-PR · EYA", items:[
+      ["Kinetic particle model: continuous random motion", "core"],
+      ["Brownian motion as evidence", "core"],
+      ["Temperature rise ↔ average kinetic energy increase", "core"],
+      ["Gas pressure explained via particle motion", "core"],
+      ["Pressure–temperature relationship (constant volume)", "core"],
+      ["Pressure–volume relationship (constant temp, p1V1=p2V2)", "core"],
+      ["Volume–temperature relationship (constant pressure)", "core"],
+      ["Apply gas law relationships to solve problems", "core"],
+      ["Ideal gas equation pV=nRT", "enrich"],
+    ]},
+    {sec:"Thermal Properties of Matter", weight:"CBA-1 · AA-PR · EYA", items:[
+      ["Internal energy: KE + PE of particles", "core"],
+      ["Heat capacity & specific heat capacity — define", "core"],
+      ["E = mcΔT — apply to problems", "core"],
+      ["Melting/solidification & boiling/condensation — no temp change", "core"],
+      ["Boiling vs evaporation — difference", "core"],
+      ["Latent heat & specific latent heat — define", "core"],
+      ["E = mL — apply to problems", "core"],
+      ["Latent heat in terms of particle behaviour", "core"],
+      ["Cooling curve — sketch & interpret", "core"],
+    ]},
+    {sec:"Static Electricity", weight:"CBA-2 · EYA", items:[
+      ["Positive/negative charge, unit coulomb", "core"],
+      ["Like repel, unlike attract", "core"],
+      ["Electric field as region of force", "core"],
+      ["Electric field of isolated point charge — draw", "core"],
+      ["Electric field pattern between two point charges", "core"],
+      ["Charging by rubbing — electron transfer", "core"],
+      ["Charging by induction — experiment", "core"],
+      ["Electrostatic hazards — examples", "core"],
+      ["Electrostatic precipitator application", "core"],
+      ["Electric potential at a point", "enrich"],
+    ]},
+    {sec:"Current of Electricity", weight:"CBA-2 · AA-PR · EYA", items:[
+      ["Current = rate of flow of charge", "core"],
+      ["Conventional current vs electron flow", "core"],
+      ["Q = It — apply to problems", "core"],
+      ["EMF: work done per unit charge by source", "core"],
+      ["Total EMF for sources in series", "core"],
+      ["Potential difference: work done per unit charge across component", "core"],
+      ["R = V/I", "core"],
+      ["Resistance ∝ length / cross-sectional area", "core"],
+      ["Temperature effect on metallic conductor resistance", "core"],
+      ["I/V characteristics: ohmic conductor, filament lamp, diode", "core"],
+      ["Internal resistance effects", "enrich"],
+    ]},
+    {sec:"D.C. Circuits", weight:"AA-PR · EYA", items:[
+      ["Draw circuit diagrams with standard components", "core"],
+      ["Series circuit: current same, p.d. sums", "core"],
+      ["Parallel circuit: current sums, p.d. same", "core"],
+      ["Effective resistance: series & parallel formulae", "core"],
+      ["Whole-circuit calculations combining relationships", "core"],
+      ["Potentiometer (variable potential divider) action", "core"],
+      ["NTC thermistors & LDRs as input transducers", "core"],
+      ["Solve circuit problems with thermistors/LDRs", "core"],
+    ]},
+    {sec:"Practical Electricity", weight:"EYA", items:[
+      ["Heating effect of electricity in appliances", "core"],
+      ["P = VI and E = VIt — apply to problems", "core"],
+      ["Cost of electricity in kWh", "core"],
+      ["Hazards: damaged insulation, overheating, damp conditions", "core"],
+      ["Fuses, circuit breakers & fuse ratings", "core"],
+      ["Earthing & double insulation", "core"],
+      ["Live, neutral, earth — mains plug wiring", "core"],
+      ["Why switches/fuses/breakers go on the live wire", "core"],
+    ]},
+    {sec:"Magnetism", weight:"EYA", items:[
+      ["Properties of magnets", "core"],
+      ["Induced magnetism near magnet/solenoid", "core"],
+      ["Magnetisation & demagnetisation methods", "core"],
+      ["Temporary vs permanent magnets", "core"],
+      ["Using a magnet to find field direction", "core"],
+      ["Magnetic field pattern: bar magnet & two bar magnets", "core"],
+    ]},
+    {sec:"Electromagnetism", weight:"EYA", items:[
+      ["Field pattern: straight wire & solenoid", "core"],
+      ["Effect of changing current magnitude/direction on field", "core"],
+      ["Electromagnets — application", "core"],
+      ["Force on current-carrying conductor in magnetic field", "core"],
+      ["Fleming's left-hand rule", "core"],
+      ["Force between parallel current-carrying conductors", "core"],
+      ["Turning effect on coil — increasing turns/current", "core"],
+      ["D.C. motor action & split-ring commutator", "core"],
+      ["Deflection of charged particle beams", "enrich"],
+    ]},
+    {sec:"Electromagnetic Induction", weight:"EYA", items:[
+      ["Faraday's experiments — changing field induces EMF", "core"],
+      ["Direction of induced EMF opposes change (Lenz's Law)", "core"],
+      ["Factors affecting magnitude of induced EMF", "core"],
+      ["Simple a.c. generator — structure & operation", "core"],
+      ["Voltage–time graph for a.c. generator", "core"],
+      ["Transformer structure & principle", "core"],
+      ["Vp/Vs = Np/Ns and VpIp = VsIs — apply to problems", "core"],
+      ["Energy loss in cables & advantage of high-voltage transmission", "core"],
+      ["Magnetic flux & weber", "enrich"],
+    ]},
+    {sec:"Radioactivity", weight:"EYA", items:[
+      ["Atomic structure: nucleus (protons+neutrons), electrons", "core"],
+      ["Nuclide notation, proton number Z, nucleon number A", "core"],
+      ["Nuclear decay — random & spontaneous", "core"],
+      ["Alpha, beta, gamma — nature, ionising effect, penetration", "core"],
+      ["Nuclide equations for radioactive emissions", "core"],
+      ["Background radiation sources", "core"],
+      ["Half-life — calculations from tables/decay curves", "core"],
+      ["Applications & hazards based on half-life/penetration/ionisation", "core"],
+      ["Nuclear fusion vs nuclear fission — energy release", "core"],
+      ["Mass defect", "enrich"],
+    ]},
+  ],
+  GEOG: [
+    {sec:"Natural Resources & Development", weight:"PPA1-CBA · EYA", items:[
+      ["Explain geographical concepts/phenomena/processes (AO1.1)", "core"],
+      ["Infer information from geographical data types (AO1.2)", "core"],
+      ["Analyse cause-effect relationships (AO2.1)", "core"],
+      ["Account for trends/patterns from data sources (AO2.2)", "core"],
+      ["Compare environments/events/places using criteria (AO3.1)", "core"],
+      ["Judge costs/benefits incl. sustainability importance (AO3.2)", "core"],
+      ["Argumentative essay: structure & multiple perspectives", "core"],
+    ]},
+    {sec:"Tourism Studies", weight:"PPA2-CBA · EYA", items:[
+      ["Tourism geographical field inquiry skills", "core"],
+      ["Structured data response on tourism data sources", "core"],
+      ["Costs/benefits of tourism — judgement with criteria", "core"],
+      ["Stakeholder viewpoints synthesis (AO3.3)", "core"],
+    ]},
+    {sec:"Spatial Variations in Development", weight:"EYA", items:[
+      ["Indicators of development — interpret data", "core"],
+      ["Spatial patterns of development — describe & explain", "core"],
+      ["Draw conclusions synthesising knowledge & evidence (AO3.3)", "core"],
+    ]},
+    {sec:"Poverty, Aid & Sustainable Development", weight:"EYA", items:[
+      ["Causes & cycle of poverty", "core"],
+      ["Types & effectiveness of aid", "core"],
+      ["Sustainable development strategies — propose & evaluate", "core"],
+      ["Evaluate reliability/validity of investigation findings (AO3.4)", "core"],
+    ]},
+    {sec:"Command Word Drill (cross-topic)", weight:"all papers", items:[
+      ["Account for — description + explanation", "core"],
+      ["Assess / Evaluate — both sides + conclusion", "core"],
+      ["Compare / Contrast — not two separate descriptions", "core"],
+      ["Justify — reasoned defence of a stance", "core"],
+      ["Discuss — analyse multiple viewpoints, supported conclusion", "core"],
+    ]},
+  ],
+  MA1: [{sec:"Custom Math 1 Syllabus", weight:"CBA2 · EYA", items:[]}],
+  MA2: [{sec:"Custom Math 2 Syllabus", weight:"CBA2 · EYA", items:[]}],
+  EL: [{sec:"Custom English Language Syllabus", weight:"AANR · EYA", items:[]}],
+  HCL: [{sec:"Custom HCL Syllabus", weight:"Oral · EYA · O-Levels", items:[]}],
+  INA: [{sec:"Custom Inquiry & Advocacy Tasks", weight:"AA · EYA", items:[]}],
+  SPA: [{sec:"Custom Spanish Syllabus", weight:"Oral · Writing · LC · Reading · O-Levels", items:[]}],
+};
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
+function slugify(str){
+  return String(str || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g,"-")
+    .replace(/(^-|-$)/g,"")
+    .slice(0,70) || "item";
+}
+function makeId(prefix){ return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,8)}`; }
+function escapeHtml(value){
+  return String(value ?? "").replace(/[&<>'"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[ch]));
+}
+function parseDate(dateStr){ return new Date(`${dateStr}T00:00:00`); }
+function startOfDay(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+function today(){ return startOfDay(new Date()); }
+function fmtDate(d){ return d.toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short', year:'numeric'}); }
+function fmtShortDate(d){ return d.toLocaleDateString('en-GB', {weekday:'short', day:'2-digit', month:'short'}); }
+function daysBetween(a,b){ return Math.round((startOfDay(b) - startOfDay(a))/86400000); }
+function subjectName(code){ return SUBJECTS[code]?.name || code || "Other"; }
+function sortedExams(exams = state.exams){
+  return [...(exams || [])].sort((a,b)=>{
+    const byDate = parseDate(a.date) - parseDate(b.date);
+    if(byDate !== 0) return byDate;
+    return String(a.name).localeCompare(String(b.name));
+  });
+}
+
+function normaliseExams(raw){
+  return (raw || []).filter(e => e && e.date && e.name).map((e, idx)=>({
+    id: e.id || `exam_${slugify(e.date)}_${slugify(e.name)}_${idx}`,
+    date: e.date,
+    name: e.name,
+    subj: SUBJECTS[e.subj] ? e.subj : "INA",
+  }));
+}
+function normaliseTopics(raw){
+  const out = {};
+  Object.keys(SUBJECTS).forEach(code => {
+    const sections = raw && raw[code] ? raw[code] : [];
+    out[code] = sections.map((s, si)=>{
+      const title = s.sec || s.title || `Section ${si+1}`;
+      return {
+        id: s.id || `sec_${slugify(code)}_${slugify(title)}_${si}`,
+        sec: title,
+        weight: s.weight || "",
+        items: (s.items || []).map((item, ii)=>{
+          if(Array.isArray(item)){
+            return {id:`topic_${slugify(code)}_${slugify(title)}_${slugify(item[0])}_${ii}`, text:item[0] || "Untitled topic", tag:item[1] === "enrich" ? "enrich" : "core"};
+          }
+          return {id:item.id || `topic_${slugify(code)}_${slugify(title)}_${slugify(item.text)}_${ii}`, text:item.text || "Untitled topic", tag:item.tag === "enrich" ? "enrich" : "core"};
+        })
+      };
+    });
+  });
+  return out;
+}
+
+function defaultState(){
+  return {
+    exams: normaliseExams(DEFAULT_EXAMS_RAW),
+    topics: normaliseTopics(DEFAULT_TOPICS_RAW),
+    checkedTopics: {},
+    goals: [],
+    weekPlan: {},
+    selectedSubject: "BIO",
+    calYear: null,
+    calMonth: null,
+    lastSavedISO: null,
+  };
+}
+
+function loadState(){
+  const base = defaultState();
+  try{
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+    if(!saved || typeof saved !== "object") return base;
+    const merged = {
+      ...base,
+      ...saved,
+      exams: normaliseExams(saved.exams || base.exams),
+      topics: normaliseTopics(saved.topics || base.topics),
+      checkedTopics: saved.checkedTopics || {},
+      goals: Array.isArray(saved.goals) ? saved.goals : [],
+      weekPlan: saved.weekPlan || {},
+    };
+    Object.keys(SUBJECTS).forEach(code=>{ if(!merged.topics[code]) merged.topics[code] = []; });
+    return merged;
+  }catch(err){
+    console.warn("Could not load saved dashboard data", err);
+    return base;
+  }
+}
+
+let state = loadState();
+let editingExamId = null;
+let supabaseClient = null;
+let authUser = null;
+let cloudReady = false;
+let cloudSaveTimer = null;
+
+function supabaseIsConfigured(){
+  return Boolean(
+    SUPABASE_URL &&
+    SUPABASE_ANON_KEY &&
+    !SUPABASE_URL.includes("YOUR_") &&
+    !SUPABASE_ANON_KEY.includes("YOUR_")
+  );
+}
+
+function normaliseImportedState(imported){
+  const base = defaultState();
+  return {
+    ...base,
+    ...imported,
+    exams: normaliseExams(imported.exams || base.exams),
+    topics: normaliseTopics(imported.topics || base.topics),
+    checkedTopics: imported.checkedTopics || {},
+    goals: Array.isArray(imported.goals) ? imported.goals : [],
+    weekPlan: imported.weekPlan || {},
+  };
+}
+
+function setAuthStatus(message, isError = false){
+  const el = document.getElementById('authStatus');
+  if(!el) return;
+  el.textContent = message || "";
+  el.classList.toggle('error', isError);
+}
+
+function showAuthScreen(show){
+  document.body.classList.toggle('auth-locked', show);
+  document.getElementById('authScreen')?.classList.toggle('hidden', !show);
+}
+
+function setAccountUI(){
+  const email = authUser?.email || "";
+  const accountEl = document.getElementById('accountEmail');
+  const logoutBtn = document.getElementById('logoutBtn');
+  if(accountEl) accountEl.textContent = email ? `signed in: ${email}` : "local mode";
+  if(logoutBtn) logoutBtn.classList.toggle('hidden', !authUser);
+}
+
+function scheduleCloudSave(){
+  if(!cloudReady || !authUser || !supabaseClient) return;
+  clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = setTimeout(()=> saveStateToCloud(), 650);
+}
+
+async function saveStateToCloud(){
+  if(!cloudReady || !authUser || !supabaseClient) return;
+  const payload = {
+    user_id: authUser.id,
+    email: authUser.email,
+    data: state,
+    updated_at: new Date().toISOString(),
+  };
+  const {error} = await supabaseClient.from('user_progress').upsert(payload, {onConflict:'user_id'});
+  if(error){
+    console.warn("Could not sync progress to Supabase", error);
+    setAuthStatus("Saved locally, but cloud sync failed. Check the Supabase table/RLS setup.", true);
+  }
+}
+
+function saveState(){
+  state.lastSavedISO = new Date().toISOString();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  updateSaveStamps();
+  scheduleCloudSave();
+}
+function updateSaveStamps(){
+  const target = authUser ? "account" : "this browser";
+  const text = state.lastSavedISO ? "saved to " + target + " " + new Date(state.lastSavedISO).toLocaleString('en-GB', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'}) : "not saved yet";
+  ["saveStamp", "editSaveStamp"].forEach(id=>{ const el = document.getElementById(id); if(el) el.textContent = text; });
+}
+
+async function loadCloudState(){
+  if(!authUser || !supabaseClient) return;
+  setAuthStatus("Loading your saved progress...");
+  const {data, error} = await supabaseClient
+    .from('user_progress')
+    .select('data, updated_at')
+    .eq('user_id', authUser.id)
+    .maybeSingle();
+  if(error){
+    console.warn("Could not load cloud progress", error);
+    setAuthStatus("Could not load cloud progress. Using local progress for now.", true);
+    return;
+  }
+  if(data?.data){
+    state = normaliseImportedState(data.data);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } else {
+    await saveStateToCloud();
+  }
+  setAuthStatus("");
+}
+
+async function handleSignedIn(user){
+  authUser = user;
+  cloudReady = true;
+  setAccountUI();
+  showAuthScreen(false);
+  await loadCloudState();
+  ensureCalendarMonth();
+  renderAll();
+}
+
+async function initAuth(){
+  setAccountUI();
+  if(!supabaseIsConfigured()){
+    cloudReady = false;
+    authUser = null;
+    showAuthScreen(false);
+    setAccountUI();
+    renderAll();
+    return;
+  }
+  if(!window.supabase){
+    showAuthScreen(false);
+    renderAll();
+    alert("Supabase could not load. Check your internet connection or CDN settings.");
+    return;
+  }
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const {data:{session}} = await supabaseClient.auth.getSession();
+  supabaseClient.auth.onAuthStateChange((_event, session)=>{
+    if(session?.user){
+      handleSignedIn(session.user);
+    } else {
+      authUser = null;
+      cloudReady = false;
+      setAccountUI();
+      showAuthScreen(true);
+    }
+  });
+  if(session?.user){
+    await handleSignedIn(session.user);
+  } else {
+    showAuthScreen(true);
+    setAuthStatus("Create an account or log in to start syncing progress.");
+  }
+}
+
+async function loginWithEmail(){
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  if(!email || !password){ setAuthStatus("Add your email and password first.", true); return; }
+  setAuthStatus("Logging in...");
+  const {error} = await supabaseClient.auth.signInWithPassword({email, password});
+  if(error) setAuthStatus(error.message, true);
+}
+
+async function signupWithEmail(){
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  if(!email || !password){ setAuthStatus("Add your email and password first.", true); return; }
+  if(password.length < 6){ setAuthStatus("Use at least 6 characters for the password.", true); return; }
+  setAuthStatus("Creating account...");
+  const {error} = await supabaseClient.auth.signUp({email, password});
+  if(error){
+    setAuthStatus(error.message, true);
+  } else {
+    setAuthStatus("Account created. Check your email if Supabase asks for confirmation, then log in.");
+  }
+}
+
+async function logout(){
+  if(supabaseClient) await supabaseClient.auth.signOut();
+}
+
+/* ============================================================
+   TAB SWITCHING
+   ============================================================ */
+function openTab(tabName){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab === tabName));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active', p.id === `panel-${tabName}`));
+  if(tabName === "edit") renderEditor();
+}
+document.querySelectorAll('.tab').forEach(tab=> tab.addEventListener('click', ()=> openTab(tab.dataset.tab)));
+document.querySelectorAll('[data-go-tab]').forEach(btn=> btn.addEventListener('click', ()=> openTab(btn.dataset.goTab)));
+
+/* ============================================================
+   OVERVIEW RENDER
+   ============================================================ */
+function getFutureExams(){
+  const todayDate = today();
+  return sortedExams()
+    .map(e=>({...e, dateObj:parseDate(e.date)}))
+    .filter(e=>daysBetween(todayDate,e.dateObj) >= 0);
+}
+
+function renderOverview(){
+  const todayDate = today();
+  document.getElementById('todayStamp').textContent = "TODAY · " + todayDate.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}).toUpperCase();
+
+  const future = getFutureExams();
+  const next = future[0];
+  if(next){
+    document.getElementById('nextExamName').textContent = next.name;
+    document.getElementById('nextExamDate').textContent = fmtDate(next.dateObj);
+    document.getElementById('countDays').textContent = daysBetween(todayDate, next.dateObj);
+  } else {
+    document.getElementById('nextExamName').textContent = "No upcoming items";
+    document.getElementById('nextExamDate').textContent = "Add a new exam or deadline in Edit Data";
+    document.getElementById('countDays').textContent = "—";
+  }
+
+  const upnextWrap = document.getElementById('upnextList');
+  upnextWrap.innerHTML = "";
+  if(future.length === 0){
+    upnextWrap.innerHTML = `<div class="empty-state" style="color:var(--paper); opacity:.6;">No upcoming exams/deadlines.</div>`;
+  }
+  future.slice(0,6).forEach(e=>{
+    const d = daysBetween(todayDate, e.dateObj);
+    const row = document.createElement('div');
+    row.className = 'upnext-row';
+    row.innerHTML = `<span class="upnext-name">${escapeHtml(e.name)}</span>
+      <span><span class="upnext-date mono">${e.dateObj.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</span>
+      <span class="upnext-days">T-${d}</span></span>`;
+    upnextWrap.appendChild(row);
+  });
+
+  const totalExams = state.exams.length;
+  const doneExams = totalExams - future.length;
+  const olevelCount = state.exams.filter(e=>e.name.toUpperCase().includes("O-LEVEL")).length;
+  const eyaCount = state.exams.filter(e=>e.name.toUpperCase().includes("EYA")).length;
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat"><div class="stat-num disp">${future.length}</div><div class="stat-lbl mono">Items remaining</div></div>
+    <div class="stat"><div class="stat-num disp">${eyaCount}</div><div class="stat-lbl mono">EYA papers</div></div>
+    <div class="stat"><div class="stat-num disp">${olevelCount}</div><div class="stat-lbl mono">O-Level items</div></div>
+    <div class="stat"><div class="stat-num disp">${doneExams}</div><div class="stat-lbl mono">Items passed</div></div>
+  `;
+
+  renderSubjGrid('overviewSubjGrid');
+}
+
+/* ============================================================
+   SUBJECT GRID + STUDY TRACKER
+   ============================================================ */
+function subjectProgress(subj){
+  const secs = state.topics[subj] || [];
+  let done=0, total=0;
+  secs.forEach(sec=>{
+    (sec.items || []).forEach(item=>{
+      total++;
+      if(state.checkedTopics[`${subj}_${sec.id}_${item.id}`]) done++;
+    });
+  });
+  return {done, total, pct: total? Math.round(done/total*100):0};
+}
+
+function renderSubjGrid(elId){
+  const wrap = document.getElementById(elId);
+  wrap.innerHTML = "";
+  Object.keys(SUBJECTS).forEach(code=>{
+    const sub = SUBJECTS[code];
+    const prog = subjectProgress(code);
+    const card = document.createElement('div');
+    card.className = 'subj-card' + (state.selectedSubject===code && elId==='studySubjGrid' ? ' selected':'');
+    card.innerHTML = `
+      <div>
+        <div class="subj-code mono">${escapeHtml(code)}</div>
+        <div class="subj-name">${escapeHtml(sub.name)}</div>
+      </div>
+      <div>
+        <div class="subj-bar-track"><div class="subj-bar-fill" style="width:${prog.pct}%"></div></div>
+        <div class="subj-pct mono">${prog.done}/${prog.total} topics · ${prog.total ? prog.pct + "%" : "add topics"}</div>
+      </div>
+    `;
+    card.addEventListener('click', ()=>{
+      state.selectedSubject = code;
+      saveState();
+      openTab('study');
+      renderStudyTab();
+    });
+    wrap.appendChild(card);
+  });
+}
+
+function renderStudyTab(){
+  renderSubjGrid('studySubjGrid');
+  const wrap = document.getElementById('topicSectionsWrap');
+  wrap.innerHTML = "";
+  const subj = state.selectedSubject;
+  const secs = state.topics[subj] || [];
+  if(secs.length === 0){
+    wrap.innerHTML = `<div class="empty-state">No sections yet for ${escapeHtml(subjectName(subj))}. Use Edit Data to add one.</div>`;
+    return;
+  }
+  secs.forEach(sec=>{
+    let doneCount=0;
+    (sec.items || []).forEach(item=>{ if(state.checkedTopics[`${subj}_${sec.id}_${item.id}`]) doneCount++; });
+    const section = document.createElement('div');
+    section.className = 'topic-section';
+    section.style.marginBottom = '14px';
+    section.innerHTML = `
+      <div class="topic-section-head">
+        <div class="topic-section-title">${escapeHtml(sec.sec)}</div>
+        <div class="topic-section-meta">${doneCount}/${(sec.items || []).length} done${sec.weight ? " · assessed in " + escapeHtml(sec.weight) : ""}</div>
+      </div>
+      <div class="topic-list"></div>
+    `;
+    const list = section.querySelector('.topic-list');
+    if(!sec.items || sec.items.length === 0){
+      list.innerHTML = `<div class="empty-state">This section is empty — add topics in Edit Data.</div>`;
+    } else {
+      sec.items.forEach(item=>{
+        const key = `${subj}_${sec.id}_${item.id}`;
+        const checked = !!state.checkedTopics[key];
+        const row = document.createElement('div');
+        row.className = 'topic-row clickable' + (checked ? ' done':'');
+        row.innerHTML = `
+          <div class="topic-check ${checked?'checked':''}">${checked?'✓':''}</div>
+          <div class="topic-text">${escapeHtml(item.text)}</div>
+          <div class="topic-tag ${item.tag==='core'?'tag-core':'tag-enrich'}">${item.tag==='core'?'core':'enrich'}</div>
+        `;
+        row.addEventListener('click', ()=>{
+          state.checkedTopics[key] = !state.checkedTopics[key];
+          saveState();
+          renderAll();
+        });
+        list.appendChild(row);
+      });
+    }
+    wrap.appendChild(section);
+  });
+}
+
+function quickAddTopic(){
+  const subj = state.selectedSubject;
+  if(!state.topics[subj]) state.topics[subj] = [];
+  if(state.topics[subj].length === 0){
+    state.topics[subj].push({id:makeId('sec'), sec:`Custom ${subjectName(subj)} Syllabus`, weight:"", items:[]});
+  }
+  const text = prompt(`Add a topic to ${subjectName(subj)}:`, "");
+  if(!text || !text.trim()) return;
+  state.topics[subj][0].items.push({id:makeId('topic'), text:text.trim(), tag:"core"});
+  saveState();
+  renderAll();
+}
+
+/* ============================================================
+   CALENDAR TAB
+   ============================================================ */
+function setCalendarToNextExam(){
+  const next = getFutureExams()[0];
+  const d = next ? next.dateObj : today();
+  state.calYear = d.getFullYear();
+  state.calMonth = d.getMonth();
+}
+function ensureCalendarMonth(){
+  if(typeof state.calYear !== "number" || typeof state.calMonth !== "number") setCalendarToNextExam();
+}
+function renderCalendar(){
+  ensureCalendarMonth();
+  const year = state.calYear, month = state.calMonth;
+  const view = new Date(year, month, 1);
+  document.getElementById('calMonthLabel').textContent = view.toLocaleDateString('en-GB',{month:'long', year:'numeric'});
+
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = "";
+  ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(d=>{
+    const el = document.createElement('div');
+    el.className = 'cal-dow mono';
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+
+  const firstDay = new Date(year, month, 1);
+  let startOffset = firstDay.getDay()-1; // Mon=0
+  if(startOffset<0) startOffset=6;
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const todayDate = today();
+
+  const examsByDate = {};
+  sortedExams().forEach(e=>{
+    examsByDate[e.date] = examsByDate[e.date] || [];
+    examsByDate[e.date].push(e);
+  });
+
+  for(let i=0;i<startOffset;i++){
+    const c = document.createElement('div');
+    c.className = 'cal-cell empty';
+    grid.appendChild(c);
+  }
+  for(let d=1; d<=daysInMonth; d++){
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const cellDate = new Date(year, month, d);
+    const cell = document.createElement('div');
+    const isToday = daysBetween(todayDate, cellDate) === 0;
+    cell.className = 'cal-cell' + (isToday?' today':'');
+    let html = `<div class="cal-daynum">${d}</div>`;
+    (examsByDate[dateStr]||[]).forEach(e=>{
+      html += `<div class="cal-event" title="${escapeHtml(e.name)}">${escapeHtml(e.subj)} — ${escapeHtml(e.name)}</div>`;
+    });
+    cell.innerHTML = html;
+    grid.appendChild(cell);
+  }
+
+  const listWrap = document.getElementById('fullListWrap');
+  const all = sortedExams().map(e=>({...e, dateObj:parseDate(e.date)}));
+  if(all.length === 0){
+    listWrap.innerHTML = `<div class="empty-state">No exams yet — add one in Edit Data.</div>`;
+    return;
+  }
+  listWrap.innerHTML = `<div class="topic-section"><div class="topic-list">` +
+    all.map(e=>{
+      const past = daysBetween(todayDate,e.dateObj) < 0;
+      const days = daysBetween(todayDate,e.dateObj);
+      return `<div class="topic-row" style="${past?'opacity:.4':''}">
+        <div class="topic-text"><strong>${fmtShortDate(e.dateObj)}</strong> — ${escapeHtml(e.name)}</div>
+        <div class="topic-tag" style="background:var(--ink-dim);color:var(--ink)">${escapeHtml(e.subj)} · ${past ? "done" : "T-" + days}</div>
+      </div>`;
+    }).join('') + `</div></div>`;
+}
+
+/* ============================================================
+   GOALS TAB
+   ============================================================ */
+function renderGoals(){
+  const wrap = document.getElementById('goalList');
+  if(state.goals.length===0){
+    wrap.innerHTML = `<div class="empty-state">No goals yet — add your first one above.</div>`;
+  } else {
+    wrap.innerHTML = "";
+    state.goals.forEach((g, idx)=>{
+      const row = document.createElement('div');
+      row.className = 'goal-row';
+      row.innerHTML = `
+        <div class="topic-check ${g.done?'checked':''}" style="cursor:pointer">${g.done?'✓':''}</div>
+        <div class="goal-text ${g.done?'done':''}">${escapeHtml(g.text)}</div>
+        <div class="goal-del mono" style="cursor:pointer">remove</div>
+      `;
+      row.querySelector('.topic-check').addEventListener('click', ()=>{ g.done=!g.done; saveState(); renderGoals(); renderOverview(); });
+      row.querySelector('.goal-del').addEventListener('click', ()=>{ state.goals.splice(idx,1); saveState(); renderGoals(); renderOverview(); });
+      wrap.appendChild(row);
+    });
+  }
+}
+function addGoal(){
+  const input = document.getElementById('goalInput');
+  const val = input.value.trim();
+  if(!val) return;
+  state.goals.push({text:val, done:false});
+  input.value = "";
+  saveState();
+  renderGoals();
+}
+
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+function renderWeekPlan(){
+  const wrap = document.getElementById('weekGrid');
+  wrap.innerHTML = "";
+  DAYS.forEach(day=>{
+    const col = document.createElement('div');
+    col.className = 'week-day';
+    const slots = state.weekPlan[day] || ["","",""];
+    col.innerHTML = `<div class="week-day-name mono">${day}</div>` +
+      slots.map((s,i)=>`<div class="week-slot ${s?'filled':'empty-slot'}" data-day="${day}" data-idx="${i}">${escapeHtml(s || '+ add')}</div>`).join('');
+    wrap.appendChild(col);
+  });
+  wrap.querySelectorAll('.week-slot').forEach(slot=>{
+    slot.addEventListener('click', ()=>{
+      const day = slot.dataset.day, idx = +slot.dataset.idx;
+      const current = (state.weekPlan[day]||["","",""])[idx] || "";
+      const val = prompt("What's the study task for "+day+"?", current);
+      if(val !== null){
+        if(!state.weekPlan[day]) state.weekPlan[day] = ["","",""];
+        state.weekPlan[day][idx] = val.trim();
+        saveState();
+        renderWeekPlan();
+      }
+    });
+  });
+}
+
+/* ============================================================
+   EDITOR TAB
+   ============================================================ */
+function populateSubjectSelects(){
+  const options = Object.keys(SUBJECTS).map(code => `<option value="${code}">${code} — ${escapeHtml(SUBJECTS[code].name)}</option>`).join('');
+  ["examSubjectInput", "topicSubjectSelect"].forEach(id=>{
+    const select = document.getElementById(id);
+    if(select && select.innerHTML !== options) select.innerHTML = options;
+  });
+  const topicSelect = document.getElementById('topicSubjectSelect');
+  if(topicSelect) topicSelect.value = state.selectedSubject;
+}
+
+function resetExamForm(){
+  editingExamId = null;
+  document.getElementById('examDateInput').value = "";
+  document.getElementById('examSubjectInput').value = state.selectedSubject || "BIO";
+  document.getElementById('examNameInput').value = "";
+  document.getElementById('examSaveBtn').textContent = "+ Add exam";
+  document.getElementById('examCancelBtn').classList.add('hidden');
+}
+function saveExamFromForm(){
+  const date = document.getElementById('examDateInput').value;
+  const subj = document.getElementById('examSubjectInput').value;
+  const name = document.getElementById('examNameInput').value.trim();
+  if(!date || !name){
+    alert("Add both a date and an exam/deadline name.");
+    return;
+  }
+  if(editingExamId){
+    const ex = state.exams.find(e=>e.id === editingExamId);
+    if(ex){ ex.date = date; ex.subj = subj; ex.name = name; }
+  } else {
+    state.exams.push({id:makeId('exam'), date, subj, name});
+  }
+  saveState();
+  resetExamForm();
+  renderAll();
+  openTab('edit');
+}
+function editExam(id){
+  const ex = state.exams.find(e=>e.id === id);
+  if(!ex) return;
+  editingExamId = id;
+  document.getElementById('examDateInput').value = ex.date;
+  document.getElementById('examSubjectInput').value = ex.subj;
+  document.getElementById('examNameInput').value = ex.name;
+  document.getElementById('examSaveBtn').textContent = "Save changes";
+  document.getElementById('examCancelBtn').classList.remove('hidden');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function deleteExam(id){
+  const ex = state.exams.find(e=>e.id === id);
+  if(!ex) return;
+  if(!confirm(`Delete “${ex.name}”?`)) return;
+  state.exams = state.exams.filter(e=>e.id !== id);
+  saveState();
+  renderAll();
+  openTab('edit');
+}
+function renderExamEditor(){
+  const wrap = document.getElementById('examEditorList');
+  const all = sortedExams();
+  if(all.length === 0){
+    wrap.innerHTML = `<div class="empty-state">No exams yet.</div>`;
+    return;
+  }
+  wrap.innerHTML = "";
+  all.forEach(ex=>{
+    const item = document.createElement('div');
+    item.className = 'editor-item';
+    const dateObj = parseDate(ex.date);
+    item.innerHTML = `
+      <div class="editor-main">
+        <div class="editor-item-title">${escapeHtml(ex.name)}</div>
+        <div class="editor-item-meta">${fmtDate(dateObj)} · ${escapeHtml(ex.subj)} · ${escapeHtml(subjectName(ex.subj))}</div>
+      </div>
+      <div class="inline-actions">
+        <button class="mini-btn" data-edit-exam="${escapeHtml(ex.id)}">edit</button>
+        <button class="mini-btn danger" data-del-exam="${escapeHtml(ex.id)}">delete</button>
+      </div>`;
+    wrap.appendChild(item);
+  });
+  wrap.querySelectorAll('[data-edit-exam]').forEach(btn=> btn.addEventListener('click', ()=> editExam(btn.dataset.editExam)));
+  wrap.querySelectorAll('[data-del-exam]').forEach(btn=> btn.addEventListener('click', ()=> deleteExam(btn.dataset.delExam)));
+}
+
+function addSection(){
+  const subj = document.getElementById('topicSubjectSelect').value;
+  const title = document.getElementById('sectionTitleInput').value.trim();
+  const weight = document.getElementById('sectionWeightInput').value.trim();
+  if(!title){ alert("Add a section title first."); return; }
+  if(!state.topics[subj]) state.topics[subj] = [];
+  state.topics[subj].push({id:makeId('sec'), sec:title, weight, items:[]});
+  state.selectedSubject = subj;
+  document.getElementById('sectionTitleInput').value = "";
+  document.getElementById('sectionWeightInput').value = "";
+  saveState();
+  renderAll();
+  openTab('edit');
+}
+function editSection(subj, secId){
+  const sec = (state.topics[subj] || []).find(s=>s.id === secId);
+  if(!sec) return;
+  const title = prompt("Section title:", sec.sec);
+  if(title === null) return;
+  const weight = prompt("Assessed in / notes:", sec.weight || "");
+  if(weight === null) return;
+  sec.sec = title.trim() || sec.sec;
+  sec.weight = weight.trim();
+  saveState();
+  renderAll();
+  openTab('edit');
+}
+function deleteSection(subj, secId){
+  const sec = (state.topics[subj] || []).find(s=>s.id === secId);
+  if(!sec) return;
+  if(!confirm(`Delete section “${sec.sec}” and all topics inside it?`)) return;
+  (sec.items || []).forEach(item => delete state.checkedTopics[`${subj}_${sec.id}_${item.id}`]);
+  state.topics[subj] = (state.topics[subj] || []).filter(s=>s.id !== secId);
+  saveState();
+  renderAll();
+  openTab('edit');
+}
+function addTopicToSection(subj, secId, inputEl, tagEl){
+  const text = inputEl.value.trim();
+  if(!text){ alert("Type a topic first."); return; }
+  const sec = (state.topics[subj] || []).find(s=>s.id === secId);
+  if(!sec) return;
+  sec.items.push({id:makeId('topic'), text, tag: tagEl.value === "enrich" ? "enrich" : "core"});
+  inputEl.value = "";
+  saveState();
+  renderAll();
+  openTab('edit');
+}
+function editTopic(subj, secId, topicId){
+  const sec = (state.topics[subj] || []).find(s=>s.id === secId);
+  const topic = sec?.items?.find(t=>t.id === topicId);
+  if(!topic) return;
+  const text = prompt("Topic text:", topic.text);
+  if(text === null) return;
+  const tag = prompt("Tag: core or enrich", topic.tag || "core");
+  if(tag === null) return;
+  topic.text = text.trim() || topic.text;
+  topic.tag = tag.trim().toLowerCase() === "enrich" ? "enrich" : "core";
+  saveState();
+  renderAll();
+  openTab('edit');
+}
+function deleteTopic(subj, secId, topicId){
+  const sec = (state.topics[subj] || []).find(s=>s.id === secId);
+  const topic = sec?.items?.find(t=>t.id === topicId);
+  if(!topic) return;
+  if(!confirm(`Delete topic “${topic.text}”?`)) return;
+  delete state.checkedTopics[`${subj}_${secId}_${topicId}`];
+  sec.items = sec.items.filter(t=>t.id !== topicId);
+  saveState();
+  renderAll();
+  openTab('edit');
+}
+function renderSyllabusEditor(){
+  const subj = document.getElementById('topicSubjectSelect').value || state.selectedSubject;
+  state.selectedSubject = subj;
+  const wrap = document.getElementById('syllabusEditorWrap');
+  const secs = state.topics[subj] || [];
+  if(secs.length === 0){
+    wrap.innerHTML = `<div class="empty-state">No sections yet for ${escapeHtml(subjectName(subj))}. Add one above.</div>`;
+    return;
+  }
+  wrap.innerHTML = "";
+  secs.forEach(sec=>{
+    const div = document.createElement('div');
+    div.className = 'section-editor';
+    div.innerHTML = `
+      <div class="section-editor-head">
+        <div>
+          <div class="topic-section-title">${escapeHtml(sec.sec)}</div>
+          <div class="topic-section-meta">${(sec.items || []).length} topics${sec.weight ? " · " + escapeHtml(sec.weight) : ""}</div>
+        </div>
+        <div class="section-tools">
+          <button class="mini-btn" data-edit-section="${escapeHtml(sec.id)}">edit section</button>
+          <button class="mini-btn" data-delete-section="${escapeHtml(sec.id)}">delete section</button>
+        </div>
+      </div>
+      <div class="add-topic-bar">
+        <input class="text-input" data-topic-input="${escapeHtml(sec.id)}" placeholder="Add topic under ${escapeHtml(sec.sec)}">
+        <select class="select-input" data-topic-tag="${escapeHtml(sec.id)}"><option value="core">core</option><option value="enrich">enrich</option></select>
+        <button class="mini-btn primary" data-add-topic="${escapeHtml(sec.id)}">+ Add topic</button>
+      </div>
+      <div class="topic-list"></div>
+    `;
+    const list = div.querySelector('.topic-list');
+    if(!sec.items || sec.items.length === 0){
+      list.innerHTML = `<div class="empty-state">No topics in this section yet.</div>`;
+    } else {
+      sec.items.forEach(topic=>{
+        const row = document.createElement('div');
+        row.className = 'editor-item';
+        row.innerHTML = `
+          <div class="editor-main">
+            <div class="editor-item-title">${escapeHtml(topic.text)}</div>
+            <div class="editor-item-meta">${escapeHtml(topic.tag || "core")}</div>
+          </div>
+          <div class="inline-actions">
+            <button class="mini-btn" data-edit-topic="${escapeHtml(sec.id)}|${escapeHtml(topic.id)}">edit</button>
+            <button class="mini-btn danger" data-delete-topic="${escapeHtml(sec.id)}|${escapeHtml(topic.id)}">delete</button>
+          </div>`;
+        list.appendChild(row);
+      });
+    }
+    wrap.appendChild(div);
+  });
+
+  wrap.querySelectorAll('[data-edit-section]').forEach(btn=> btn.addEventListener('click', ()=> editSection(subj, btn.dataset.editSection)));
+  wrap.querySelectorAll('[data-delete-section]').forEach(btn=> btn.addEventListener('click', ()=> deleteSection(subj, btn.dataset.deleteSection)));
+  wrap.querySelectorAll('[data-add-topic]').forEach(btn=> btn.addEventListener('click', ()=>{
+    const secId = btn.dataset.addTopic;
+    addTopicToSection(subj, secId, wrap.querySelector(`[data-topic-input="${CSS.escape(secId)}"]`), wrap.querySelector(`[data-topic-tag="${CSS.escape(secId)}"]`));
+  }));
+  wrap.querySelectorAll('[data-topic-input]').forEach(input=> input.addEventListener('keydown', e=>{
+    if(e.key === 'Enter'){
+      const secId = input.dataset.topicInput;
+      addTopicToSection(subj, secId, input, wrap.querySelector(`[data-topic-tag="${CSS.escape(secId)}"]`));
+    }
+  }));
+  wrap.querySelectorAll('[data-edit-topic]').forEach(btn=> btn.addEventListener('click', ()=>{
+    const [secId, topicId] = btn.dataset.editTopic.split('|');
+    editTopic(subj, secId, topicId);
+  }));
+  wrap.querySelectorAll('[data-delete-topic]').forEach(btn=> btn.addEventListener('click', ()=>{
+    const [secId, topicId] = btn.dataset.deleteTopic.split('|');
+    deleteTopic(subj, secId, topicId);
+  }));
+}
+function renderEditor(){
+  populateSubjectSelects();
+  renderExamEditor();
+  renderSyllabusEditor();
+}
+
+/* ============================================================
+   BACKUP / IMPORT / RESET
+   ============================================================ */
+function exportBackup(){
+  const payload = JSON.stringify(state, null, 2);
+  const blob = new Blob([payload], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `exam-control-backup-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+function importBackup(file){
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const imported = JSON.parse(reader.result);
+      if(!imported || !Array.isArray(imported.exams) || !imported.topics){
+        alert("That backup file does not look like a valid Exam Control backup.");
+        return;
+      }
+      state = normaliseImportedState(imported);
+      saveState();
+      renderAll();
+      openTab('overview');
+      alert("Backup imported.");
+    }catch(err){
+      alert("Could not import that JSON file.");
+    }
+  };
+  reader.readAsText(file);
+}
+function resetDefaults(){
+  if(!confirm("Reset everything to the default exam timetable and starter syllabus? This clears your saved checks, edits, goals, and weekly plan.")) return;
+  localStorage.removeItem(STORAGE_KEY);
+  state = defaultState();
+  saveState();
+  resetExamForm();
+  setCalendarToNextExam();
+  renderAll();
+  openTab('overview');
+}
+
+/* ============================================================
+   EVENT LISTENERS
+   ============================================================ */
+document.getElementById('prevMonth').addEventListener('click', ()=>{
+  ensureCalendarMonth();
+  const d = new Date(state.calYear, state.calMonth-1, 1);
+  state.calYear = d.getFullYear(); state.calMonth = d.getMonth();
+  saveState(); renderCalendar();
+});
+document.getElementById('nextMonth').addEventListener('click', ()=>{
+  ensureCalendarMonth();
+  const d = new Date(state.calYear, state.calMonth+1, 1);
+  state.calYear = d.getFullYear(); state.calMonth = d.getMonth();
+  saveState(); renderCalendar();
+});
+document.getElementById('jumpNextExam').addEventListener('click', ()=>{ setCalendarToNextExam(); saveState(); renderCalendar(); });
+document.getElementById('goalAddBtn').addEventListener('click', addGoal);
+document.getElementById('goalInput').addEventListener('keydown', e=>{ if(e.key==='Enter') addGoal(); });
+document.getElementById('quickAddTopicBtn').addEventListener('click', quickAddTopic);
+document.getElementById('examSaveBtn').addEventListener('click', saveExamFromForm);
+document.getElementById('examCancelBtn').addEventListener('click', resetExamForm);
+document.getElementById('sectionAddBtn').addEventListener('click', addSection);
+document.getElementById('topicSubjectSelect').addEventListener('change', e=>{ state.selectedSubject = e.target.value; saveState(); renderAll(); openTab('edit'); });
+document.getElementById('exportBtn').addEventListener('click', exportBackup);
+document.getElementById('importInput').addEventListener('change', e=>{ if(e.target.files?.[0]) importBackup(e.target.files[0]); e.target.value = ""; });
+document.getElementById('resetBtn').addEventListener('click', resetDefaults);
+document.getElementById('loginBtn').addEventListener('click', loginWithEmail);
+document.getElementById('signupBtn').addEventListener('click', signupWithEmail);
+document.getElementById('logoutBtn').addEventListener('click', logout);
+["authEmail", "authPassword"].forEach(id=>{
+  document.getElementById(id).addEventListener('keydown', e=>{ if(e.key === 'Enter') loginWithEmail(); });
+});
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function renderAll(){
+  updateSaveStamps();
+  populateSubjectSelects();
+  renderOverview();
+  renderCalendar();
+  renderStudyTab();
+  renderGoals();
+  renderWeekPlan();
+  renderExamEditor();
+  renderSyllabusEditor();
+}
+ensureCalendarMonth();
+initAuth();
+</script>
+</body>
+</html>
