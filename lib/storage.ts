@@ -5,11 +5,12 @@ import { officialAssessments, officialSubjects, officialTopics } from "@/lib/off
 import type { AppData } from "@/lib/types";
 
 const STORAGE_KEY = "examos-data-v1";
-const CURRICULUM_REVISION = "2026-07-07-pdf-curriculum-v2";
+const CURRICULUM_REVISION = "2026-07-09-pdf-curriculum-v3";
 
 const legacySeedData = createSeedData();
 const legacyAssessmentIds = new Set(legacySeedData.assessments.map((assessment) => assessment.id));
 const officialTopicSubjectIds = new Set(officialTopics.map((topic) => topic.subjectId));
+const officialTopicIds = new Set(officialTopics.map((topic) => topic.id));
 const legacyTopicIdsToReplace = new Set(
   legacySeedData.topics
     .filter((topic) => officialTopicSubjectIds.has(topic.subjectId))
@@ -85,7 +86,13 @@ function mergeOfficialAssessments(current: AppData["assessments"]) {
 }
 
 function mergeOfficialTopics(current: AppData["topics"]) {
-  const manualAndCurrent = current.filter((topic) => !legacyTopicIdsToReplace.has(topic.id));
+  const isStaleOfficialTopic = (topic: AppData["topics"][number]) =>
+    topic.id.startsWith("official-topic-") &&
+    officialTopicSubjectIds.has(topic.subjectId) &&
+    !officialTopicIds.has(topic.id);
+  const manualAndCurrent = current.filter(
+    (topic) => !legacyTopicIdsToReplace.has(topic.id) && !isStaleOfficialTopic(topic)
+  );
   const byId = new Map(manualAndCurrent.map((topic) => [topic.id, topic]));
   for (const official of officialTopics) {
     const existing = byId.get(official.id);

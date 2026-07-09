@@ -13,7 +13,8 @@ import {
   Settings,
   Sparkles,
   Sun,
-  Target
+  Target,
+  Timer
 } from "lucide-react";
 import { useExamData } from "@/lib/useExamData";
 
@@ -21,6 +22,7 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/subjects", label: "Subjects", icon: Target },
   { href: "/planner", label: "Planner", icon: CalendarDays },
+  { href: "/focus", label: "Focus", icon: Timer },
   { href: "/timeline", label: "Timeline", icon: Clock3 },
   { href: "/mistakes", label: "Mistakes", icon: CheckSquare },
   { href: "/sessions", label: "Sessions", icon: BarChart3 },
