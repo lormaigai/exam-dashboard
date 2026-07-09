@@ -157,6 +157,7 @@ export interface PlannerSettings {
 export interface AppSettings {
   darkMode: boolean;
   planner: PlannerSettings;
+  curriculumRevision?: string;
 }
 
 export interface AppData {
