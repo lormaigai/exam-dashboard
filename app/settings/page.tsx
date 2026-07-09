@@ -2,14 +2,18 @@
 
 import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
+import { useAccount } from "@/components/AuthGate";
 import { AssessmentForm } from "@/components/forms";
 import { PageHeader, Panel } from "@/components/ui";
 import { useExamData } from "@/lib/useExamData";
 
 export default function SettingsPage() {
   const store = useExamData();
+  const account = useAccount();
   const [backupText, setBackupText] = useState("");
   const [message, setMessage] = useState("");
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState("");
   if (!store) return <AppShell><div /></AppShell>;
   const activeStore = store;
   const { data } = activeStore;
@@ -36,9 +40,57 @@ export default function SettingsPage() {
     }
   }
 
+  async function handleSyncNow() {
+    setSyncing(true);
+    setSyncMessage("");
+    try {
+      await account.syncNow();
+      setSyncMessage("Synced to cloud.");
+    } catch (error) {
+      setSyncMessage(error instanceof Error ? error.message : "Sync failed. Please try again.");
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  const lastSyncedLabel = account.lastSyncedAt
+    ? new Date(account.lastSyncedAt).toLocaleTimeString()
+    : "Not synced yet this session";
+
   return (
     <AppShell>
       <PageHeader title="Settings" description="Edit subjects, assessment dates and weights, export or import JSON, and reset the local demo data." />
+      <Panel className="mb-4">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h3 className="text-lg font-semibold">Account</h3>
+            <p className="mt-1 text-sm text-ink/60 dark:text-white/55">
+              Signed in as <span className="font-medium text-ink dark:text-white">{account.email ?? "unknown"}</span>
+            </p>
+            <p className="mt-1 text-sm text-ink/60 dark:text-white/55">Last synced: {lastSyncedLabel}</p>
+            {syncMessage ? <p className="mt-1 text-sm text-ink/60 dark:text-white/55">{syncMessage}</p> : null}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              className="focus-ring rounded-md bg-pine px-4 py-2 font-medium text-white disabled:opacity-60"
+              onClick={handleSyncNow}
+              disabled={syncing}
+            >
+              {syncing ? "Syncing..." : "Sync now"}
+            </button>
+            <button
+              className="focus-ring rounded-md border border-black/10 px-4 py-2 dark:border-white/10"
+              onClick={() => account.signOut()}
+              title="Sign out keeps your local data on this device"
+            >
+              Sign out
+            </button>
+          </div>
+        </div>
+        <p className="mt-3 text-xs text-ink/50 dark:text-white/45">
+          Changes sync automatically every few seconds. Signing out keeps your local data on this device.
+        </p>
+      </Panel>
       <div className="grid gap-4 lg:grid-cols-[1fr_420px]">
         <div className="space-y-4">
           <Panel>

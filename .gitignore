@@ -7,3 +7,4 @@ dist
 tmp_pdf_extract/
 outputs/**/*.png
 outputs/**/*.ndjson
+tsconfig.tsbuildinfo
