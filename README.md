@@ -1,40 +1,40 @@
-# ExamOS
+# Exam Control — Y4 2026
 
-ExamOS is a private, local-first exam preparation dashboard for Sec 4 end-year and O-Level-style study planning.
+A single-page exam-prep dashboard for a Sec 4 (Year 4) student's T3/T4 2026 run
+of end-year assessments and O-Levels. The whole app is one self-contained file,
+`index.html` — editorial "control desk" styling, no build step.
 
 ## Features
 
-- Account sign-in (email + password via Supabase) as the first screen, with per-student cloud sync of progress across devices.
-- Focus page with Pomodoro timer presets (Classic 25/5, Deep Work 50/10, Quick Sprint 15/3, Custom), auto-advance, sound alerts, and automatic logging of completed focus blocks to the session log.
-- Dashboard with recommended tasks, assessment countdowns, weak topics, overdue reviews, and quick add forms.
-- Subject pages with assessment timelines, topic confidence, accuracy, sessions, mistakes, and next actions.
-- Weekly planner with rule-based generation from assessment weight, urgency, confidence, accuracy, stale reviews, mistakes, and difficulty.
-- Mistake bank with search, filters, review state, edit, and delete actions.
-- Study session log with subject minutes, type distribution, accuracy, and focus summaries.
-- Weekly review summary and saved reflections.
-- Settings for subject edits, assessment date/weight edits, JSON export/import, demo reset, and dark mode.
-
-## Setup
-
-```bash
-pnpm install
-pnpm dev
-```
-
-Open `http://localhost:3000/dashboard`.
-
-## Build
-
-```bash
-pnpm build
-```
+- **Account gate first.** The first screen is email + password sign-in / create
+  account (Supabase). Each student's progress is saved to their own row in the
+  `user_progress` table (row-level-security scoped per user) and syncs across
+  devices; it also mirrors to `localStorage` so the app keeps working offline.
+- **Overview** — next-paper countdown, "up next" timetable, and coverage stats.
+- **Calendar** — month grid of exam days plus the full timetable in order.
+- **Study Tracker** — per-skill syllabus checklists for every subject; ticking a
+  topic updates each subject's coverage bar. Covers Biology, Chemistry, Physics,
+  Geography, Math 1 & 2, English, Higher Chinese, and Inquiry & Advocacy,
+  rebuilt from the 2026 Y4 curriculum maps and assessment frameworks.
+- **Focus Timer** — Pomodoro with presets (Classic 25/5, Deep Work 50/10, Quick
+  Sprint 15/3, Custom), long breaks, auto-advance, sound alerts, a refresh-safe
+  countdown, and a "focused today" tally.
+- **Goals & Weekly Plan** — term goals and a click-to-edit weekly study grid.
+- **Edit Data** — add/remove exams and subjects and build custom checklists.
 
 ## Hosting
 
-See `DEPLOYMENT.md`. The current MVP can be hosted as a Next.js app, but progress remains local to each browser unless a backend sync layer is added later.
+Deployed to GitHub Pages from `main` by `.github/workflows/deploy-pages.yml`,
+which simply publishes `index.html` as a static site (no build). To run locally,
+open `index.html` in a browser or serve the folder with any static file server.
 
-## Usage Notes
+## Data & sync
 
-Data is stored in browser `localStorage` under `examos-data-v1` and synced to the signed-in student's row in the Supabase `user_progress` table (RLS-scoped per user). Use Settings to export JSON backups before resetting browser storage. The recommendations are rule-based, not AI-generated, and can be adjusted by editing confidence, accuracy, mistakes, assessments, and planner constraints.
-
-Healthy defaults are built into the planner: no more than three study blocks on school days by default, a rest day, breaks through short blocks, and no late-night scheduling.
+- Auth and cloud storage use Supabase (project URL and publishable key are
+  embedded in `index.html`; the publishable key is safe for client-side use).
+- Local copy lives in `localStorage` under `examcontrol-data`; the Focus timer's
+  settings and state live under `examcontrol-pomodoro`.
+- On sign-in the cloud copy is loaded (falling back to local, then to the
+  built-in defaults). When the bundled 2026 curriculum is newer than a student's
+  saved copy, their syllabus checklists refresh to the new curriculum while
+  their goals, weekly plan, and custom exams are preserved.
