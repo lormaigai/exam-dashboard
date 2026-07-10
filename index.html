@@ -1,0 +1,2124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Y4 Exam Control — T3/T4 2026</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --ink:#1A2332;
+    --ink2:#232F44;
+    --paper:#F7F4ED;
+    --paper2:#EFEAE0;
+    --line:#D8D2C4;
+    --red:#C1432E;
+    --amber:#D9A441;
+    --sage:#5B7A6B;
+    --sage-dim:#5B7A6B33;
+    --red-dim:#C1432E22;
+    --amber-dim:#D9A44122;
+    --ink-dim:#1A233214;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{background:var(--paper); color:var(--ink); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased;}
+  body{padding-bottom:60px;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  .disp{font-family:'Archivo Expanded',sans-serif;}
+
+  a{color:inherit;}
+  button{font-family:'Inter',sans-serif; cursor:pointer; border:none; background:none;}
+  :focus-visible{outline:2px solid var(--red); outline-offset:2px;}
+
+  /* ===== Header / Masthead ===== */
+  .masthead{
+    background:var(--ink);
+    color:var(--paper);
+    padding:20px 28px 16px;
+    border-bottom:4px solid var(--red);
+  }
+  .masthead-row{display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:10px; max-width:1180px; margin:0 auto;}
+  .masthead-title{font-family:'Archivo Expanded',sans-serif; font-weight:800; font-size:26px; letter-spacing:0.5px;}
+  .masthead-sub{font-family:'IBM Plex Mono',monospace; font-size:11px; opacity:0.65; letter-spacing:1.5px; text-transform:uppercase; margin-top:4px;}
+  .masthead-right{display:flex; align-items:center; gap:12px; flex-wrap:wrap; justify-content:flex-end;}
+  .masthead-stamp{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1px; text-transform:uppercase;
+    border:1px solid var(--paper); padding:4px 10px; opacity:0.85; white-space:nowrap;
+  }
+  .acct{display:flex; align-items:center; gap:10px;}
+  .acct-email{font-family:'IBM Plex Mono',monospace; font-size:11px; opacity:0.75; max-width:190px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .acct-btn{font-family:'IBM Plex Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:1px; border:1px solid var(--paper); color:var(--paper); padding:4px 10px; opacity:0.85;}
+  .acct-btn:hover{background:var(--paper); color:var(--ink); opacity:1;}
+
+  .wrap{max-width:1180px; margin:0 auto; padding:0 28px;}
+
+  /* ===== Tabs ===== */
+  .tabs{display:flex; gap:2px; margin-top:18px; border-bottom:2px solid var(--ink); flex-wrap:wrap;}
+  .tab{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; text-transform:uppercase; letter-spacing:1px;
+    padding:10px 16px; background:var(--paper2); color:var(--ink); opacity:0.55;
+    border-top:2px solid transparent; transition:opacity .15s;
+  }
+  .tab:hover{opacity:0.85;}
+  .tab.active{opacity:1; background:var(--paper); border-top:2px solid var(--red); font-weight:600;}
+  .panel{display:none; padding-top:22px;}
+  .panel.active{display:block;}
+
+  /* ===== Countdown hero ===== */
+  .hero{
+    display:grid; grid-template-columns: 1.3fr 1fr; gap:0; border:2px solid var(--ink); margin-top:0;
+  }
+  @media(max-width:760px){.hero{grid-template-columns:1fr;}}
+  .hero-left{padding:26px; border-right:2px solid var(--ink); background:var(--paper);}
+  @media(max-width:760px){.hero-left{border-right:none; border-bottom:2px solid var(--ink);}}
+  .hero-eyebrow{font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; opacity:0.6;}
+  .hero-next-name{font-family:'Archivo Expanded',sans-serif; font-weight:800; font-size:30px; margin-top:6px; line-height:1.05;}
+  .hero-next-date{font-family:'IBM Plex Mono',monospace; font-size:13px; margin-top:8px; opacity:0.75;}
+  .hero-count{display:flex; gap:18px; margin-top:18px;}
+  .hero-count-num{font-family:'Archivo Expanded',sans-serif; font-weight:800; font-size:52px; line-height:1; color:var(--red);}
+  .hero-count-lbl{font-family:'IBM Plex Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:1px; opacity:0.6; margin-top:4px;}
+  .hero-right{background:var(--ink); color:var(--paper); padding:26px;}
+  .hero-right-title{font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; opacity:0.65;}
+  .upnext-list{margin-top:14px; display:flex; flex-direction:column; gap:10px;}
+  .upnext-row{display:flex; justify-content:space-between; align-items:baseline; border-bottom:1px solid #ffffff22; padding-bottom:8px; font-size:13px;}
+  .upnext-name{font-weight:600;}
+  .upnext-date{font-family:'IBM Plex Mono',monospace; font-size:11px; opacity:0.7; white-space:nowrap; margin-left:10px;}
+  .upnext-days{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--amber); margin-left:10px; white-space:nowrap;}
+
+  /* ===== Stats row ===== */
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--ink); margin-top:1px; border:2px solid var(--ink); border-top:none;}
+  @media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr);}}
+  .stat{background:var(--paper); padding:16px 20px;}
+  .stat-num{font-family:'Archivo Expanded',sans-serif; font-weight:800; font-size:26px;}
+  .stat-lbl{font-family:'IBM Plex Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:1px; opacity:0.55; margin-top:2px;}
+
+  /* ===== Section heading ===== */
+  .sec-head{display:flex; justify-content:space-between; align-items:baseline; margin:34px 0 14px; border-bottom:2px solid var(--ink); padding-bottom:8px; flex-wrap:wrap; gap:8px;}
+  .sec-title{font-family:'Archivo Expanded',sans-serif; font-weight:800; font-size:18px; text-transform:uppercase; letter-spacing:0.5px;}
+  .sec-note{font-family:'IBM Plex Mono',monospace; font-size:11px; opacity:0.55;}
+
+  /* ===== Calendar ===== */
+  .cal-controls{display:flex; gap:8px; align-items:center; margin-bottom:14px;}
+  .cal-btn{font-family:'IBM Plex Mono',monospace; font-size:12px; border:1px solid var(--ink); padding:6px 12px; background:var(--paper);}
+  .cal-btn:hover{background:var(--ink); color:var(--paper);}
+  .cal-month-label{font-family:'Archivo Expanded',sans-serif; font-weight:700; font-size:16px; margin:0 8px;}
+  .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); border:2px solid var(--ink); border-bottom:none;}
+  .cal-dow{font-family:'IBM Plex Mono',monospace; font-size:10px; text-transform:uppercase; text-align:center; padding:6px 2px; background:var(--ink); color:var(--paper); border-right:1px solid #ffffff22;}
+  .cal-dow:last-child{border-right:none;}
+  .cal-cell{
+    min-height:84px; border-right:1px solid var(--line); border-bottom:2px solid var(--ink);
+    padding:6px; position:relative; background:var(--paper);
+  }
+  .cal-cell:nth-child(7n){border-right:none;}
+  .cal-cell.empty{background:var(--paper2);}
+  .cal-daynum{font-family:'IBM Plex Mono',monospace; font-size:11px; opacity:0.5;}
+  .cal-cell.today .cal-daynum{color:var(--red); font-weight:700; opacity:1;}
+  .cal-cell.today{box-shadow:inset 0 0 0 2px var(--red);}
+  .cal-event{
+    font-family:'IBM Plex Mono',monospace; font-size:9.5px; line-height:1.3; margin-top:4px;
+    padding:2px 4px; border-radius:2px; background:var(--red-dim); color:var(--red); font-weight:600;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+
+  /* ===== Subject grid ===== */
+  .subj-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px;}
+  @media(max-width:900px){.subj-grid{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:520px){.subj-grid{grid-template-columns:1fr;}}
+  .subj-card{
+    border:2px solid var(--ink); background:var(--paper); padding:14px; cursor:pointer; transition:transform .1s;
+    display:flex; flex-direction:column; justify-content:space-between; min-height:120px;
+  }
+  .subj-card:hover{transform:translateY(-2px);}
+  .subj-card.selected{background:var(--ink); color:var(--paper);}
+  .subj-code{font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1px; opacity:0.55;}
+  .subj-card.selected .subj-code{opacity:0.7;}
+  .subj-name{font-family:'Archivo Expanded',sans-serif; font-weight:700; font-size:15px; margin-top:4px;}
+  .subj-bar-track{height:6px; background:var(--ink-dim); margin-top:12px; border-radius:3px; overflow:hidden;}
+  .subj-card.selected .subj-bar-track{background:#ffffff22;}
+  .subj-bar-fill{height:100%; background:var(--sage); border-radius:3px;}
+  .subj-pct{font-family:'IBM Plex Mono',monospace; font-size:11px; margin-top:6px; opacity:0.7;}
+
+  /* ===== Topic checklist ===== */
+  .topic-section{border:2px solid var(--ink); margin-top:0;}
+  .topic-section-head{background:var(--ink); color:var(--paper); padding:14px 18px; display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px;}
+  .topic-section-title{font-family:'Archivo Expanded',sans-serif; font-weight:700; font-size:16px;}
+  .topic-section-meta{font-family:'IBM Plex Mono',monospace; font-size:11px; opacity:0.7;}
+  .topic-list{display:flex; flex-direction:column;}
+  .topic-row{
+    display:flex; align-items:flex-start; gap:12px; padding:12px 18px; border-bottom:1px solid var(--line);
+  }
+  .topic-row:last-child{border-bottom:none;}
+  .topic-row:hover{background:var(--paper2);}
+  .topic-check{
+    width:20px; height:20px; min-width:20px; border:2px solid var(--ink); margin-top:2px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; background:var(--paper);
+  }
+  .topic-check.checked{background:var(--sage); border-color:var(--sage); color:var(--paper);}
+  .topic-text{flex:1; font-size:13.5px; line-height:1.45;}
+  .topic-row.done .topic-text{text-decoration:line-through; opacity:0.45;}
+  .topic-tag{font-family:'IBM Plex Mono',monospace; font-size:9.5px; text-transform:uppercase; padding:2px 6px; border-radius:2px; white-space:nowrap; align-self:center;}
+  .tag-core{background:var(--sage-dim); color:var(--sage);}
+  .tag-enrich{background:var(--amber-dim); color:var(--amber);}
+
+  /* ===== Goal / planner ===== */
+  .goal-box{border:2px solid var(--ink); padding:18px; background:var(--paper); margin-bottom:14px;}
+  .goal-input-row{display:flex; gap:8px; margin-bottom:10px;}
+  .goal-input{
+    flex:1; font-family:'Inter',sans-serif; font-size:13px; padding:9px 12px; border:1px solid var(--ink); background:var(--paper);
+  }
+  .goal-add-btn{font-family:'IBM Plex Mono',monospace; font-size:12px; padding:9px 16px; border:2px solid var(--ink); background:var(--ink); color:var(--paper);}
+  .goal-add-btn:hover{background:var(--red); border-color:var(--red);}
+  .goal-row{display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--line);}
+  .goal-row:last-child{border-bottom:none;}
+  .goal-text{flex:1; font-size:13.5px;}
+  .goal-text.done{text-decoration:line-through; opacity:0.45;}
+  .goal-del{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--red); opacity:0.6;}
+  .goal-del:hover{opacity:1;}
+  .empty-state{font-family:'IBM Plex Mono',monospace; font-size:12px; opacity:0.45; padding:14px 0; text-align:center;}
+
+  /* ===== Week planner ===== */
+  .week-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-top:6px;}
+  @media(max-width:760px){.week-grid{grid-template-columns:repeat(2,1fr);}}
+  .week-day{border:1.5px solid var(--ink); background:var(--paper); padding:10px; min-height:140px;}
+  .week-day-name{font-family:'IBM Plex Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:1px; opacity:0.6; border-bottom:1px solid var(--line); padding-bottom:6px; margin-bottom:6px;}
+  .week-slot{font-size:11.5px; padding:4px 0; border-bottom:1px dashed var(--line); cursor:pointer;}
+  .week-slot:last-child{border-bottom:none;}
+  .week-slot.filled{font-weight:600;}
+  .week-slot.empty-slot{opacity:0.3;}
+
+  footer{text-align:center; font-family:'IBM Plex Mono',monospace; font-size:10px; opacity:0.4; margin-top:40px; padding:20px;}
+
+  .legend{display:flex; gap:16px; margin-top:10px; flex-wrap:wrap;}
+  .legend-item{display:flex; align-items:center; gap:6px; font-family:'IBM Plex Mono',monospace; font-size:10px; opacity:0.7;}
+  .legend-dot{width:10px; height:10px; border-radius:2px;}
+
+  /* ===== Edit Data tab ===== */
+  .edit-grid{display:grid; grid-template-columns:1fr 1fr; gap:24px;}
+  @media(max-width:900px){.edit-grid{grid-template-columns:1fr;}}
+  .field-row{display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap;}
+  .field{flex:1; min-width:120px;}
+  .field label{display:block; font-family:'IBM Plex Mono',monospace; font-size:9.5px; text-transform:uppercase; letter-spacing:0.5px; opacity:0.55; margin-bottom:3px;}
+  .field input, .field select, .field textarea{
+    width:100%; font-family:'Inter',sans-serif; font-size:13px; padding:7px 9px; border:1px solid var(--ink); background:var(--paper);
+  }
+  .field textarea{resize:vertical; min-height:36px;}
+  .btn{font-family:'IBM Plex Mono',monospace; font-size:11.5px; padding:8px 14px; border:2px solid var(--ink); background:var(--ink); color:var(--paper);}
+  .btn:hover{background:var(--red); border-color:var(--red);}
+  .btn-outline{background:var(--paper); color:var(--ink);}
+  .btn-outline:hover{background:var(--ink); color:var(--paper);}
+  .btn-small{font-size:10.5px; padding:5px 10px;}
+  .exam-row{display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--line); font-size:13px;}
+  .exam-row-date{font-family:'IBM Plex Mono',monospace; font-size:11px; min-width:90px; opacity:0.7;}
+  .exam-row-name{flex:1;}
+  .exam-row-subj{font-family:'IBM Plex Mono',monospace; font-size:10px; padding:2px 6px; background:var(--ink-dim); border-radius:2px;}
+  .exam-row-del{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--red); opacity:0.6; cursor:pointer;}
+  .exam-row-del:hover{opacity:1;}
+  .subj-edit-list{display:flex; flex-direction:column; gap:6px;}
+  .subj-edit-row{display:flex; align-items:center; gap:10px; padding:8px 10px; border:1px solid var(--ink); cursor:pointer;}
+  .subj-edit-row:hover{background:var(--paper2);}
+  .subj-edit-row.active-edit{background:var(--ink); color:var(--paper);}
+  .topic-editor{border:2px solid var(--ink); padding:16px; margin-top:14px;}
+  .sec-editor{border:1px solid var(--line); padding:10px; margin-bottom:10px; background:var(--paper2);}
+  .sec-editor-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;}
+  .sec-editor-title-input{font-family:'Archivo Expanded',sans-serif; font-weight:700; font-size:14px; border:none; background:transparent; border-bottom:1px solid var(--line); padding:2px 0; flex:1;}
+  .item-edit-row{display:flex; gap:6px; align-items:flex-start; margin-bottom:5px;}
+  .item-edit-row input[type=text]{flex:1; font-size:12.5px; padding:5px 7px; border:1px solid var(--line);}
+  .item-edit-row select{font-size:11px; padding:5px;}
+  .save-indicator{font-family:'IBM Plex Mono',monospace; font-size:10px; opacity:0; transition:opacity .3s; color:var(--sage);}
+  .save-indicator.show{opacity:1;}
+
+  /* ===== Focus / Pomodoro tab ===== */
+  .focus-wrap{display:grid; grid-template-columns:1.2fr 1fr; gap:20px; align-items:start;}
+  @media(max-width:820px){.focus-wrap{grid-template-columns:1fr;}}
+  .timer-card{border:2px solid var(--ink); background:var(--ink); color:var(--paper); padding:34px 26px; text-align:center;}
+  .timer-phase{font-family:'IBM Plex Mono',monospace; font-size:12px; text-transform:uppercase; letter-spacing:2px; opacity:0.7;}
+  .timer-clock{font-family:'Archivo Expanded',sans-serif; font-weight:800; font-size:82px; line-height:1; margin:14px 0 6px; letter-spacing:1px; font-variant-numeric:tabular-nums;}
+  .timer-clock.break{color:var(--sage);}
+  .timer-clock.focus{color:var(--amber);}
+  .timer-cycle-dots{display:flex; gap:8px; justify-content:center; margin:14px 0 4px;}
+  .cycle-dot{width:11px; height:11px; border-radius:50%; border:2px solid var(--paper); opacity:0.45;}
+  .cycle-dot.filled{background:var(--amber); border-color:var(--amber); opacity:1;}
+  .timer-cycle-lbl{font-family:'IBM Plex Mono',monospace; font-size:11px; opacity:0.6;}
+  .timer-controls{display:flex; gap:10px; justify-content:center; margin-top:22px; flex-wrap:wrap;}
+  .tctrl{font-family:'IBM Plex Mono',monospace; font-size:12px; text-transform:uppercase; letter-spacing:1px; padding:11px 22px; border:2px solid var(--paper); background:transparent; color:var(--paper);}
+  .tctrl:hover{background:var(--paper); color:var(--ink);}
+  .tctrl.primary{background:var(--red); border-color:var(--red);}
+  .tctrl.primary:hover{background:var(--paper); color:var(--ink); border-color:var(--paper);}
+  .preset-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+  .preset-btn{font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; padding:9px 13px; border:2px solid var(--ink); background:var(--paper); color:var(--ink);}
+  .preset-btn.active{background:var(--ink); color:var(--paper);}
+  .preset-meta{font-family:'IBM Plex Mono',monospace; font-size:10px; opacity:0.55; margin-top:2px;}
+  .focus-opt-row{display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--line); font-size:13px;}
+  .focus-opt-row:last-child{border-bottom:none;}
+  .toggle{font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:1px; border:2px solid var(--ink); padding:5px 12px; background:var(--paper);}
+  .toggle.on{background:var(--sage); border-color:var(--sage); color:var(--paper);}
+  .focus-stat{font-family:'Archivo Expanded',sans-serif; font-weight:800; font-size:30px;}
+
+  /* ===== Auth gate ===== */
+  .auth-gate{
+    position:fixed; inset:0; z-index:1000; background:var(--paper);
+    display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .auth-gate.hidden{display:none;}
+  .auth-card-wrap{width:100%; max-width:420px;}
+  .auth-brand{background:var(--ink); color:var(--paper); padding:22px 24px; border:2px solid var(--ink); border-bottom:4px solid var(--red);}
+  .auth-brand-title{font-family:'Archivo Expanded',sans-serif; font-weight:800; font-size:22px; letter-spacing:0.5px;}
+  .auth-brand-sub{font-family:'IBM Plex Mono',monospace; font-size:10.5px; opacity:0.65; letter-spacing:1.5px; text-transform:uppercase; margin-top:6px;}
+  .auth-card{border:2px solid var(--ink); border-top:none; background:var(--paper); padding:24px;}
+  .auth-tabs{display:flex; gap:2px; margin-bottom:18px; border-bottom:2px solid var(--ink);}
+  .auth-tab{flex:1; font-family:'IBM Plex Mono',monospace; font-size:12px; text-transform:uppercase; letter-spacing:1px; padding:10px; background:var(--paper2); opacity:0.55; border-top:2px solid transparent;}
+  .auth-tab.active{opacity:1; background:var(--paper); border-top:2px solid var(--red); font-weight:600;}
+  .auth-field{margin-bottom:14px;}
+  .auth-field label{display:block; font-family:'IBM Plex Mono',monospace; font-size:9.5px; text-transform:uppercase; letter-spacing:0.5px; opacity:0.55; margin-bottom:4px;}
+  .auth-field input{width:100%; font-family:'Inter',sans-serif; font-size:14px; padding:10px 12px; border:1px solid var(--ink); background:var(--paper);}
+  .auth-submit{width:100%; font-family:'IBM Plex Mono',monospace; font-size:13px; text-transform:uppercase; letter-spacing:1px; padding:12px; border:2px solid var(--red); background:var(--red); color:var(--paper); margin-top:4px;}
+  .auth-submit:hover{background:var(--ink); border-color:var(--ink);}
+  .auth-submit:disabled{opacity:0.5; cursor:default;}
+  .auth-msg{font-family:'IBM Plex Mono',monospace; font-size:11.5px; line-height:1.5; padding:10px 12px; margin-bottom:14px; border-radius:2px;}
+  .auth-msg.err{background:var(--red-dim); color:var(--red);}
+  .auth-msg.ok{background:var(--sage-dim); color:var(--sage);}
+  .auth-forgot{font-family:'IBM Plex Mono',monospace; font-size:10.5px; opacity:0.6; text-align:center; margin-top:14px; cursor:pointer;}
+  .auth-forgot:hover{opacity:1; color:var(--red);}
+  .auth-foot{font-family:'IBM Plex Mono',monospace; font-size:10px; opacity:0.45; text-align:center; margin-top:14px; line-height:1.5;}
+</style>
+</head>
+<body>
+
+<!-- ============ AUTH GATE (first screen) ============ -->
+<div class="auth-gate" id="authGate">
+  <div class="auth-card-wrap">
+    <div class="auth-brand">
+      <div class="auth-brand-title disp">EXAM CONTROL — Y4 2026</div>
+      <div class="auth-brand-sub mono">Sign in to track your exam prep</div>
+    </div>
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="authTabSignin" type="button">Sign in</button>
+        <button class="auth-tab" id="authTabSignup" type="button">Create account</button>
+      </div>
+      <div class="auth-msg" id="authMsg" style="display:none;"></div>
+      <form id="authForm">
+        <div class="auth-field">
+          <label>Email</label>
+          <input type="email" id="authEmail" autocomplete="email" placeholder="you@example.com" required>
+        </div>
+        <div class="auth-field">
+          <label>Password</label>
+          <input type="password" id="authPassword" autocomplete="current-password" placeholder="Your password" required>
+        </div>
+        <button class="auth-submit mono" id="authSubmit" type="submit">Sign in</button>
+      </form>
+      <div class="auth-forgot mono" id="authForgot">Forgot password?</div>
+      <div class="auth-foot mono">Your progress is saved to your account and synced across devices.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP (hidden until signed in) ============ -->
+<div id="appShell" style="display:none;">
+
+<div class="masthead">
+  <div class="masthead-row">
+    <div>
+      <div class="masthead-title">EXAM CONTROL — Y4 2026</div>
+      <div class="masthead-sub">Triple Science · Geography · Math 1 &amp; 2 · EL · HCL · Inquiry &amp; Advocacy · Spanish</div>
+    </div>
+    <div class="masthead-right">
+      <div class="acct">
+        <span class="acct-email mono" id="acctEmail">—</span>
+        <button class="acct-btn mono" id="signOutBtn" type="button">Sign out</button>
+      </div>
+      <div class="masthead-stamp mono" id="todayStamp">—</div>
+    </div>
+  </div>
+  <div class="wrap" style="padding:0; max-width:1180px; margin-top:4px;">
+    <span class="save-indicator mono" id="saveIndicator">✓ saved</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="tabs">
+    <button class="tab active" data-tab="overview">Overview</button>
+    <button class="tab" data-tab="calendar">Calendar</button>
+    <button class="tab" data-tab="study">Study Tracker</button>
+    <button class="tab" data-tab="focus">Focus Timer</button>
+    <button class="tab" data-tab="goals">Goals &amp; Weekly Plan</button>
+    <button class="tab" data-tab="editdata">Edit Data</button>
+  </div>
+
+  <!-- ============ OVERVIEW ============ -->
+  <div class="panel active" id="panel-overview">
+    <div class="hero">
+      <div class="hero-left">
+        <div class="hero-eyebrow mono">Next on the timetable</div>
+        <div class="hero-next-name disp" id="nextExamName">—</div>
+        <div class="hero-next-date mono" id="nextExamDate">—</div>
+        <div class="hero-count">
+          <div>
+            <div class="hero-count-num disp" id="countDays">0</div>
+            <div class="hero-count-lbl mono">days</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-right">
+        <div class="hero-right-title">Up next, in order</div>
+        <div class="upnext-list" id="upnextList"></div>
+      </div>
+    </div>
+
+    <div class="stats" id="statsRow"></div>
+
+    <div class="sec-head">
+      <div class="sec-title">Subject Coverage Snapshot</div>
+      <div class="sec-note">click a subject in Study Tracker for the full syllabus checklist</div>
+    </div>
+    <div class="subj-grid" id="overviewSubjGrid"></div>
+  </div>
+
+  <!-- ============ CALENDAR ============ -->
+  <div class="panel" id="panel-calendar">
+    <div class="cal-controls">
+      <button class="cal-btn mono" id="prevMonth">← Prev</button>
+      <div class="cal-month-label" id="calMonthLabel">—</div>
+      <button class="cal-btn mono" id="nextMonth">Next →</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Exam day</div>
+    </div>
+
+    <div class="sec-head">
+      <div class="sec-title">Full Timetable, in Order</div>
+    </div>
+    <div id="fullListWrap"></div>
+  </div>
+
+  <!-- ============ STUDY TRACKER ============ -->
+  <div class="panel" id="panel-study">
+    <div class="sec-head">
+      <div class="sec-title">Select a Subject</div>
+      <div class="sec-note">progress is saved as you check off topics</div>
+    </div>
+    <div class="subj-grid" id="studySubjGrid"></div>
+
+    <div style="margin-top:24px;">
+      <div id="topicSectionsWrap"></div>
+    </div>
+  </div>
+
+  <!-- ============ FOCUS TIMER ============ -->
+  <div class="panel" id="panel-focus">
+    <div class="sec-head">
+      <div class="sec-title">Focus Timer</div>
+      <div class="sec-note">pomodoro-style focus blocks with breaks</div>
+    </div>
+    <div class="focus-wrap">
+      <div class="timer-card">
+        <div class="timer-phase mono" id="timerPhase">Focus</div>
+        <div class="timer-clock focus disp" id="timerClock">25:00</div>
+        <div class="timer-cycle-dots" id="timerDots"></div>
+        <div class="timer-cycle-lbl mono" id="timerCycleLbl">Focus block 1 of 4</div>
+        <div class="timer-controls">
+          <button class="tctrl primary mono" id="timerStart">Start</button>
+          <button class="tctrl mono" id="timerReset">Reset</button>
+          <button class="tctrl mono" id="timerSkip">Skip</button>
+        </div>
+      </div>
+      <div>
+        <div class="goal-box" style="margin-bottom:14px;">
+          <div class="mono" style="font-size:10px; text-transform:uppercase; letter-spacing:1px; opacity:.55; margin-bottom:10px;">Timer preset</div>
+          <div class="preset-row" id="presetRow"></div>
+          <div id="customFields" style="display:none;">
+            <div class="field-row">
+              <div class="field"><label>Focus (min)</label><input type="number" id="cFocus" min="5" max="120"></div>
+              <div class="field"><label>Short break</label><input type="number" id="cShort" min="1" max="30"></div>
+            </div>
+            <div class="field-row">
+              <div class="field"><label>Long break</label><input type="number" id="cLong" min="1" max="45"></div>
+              <div class="field"><label>Long break every</label><input type="number" id="cInterval" min="2" max="8"></div>
+            </div>
+          </div>
+        </div>
+        <div class="goal-box" style="margin-bottom:14px;">
+          <div class="focus-opt-row">
+            <span>Auto-start next phase</span>
+            <button class="toggle mono" id="autoToggle" type="button">Off</button>
+          </div>
+          <div class="focus-opt-row">
+            <span>Sound alert</span>
+            <button class="toggle mono on" id="soundToggle" type="button">On</button>
+          </div>
+        </div>
+        <div class="goal-box">
+          <div class="mono" style="font-size:10px; text-transform:uppercase; letter-spacing:1px; opacity:.55;">Focused today</div>
+          <div class="focus-stat disp" id="focusToday">0 min</div>
+          <div class="mono" style="font-size:11px; opacity:.6; margin-top:2px;" id="focusBlocks">0 focus blocks completed</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ GOALS ============ -->
+  <div class="panel" id="panel-goals">
+    <div class="sec-head">
+      <div class="sec-title">Term Goals</div>
+    </div>
+    <div class="goal-box">
+      <div class="goal-input-row">
+        <input class="goal-input" id="goalInput" placeholder="e.g. Finish Chem Organic Chemistry topic by 20 Jul">
+        <button class="goal-add-btn mono" id="goalAddBtn">+ Add</button>
+      </div>
+      <div id="goalList"></div>
+    </div>
+
+    <div class="sec-head">
+      <div class="sec-title">This Week's Study Plan</div>
+      <div class="sec-note">click a slot to type in what you're studying</div>
+    </div>
+    <div class="week-grid" id="weekGrid"></div>
+  </div>
+
+  <!-- ============ EDIT DATA ============ -->
+  <div class="panel" id="panel-editdata">
+    <div class="sec-head">
+      <div class="sec-title">Add / Edit Exams</div>
+      <div class="sec-note">new exams show up instantly in the countdown &amp; calendar</div>
+    </div>
+    <div class="goal-box">
+      <div class="field-row">
+        <div class="field"><label>Date</label><input type="date" id="examDateInput"></div>
+        <div class="field" style="flex:2"><label>Exam name</label><input type="text" id="examNameInput" placeholder="e.g. Math 1 Prelim Paper 2"></div>
+        <div class="field"><label>Subject code</label><select id="examSubjInput"></select></div>
+      </div>
+      <button class="btn" id="examAddBtn">+ Add exam</button>
+      <div style="margin-top:16px;" id="examEditList"></div>
+    </div>
+
+    <div class="sec-head">
+      <div class="sec-title">Add / Edit Subjects</div>
+      <div class="sec-note">add a new subject (e.g. Math 1, English, Chinese), then build its topic checklist below</div>
+    </div>
+    <div class="edit-grid">
+      <div>
+        <div class="goal-box">
+          <div class="field-row">
+            <div class="field"><label>Subject code (short)</label><input type="text" id="newSubjCode" placeholder="e.g. MA1" maxlength="6"></div>
+            <div class="field"><label>Full name</label><input type="text" id="newSubjName" placeholder="e.g. Math 1"></div>
+          </div>
+          <button class="btn" id="addSubjBtn">+ Add subject</button>
+        </div>
+        <div class="subj-edit-list" id="subjEditList"></div>
+      </div>
+      <div>
+        <div id="topicEditorWrap"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>Y4 Exam Control · progress synced to your account</footer>
+
+</div><!-- /appShell -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================================================
+   SUPABASE
+   ============================================================ */
+const SUPABASE_URL = "https://vnsupnqmzpetgjgjbhep.supabase.co";
+const SUPABASE_KEY = "sb_publishable_7ImvwLt7mhaZDnuhrdmj4A_5-EC-tPz";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true }
+});
+let currentUser = null;
+
+const CONTENT_VERSION = "2026-t3t4-curriculum-v3";
+const LS_KEY = "examcontrol-data";
+const LS_POMODORO = "examcontrol-pomodoro";
+
+/* ============================================================
+   DEFAULT DATA — used only when a student has no saved data
+   ============================================================ */
+const DEFAULT_EXAMS = [
+  {date:"2026-07-08", name:"Spanish Oral Prelim (2:30pm)", subj:"SPA"},
+  {date:"2026-07-09", name:"Inquiry & Advocacy — AA Due", subj:"INA"},
+  {date:"2026-07-09", name:"Math 1 CBA2", subj:"MA1"},
+  {date:"2026-07-16", name:"EL AANR Due — 3pm", subj:"EL"},
+  {date:"2026-07-16", name:"HCL Oral O-Level", subj:"HCL"},
+  {date:"2026-07-31", name:"Spanish O-Level Oral", subj:"SPA"},
+  {date:"2026-08-03", name:"Geography CBA2", subj:"GEOG"},
+  {date:"2026-08-03", name:"Spanish Oral O-Levels (Day 1/2)", subj:"SPA"},
+  {date:"2026-08-04", name:"Spanish Oral O-Levels (Day 2/2)", subj:"SPA"},
+  {date:"2026-08-11", name:"Math 2 CBA2", subj:"MA2"},
+  {date:"2026-09-01", name:"Spanish Prelim — Writing", subj:"SPA"},
+  {date:"2026-09-02", name:"Spanish Prelim — LC & Reading", subj:"SPA"},
+  {date:"2026-09-15", name:"Chemistry AA-PR", subj:"CHEM"},
+  {date:"2026-09-18", name:"Biology AA-PR", subj:"BIO"},
+  {date:"2026-09-29", name:"Physics AA-PR", subj:"PHY"},
+  {date:"2026-09-30", name:"English Language EYA", subj:"EL"},
+  {date:"2026-10-01", name:"Higher Chinese EYA", subj:"HCL"},
+  {date:"2026-10-02", name:"Inquiry & Advocacy EYA", subj:"INA"},
+  {date:"2026-10-06", name:"Math 2 (Higher) EYA", subj:"MA2"},
+  {date:"2026-10-07", name:"Geography EYA", subj:"GEOG"},
+  {date:"2026-10-07", name:"Math 1 EYA", subj:"MA1"},
+  {date:"2026-10-08", name:"Chemistry EYA", subj:"CHEM"},
+  {date:"2026-10-09", name:"Biology EYA", subj:"BIO"},
+  {date:"2026-10-12", name:"Spanish O-Levels Paper 1 (8am)", subj:"SPA"},
+  {date:"2026-10-12", name:"Physics EYA", subj:"PHY"},
+  {date:"2026-10-14", name:"Spanish O-Levels Paper 2 (Main + LC)", subj:"SPA"},
+  {date:"2026-11-04", name:"HCL O-Levels Written (Day 1/2)", subj:"HCL"},
+  {date:"2026-11-05", name:"HCL O-Levels Written (Day 2/2)", subj:"HCL"},
+];
+
+const DEFAULT_SUBJECTS = {
+  BIO:{name:"Biology", color:"#5B7A6B"},
+  CHEM:{name:"Chemistry", color:"#C1432E"},
+  PHY:{name:"Physics", color:"#D9A441"},
+  GEOG:{name:"Geography", color:"#1A2332"},
+  MA1:{name:"Math 1", color:"#5B7A6B"},
+  MA2:{name:"Math 2 (Higher)", color:"#C1432E"},
+  EL:{name:"English Language", color:"#D9A441"},
+  HCL:{name:"Higher Chinese", color:"#1A2332"},
+  INA:{name:"Inquiry & Advocacy", color:"#5B7A6B"},
+  SPA:{name:"Spanish", color:"#C1432E"},
+};
+
+/* helper: turn a flat list of skill strings into [text, tag] items,
+   tagging anything mentioning "enrichment" as enrich, else core */
+function items(list){
+  return list.map(t => [t, /enrich/i.test(t) ? "enrich" : "core"]);
+}
+
+/* ============================================================
+   DATA — syllabus topic checklists
+   Science (Bio/Chem/Phys) from the earlier curriculum maps;
+   EL / HCL / Geography / Math / Inquiry & Advocacy rebuilt from
+   the 2026 Y4 curriculum maps & assessment frameworks.
+   ============================================================ */
+const DEFAULT_TOPICS = {
+  BIO: [
+    {sec:"Natural Selection & Reproduction", weight:"CBA-1 · CBA-2 · EYA", items:[
+      ["Natural selection: variation & competition drive differential survival", "core"],
+      ["Environmental factors as forces of natural selection", "core"],
+      ["Natural selection as a mechanism for evolution", "core"],
+      ["Artificial selection examples (enrichment)", "enrich"],
+      ["Asexual vs sexual reproduction — definitions", "core"],
+      ["Flower structure: sepals, petals, stamens, carpels (insect-pollinated)", "core"],
+      ["Wind-pollinated flowers: stamens & stigmas", "core"],
+      ["Self- vs cross-pollination", "core"],
+      ["Pollen tube growth, entry into ovule, fertilisation", "core"],
+      ["Male reproductive system: structures & functions", "core"],
+      ["Female reproductive system: structures & functions", "core"],
+      ["Menstrual cycle: FSH, LH, progesterone, oestrogen", "core"],
+      ["Fertilisation & early zygote development (implantation)", "core"],
+      ["Amniotic sac/fluid, placenta & umbilical cord function", "core"],
+      ["Contraception methods (enrichment)", "enrich"],
+      ["IVF (enrichment)", "enrich"],
+      ["HIV transmission & reduction", "core"],
+    ]},
+    {sec:"DNA, Nuclear & Cellular Division", weight:"CBA-2 · AA-PR · EYA", items:[
+      ["DNA, genes, chromosomes relationship", "core"],
+      ["DNA double helix structure: nucleotides, bases", "core"],
+      ["Complementary base pairing", "core"],
+      ["Semi-conservative DNA replication (enrichment)", "enrich"],
+      ["Mitosis: purpose, chromosome number maintained", "core"],
+      ["Mitosis importance: growth, repair, asexual reproduction", "core"],
+      ["Mitosis stages with diagrams (enrichment)", "enrich"],
+      ["Causative factors of cancerous growth", "core"],
+      ["Cell cycle regulation & cancer development (enrichment)", "enrich"],
+      ["Haploid vs diploid, reduction division", "core"],
+      ["Homologous chromosome pairs", "core"],
+      ["Meiosis: chromosome number halved", "core"],
+      ["Meiosis stages with diagrams (enrichment)", "enrich"],
+      ["Meiosis & fertilisation → genetic variation (enrichment)", "enrich"],
+      ["Mutation: gene vs chromosome number (sickle cell, Down syndrome)", "core"],
+      ["Stem cells — normal functions (enrichment)", "enrich"],
+    ]},
+    {sec:"Inheritance", weight:"EYA", items:[
+      ["Gene vs allele", "core"],
+      ["Dominant, recessive, codominant, homo/heterozygous, genotype/phenotype", "core"],
+      ["Predict simple cross ratios (3:1, 1:1)", "core"],
+      ["Why observed ratios differ from expected", "core"],
+      ["Genetic diagrams: monohybrid, codominance, dihybrid (enrichment for dihybrid)", "enrich"],
+      ["ABO blood group codominance & multiple alleles", "core"],
+      ["Sex determination: XX/XY", "core"],
+      ["Pedigree chart interpretation (enrichment)", "enrich"],
+      ["Environment's effect on phenotype (enrichment)", "enrich"],
+      ["Incomplete dominance & sex linkage (enrichment)", "enrich"],
+      ["Mutagens: ionising radiation, chemical mutagens", "core"],
+      ["Continuous vs discontinuous variation", "core"],
+    ]},
+    {sec:"Infectious Diseases & Molecular Genetics", weight:"EYA", items:[
+      ["Infectious vs non-infectious diseases", "core"],
+      ["Pathogens: bacteria & viruses, transmission routes", "core"],
+      ["Virus structure & reproduction in host cells", "core"],
+      ["Bacteria structure: cell wall, no nucleus", "core"],
+      ["Influenza: signs, symptoms, transmission, reduction", "core"],
+      ["Pneumococcal disease: signs, symptoms, transmission, reduction", "core"],
+      ["Vaccines & antibody response", "core"],
+      ["Antibiotics: mechanism, ineffective against viruses", "core"],
+      ["Antibiotic resistance — misuse & overuse", "core"],
+      ["Gene = nucleotide sequence, codes for polypeptide, unit of inheritance", "core"],
+      ["DNA → genetic code → polypeptides (no transcription/translation detail)", "core"],
+      ["Genetic code features (enrichment)", "enrich"],
+      ["DNA vs RNA structure/function comparison (enrichment)", "enrich"],
+      ["Base substitution → amino acid change → phenotype (sickle cell)", "enrich"],
+      ["Frameshift mutation effects (enrichment)", "enrich"],
+      ["Transgenic organisms — gene transfer concept", "core"],
+      ["Restriction enzymes & DNA ligase (enrichment)", "enrich"],
+      ["Recombinant DNA formation & screening (enrichment)", "enrich"],
+      ["Gel electrophoresis (enrichment)", "enrich"],
+      ["Human insulin production via bacteria", "core"],
+      ["Benefits & ethics of genetic engineering", "core"],
+    ]},
+  ],
+  CHEM: [
+    {sec:"Patterns in the Periodic Table", weight:"PPA-CBA1 · AA-PR · EYA", items:[
+      ["Periodic Table arrangement by proton number", "core"],
+      ["Position ↔ proton number ↔ electronic configuration", "core"],
+      ["Outer electrons ↔ ionic charge (first 20 elements)", "core"],
+      ["Group similarities via electronic configuration", "core"],
+      ["Metallic → non-metallic character across a period", "core"],
+      ["Atomic radius trends — shielding & nuclear charge", "core"],
+      ["Predict Group 1 / Group 17 properties", "core"],
+      ["Reactivity series: Ca, Cu, Fe, Pb, Mg, K, Ag, Na, Zn", "core"],
+      ["Deduce reactivity order from experimental data", "core"],
+      ["Group 1 (alkali metals): trends in m.p. & reaction with water", "core"],
+      ["Group 17 (halogens): colour, state, displacement reactions", "core"],
+      ["Group 18 (noble gases): unreactivity & uses", "core"],
+      ["Transition elements: high m.p./density, variable oxidation state, coloured compounds, catalysts", "core"],
+      ["Action of heat on carbonates & thermal stability", "core"],
+      ["Obtaining metals from ores via reactivity series", "core"],
+      ["Rusting: conditions & prevention", "core"],
+      ["Sacrificial protection", "core"],
+    ]},
+    {sec:"Redox Chemistry & Electrochemistry", weight:"PPA-CBA2 · AA-PR · EYA", items:[
+      ["Electrolysis: conduction through molten/dissolved ionic compounds", "core"],
+      ["Electrolysis as evidence for ions", "core"],
+      ["Electrolysis of molten NaCl with inert electrodes", "core"],
+      ["Predict products of molten binary ionic compound electrolysis", "core"],
+      ["Selective discharge: cations (reactivity series)", "core"],
+      ["Selective discharge: anions (halides, hydroxides, sulfates)", "core"],
+      ["Concentration effects in electrolysis", "core"],
+      ["Purification of copper by electrolysis", "core"],
+      ["Electroplating — process & one use", "core"],
+      ["Simple cells: electrodes + electrolyte, link to reactivity series", "core"],
+      ["Hydrogen fuel cells (concept)", "core"],
+      ["Aluminium manufacture via electrolysis (enrichment)", "enrich"],
+      ["Predict products of aqueous electrolyte electrolysis", "core"],
+      ["Ionic equations for electrode reactions", "core"],
+      ["Calculate mass/volume liberated during electrolysis", "core"],
+      ["Electrochemical cell diagram: anode, cathode, electron/ion flow", "enrich"],
+    ]},
+    {sec:"Chemical Energetics", weight:"AA-PR · EYA", items:[
+      ["Enthalpy & relationship to system stability", "core"],
+      ["Exothermic (ΔH−) vs endothermic (ΔH+)", "core"],
+      ["Bond breaking endothermic, bond making exothermic", "core"],
+      ["Overall enthalpy change from bond energy changes", "core"],
+      ["Energy profile diagrams incl. activation energy", "core"],
+    ]},
+    {sec:"Rate of Reactions", weight:"AA-PR · EYA", items:[
+      ["Effect of concentration, pressure, particle size, temperature on rate", "core"],
+      ["Collision theory explanation of rate effects", "core"],
+      ["Catalysts (incl. enzymes) and their effect on rate", "core"],
+      ["Lower activation energy pathways → faster rate", "core"],
+      ["Catalysts in industrial processes; enzymes as biological catalysts", "core"],
+      ["Suggest method to investigate rate variable", "core"],
+      ["Interpret rate-of-reaction experimental data", "core"],
+    ]},
+    {sec:"Chemical Equilibrium", weight:"EYA", items:[
+      ["N2 + H2 sourcing for ammonia manufacture", "core"],
+      ["Reversible reactions — examples", "core"],
+      ["Dynamic equilibrium in terms of forward/reverse rates", "core"],
+      ["Le Chatelier's Principle: concentration, pressure, temperature", "core"],
+      ["Haber Process industrial conditions — interpret data", "core"],
+      ["Equilibrium constants Kc / Kp (enrichment)", "enrich"],
+      ["Ethical dilemma — Fritz Haber (enrichment)", "enrich"],
+    ]},
+    {sec:"Experimental Chemistry", weight:"AA-PR", items:[
+      ["Separation methods: solvent/filtration/crystallisation, sublimation, distillation, separating funnel, paper chromatography", "core"],
+      ["Suggest separation method for solid-solid / solid-liquid / liquid-liquid mixtures", "core"],
+      ["Interpret paper chromatograms & Rf values", "core"],
+      ["Deduce identity/purity from m.p./b.p. data", "core"],
+      ["MMO / PDO / ACE practical skill points", "core"],
+      ["Planning skills (P1–P4)", "core"],
+    ]},
+    {sec:"Organic Chemistry", weight:"EYA", items:[
+      ["Natural gas & crude oil as non-renewable sources", "core"],
+      ["Crude oil fractional distillation", "core"],
+      ["Biofuel (bioethanol) as renewable alternative", "core"],
+      ["Homologous series concept", "core"],
+      ["Alkanes: structure, naming C1–C4, general unreactivity", "core"],
+      ["Isomerism — definition & identification", "core"],
+      ["Alkenes: structure, naming C2–C4, addition reactions", "core"],
+      ["Cracking hydrocarbons", "core"],
+      ["Saturated vs unsaturated — bromine water test", "core"],
+      ["Polyunsaturated fats & margarine manufacture", "core"],
+      ["Alcohols: structure, naming, combustion & oxidation", "core"],
+      ["Ethanol formation: steam addition & fermentation", "core"],
+      ["Carboxylic acids: structure, naming, weak acid reactions", "core"],
+      ["Ethanoic acid formation by oxidation", "core"],
+      ["Esters: formation & naming", "core"],
+      ["Polymers: addition (poly(ethene)) vs condensation (nylon, Terylene)", "core"],
+      ["Plastic pollution, recycling methods, depolymerisation", "core"],
+    ]},
+    {sec:"Maintaining Air Quality", weight:"EYA", items:[
+      ["Composition of dry air", "core"],
+      ["Common pollutants: CO, NOx, ozone, SO2, hydrocarbons", "core"],
+      ["Sources of pollutants", "core"],
+      ["Health/environment effects incl. acid rain", "core"],
+      ["Catalytic converters & flue gas desulfurisation", "core"],
+      ["Ozone layer & CFCs", "core"],
+      ["Carbon cycle: combustion, respiration, photosynthesis", "core"],
+      ["Greenhouse gases & global warming effects", "core"],
+    ]},
+  ],
+  PHY: [
+    {sec:"Kinetic Particle Model of Matter", weight:"CBA-1 · AA-PR · EYA", items:[
+      ["Kinetic particle model: continuous random motion", "core"],
+      ["Brownian motion as evidence", "core"],
+      ["Temperature rise ↔ average kinetic energy increase", "core"],
+      ["Gas pressure explained via particle motion", "core"],
+      ["Pressure–temperature relationship (constant volume)", "core"],
+      ["Pressure–volume relationship (constant temp, p1V1=p2V2)", "core"],
+      ["Volume–temperature relationship (constant pressure)", "core"],
+      ["Apply gas law relationships to solve problems", "core"],
+      ["Ideal gas equation pV=nRT (enrichment)", "enrich"],
+    ]},
+    {sec:"Thermal Properties of Matter", weight:"CBA-1 · AA-PR · EYA", items:[
+      ["Internal energy: KE + PE of particles", "core"],
+      ["Heat capacity & specific heat capacity — define", "core"],
+      ["E = mcΔT — apply to problems", "core"],
+      ["Melting/solidification & boiling/condensation — no temp change", "core"],
+      ["Boiling vs evaporation — difference", "core"],
+      ["Latent heat & specific latent heat — define", "core"],
+      ["E = mL — apply to problems", "core"],
+      ["Latent heat in terms of particle behaviour", "core"],
+      ["Cooling curve — sketch & interpret", "core"],
+    ]},
+    {sec:"Static Electricity", weight:"CBA-2 · EYA", items:[
+      ["Positive/negative charge, unit coulomb", "core"],
+      ["Like repel, unlike attract", "core"],
+      ["Electric field as region of force", "core"],
+      ["Electric field of isolated point charge — draw", "core"],
+      ["Electric field pattern between two point charges", "core"],
+      ["Charging by rubbing — electron transfer", "core"],
+      ["Charging by induction — experiment", "core"],
+      ["Electrostatic hazards — examples", "core"],
+      ["Electrostatic precipitator application", "core"],
+      ["Electric potential at a point (enrichment)", "enrich"],
+    ]},
+    {sec:"Current of Electricity", weight:"CBA-2 · AA-PR · EYA", items:[
+      ["Current = rate of flow of charge (Y2 recap)", "core"],
+      ["Conventional current vs electron flow (Y2 recap)", "core"],
+      ["Q = It — apply to problems", "core"],
+      ["EMF: work done per unit charge by source", "core"],
+      ["Total EMF for sources in series", "core"],
+      ["Potential difference: work done per unit charge across component", "core"],
+      ["R = V/I (Y2 recap)", "core"],
+      ["Resistance ∝ length / cross-sectional area", "core"],
+      ["Temperature effect on metallic conductor resistance", "core"],
+      ["I/V characteristics: ohmic conductor, filament lamp, diode", "core"],
+      ["Internal resistance effects (enrichment)", "enrich"],
+    ]},
+    {sec:"D.C. Circuits", weight:"AA-PR · EYA", items:[
+      ["Draw circuit diagrams with standard components", "core"],
+      ["Series circuit: current same, p.d. sums (Y2 recap)", "core"],
+      ["Parallel circuit: current sums, p.d. same (Y2 recap)", "core"],
+      ["Effective resistance: series & parallel formulae (Y2 recap)", "core"],
+      ["Whole-circuit calculations combining relationships", "core"],
+      ["Potentiometer (variable potential divider) action", "core"],
+      ["NTC thermistors & LDRs as input transducers", "core"],
+      ["Solve circuit problems with thermistors/LDRs", "core"],
+    ]},
+    {sec:"Practical Electricity", weight:"EYA", items:[
+      ["Heating effect of electricity in appliances", "core"],
+      ["P = VI and E = VIt — apply to problems", "core"],
+      ["Cost of electricity in kWh (Y2 recap)", "core"],
+      ["Hazards: damaged insulation, overheating, damp conditions", "core"],
+      ["Fuses, circuit breakers & fuse ratings", "core"],
+      ["Earthing & double insulation (Y2 recap)", "core"],
+      ["Live, neutral, earth — mains plug wiring", "core"],
+      ["Why switches/fuses/breakers go on the live wire", "core"],
+    ]},
+    {sec:"Magnetism", weight:"EYA", items:[
+      ["Properties of magnets", "core"],
+      ["Induced magnetism near magnet/solenoid", "core"],
+      ["Magnetisation & demagnetisation methods", "core"],
+      ["Temporary vs permanent magnets", "core"],
+      ["Using a magnet to find field direction", "core"],
+      ["Magnetic field pattern: bar magnet & two bar magnets", "core"],
+    ]},
+    {sec:"Electromagnetism", weight:"EYA", items:[
+      ["Field pattern: straight wire & solenoid", "core"],
+      ["Effect of changing current magnitude/direction on field", "core"],
+      ["Electromagnets — application (e.g. circuit breakers)", "core"],
+      ["Force on current-carrying conductor in magnetic field", "core"],
+      ["Fleming's left-hand rule", "core"],
+      ["Force between parallel current-carrying conductors", "core"],
+      ["Turning effect on coil — increasing turns/current", "core"],
+      ["D.C. motor action & split-ring commutator", "core"],
+      ["Deflection of charged particle beams (enrichment)", "enrich"],
+    ]},
+    {sec:"Electromagnetic Induction", weight:"EYA", items:[
+      ["Faraday's experiments — changing field induces EMF", "core"],
+      ["Direction of induced EMF opposes change (Lenz's Law)", "core"],
+      ["Factors affecting magnitude of induced EMF", "core"],
+      ["Simple a.c. generator — structure & operation", "core"],
+      ["Voltage–time graph for a.c. generator", "core"],
+      ["Transformer structure & principle", "core"],
+      ["Vp/Vs = Np/Ns and VpIp = VsIs — apply to problems", "core"],
+      ["Energy loss in cables & advantage of high-voltage transmission", "core"],
+      ["Magnetic flux & weber (enrichment)", "enrich"],
+    ]},
+    {sec:"Radioactivity", weight:"EYA", items:[
+      ["Atomic structure: nucleus (protons+neutrons), electrons", "core"],
+      ["Nuclide notation, proton number Z, nucleon number A", "core"],
+      ["Nuclear decay — random & spontaneous", "core"],
+      ["Alpha, beta, gamma — nature, ionising effect, penetration", "core"],
+      ["Nuclide equations for radioactive emissions", "core"],
+      ["Background radiation sources", "core"],
+      ["Half-life — calculations from tables/decay curves", "core"],
+      ["Applications & hazards based on half-life/penetration/ionisation", "core"],
+      ["Nuclear fusion vs nuclear fission — energy release", "core"],
+      ["Mass defect (enrichment)", "enrich"],
+    ]},
+  ],
+  GEOG: [
+    {sec:"Spatial Variations in Development", weight:"EYA", items: items([
+      "Define development, standard of living and quality of life",
+      "Describe inequalities in development at local, national and global scales",
+      "Explain the North-South Divide and the development gap",
+      "Explain influencing factors: governance, opportunities, resources, gender",
+      "Evaluate indicators: GDP/GNP, HDI, Happiness Index, SDGs",
+      "Compare and assess the development status of selected countries",
+      "Describe Singapore development policies: Green Plan, Smart Nation",
+    ])},
+    {sec:"Natural Resources & Energy", weight:"EYA", items: items([
+      "Define resources, renewable and non-renewable",
+      "Account for variations in distribution, access and use of energy",
+      "Analyse links between resource endowment, use and development",
+      "Evaluate resource optimism vs resource curse (Sierra Leone vs Botswana)",
+      "Explain demand and supply of energy and impacts of exploitation",
+      "Explain causes and effects of the energy crisis",
+      "Apply energy mix, energy trilemma and energy security concepts",
+      "Assess alternative and green energy with Singapore's Energy Story",
+    ])},
+    {sec:"Tourism in a Globalised World", weight:"CBA2 · EYA", items: items([
+      "Describe and explain trends and patterns of global tourism",
+      "Explain tourism as a system: generating regions, transit routes, destinations",
+      "Apply the 6As to account for a destination's tourism potential",
+      "Explain reasons for tourism growth and Plog's tourist typology",
+      "Apply tourism carrying capacity and the six-stage Butler model",
+      "Compare and contrast mass tourism and ecotourism, incl. heritage tourism",
+      "Assess socio-cultural, economic and environmental impacts of tourism",
+      "Assess sustainability of mass and honeypot tourism",
+      "Evaluate stakeholder roles (public, private, people) in sustainable tourism",
+    ])},
+    {sec:"The Price of Development & Sustainable Development", weight:"EYA", items: items([
+      "Define poverty, absolute poverty and relative poverty",
+      "Account for global trends and patterns of income disparity",
+      "Describe manifestations of poverty in society",
+      "Explain causes and effects of spatial inequalities in income",
+      "Describe forms of aid and its role in poverty reduction",
+      "Evaluate strategies: technology, aid, CSR, women's empowerment",
+      "Compare development challenges faced by different economies",
+    ])},
+    {sec:"Geographical Field Inquiry", weight:"WA1 AA-NR · CBA2", items: items([
+      "Formulate a relevant hypothesis",
+      "Design data collection and sampling methods",
+      "Present data with techniques such as histograms and line graphs",
+      "Analyse data in response to the hypothesis",
+      "Evaluate inquiry design and execution",
+      "Suggest actions and advocacy from findings",
+    ])},
+    {sec:"Command Word Drill (cross-topic)", weight:"all papers", items: items([
+      "Account for — description + explanation",
+      "Assess / Evaluate — both sides + conclusion",
+      "Compare / Contrast — not two separate descriptions",
+      "Justify — reasoned defence of a stance",
+      "Discuss — analyse multiple viewpoints, supported conclusion",
+    ])},
+  ],
+  EL: [
+    {sec:"Spoken Discourse: Dialogic Argument", weight:"WA1 AAOL1 · WA2 AAOL2 (15% each)", items: items([
+      "Present facts, ideas and opinions coherently, varying register to the situation",
+      "Apply vocal strategies: tone, pace, pitch and volume with sensitivity to audience",
+      "Use non-verbal cues: facial expressions, gestures and eye contact",
+      "Delineate a speaker's central idea and claims, evaluating the argument",
+      "Show active listening: paraphrase, ask clarifying questions and take notes",
+      "Build arguments with claims, reasons, evidence, counterclaims and rebuttals",
+      "Distinguish valid, sound and strong arguments",
+      "Assess evidence by relevance, scope and reliability",
+      "Use concessions and rebuttals to engage opposing views constructively",
+      "Signpost reasons and conclusions; communicate assertively",
+      "Synthesise comments and evidence from all sides to resolve contradictions",
+    ])},
+    {sec:"Argumentation: Reading & Critical Literacy", weight:"EYA2 Comprehension (30%)", items: items([
+      "Distinguish explicit and implicit meanings in texts",
+      "Read at code-breaking, meaning-making, text-using and text-analysis levels",
+      "Determine figurative, connotative and technical meaning and its impact on tone",
+      "Deconstruct text structure and explain how central ideas develop",
+      "Integrate and evaluate information from multiple media and formats",
+      "Analyse visual and multimodal texts across semiotic systems",
+      "Identify rhetorical devices and analyse author's purpose and style",
+      "Trace and evaluate arguments, assessing reasoning and sufficiency of evidence",
+      "Distinguish fact from beliefs and values; identify perspective and bias",
+      "Evaluate a text's accuracy, reasonableness and supporting references",
+      "Summarise by deleting trivia and redundancy and creating superordinate terms",
+    ])},
+    {sec:"Argumentation: Persuasive Writing", weight:"EYA1 Essay (25%)", items: items([
+      "Introduce claims and distinguish them from alternate or opposing claims",
+      "Develop claims and counterclaims fairly with well-chosen evidence",
+      "Create cohesion among claims, counterclaims, reasons and evidence",
+      "Establish and maintain a formal style with a supported conclusion",
+      "Write with nuance, anticipating varying and conflicting audience perspectives",
+      "Develop rhythm in prose; eliminate redundancy, convolutedness and jargon",
+      "Establish voice suited to form, audience, context and purpose",
+      "Sustain coherence with conjunctions, controlled tense and transitions",
+      "Use context and word roots to deduce meaning; distinguish connotations",
+      "Strengthen writing through planning, revising, editing and rewriting",
+    ])},
+    {sec:"Personal Essay", weight:"WA3 AARF (15%, ≤800 words)", items: items([
+      "Treat the self as evidence while handling the topic logically",
+      "Balance intimacy and distance in personal writing",
+      "Engage the reader with a significant problem, situation or observation",
+      "Use narrative techniques: dialogue, pacing, description and reflection",
+      "Use precise words, telling details and sensory language",
+      "Sequence events to build tone and outcome such as growth or resolution",
+      "Conclude by reflecting on what is experienced, observed or resolved",
+      "Reflect on drafts against personal goals and revise with feedback",
+    ])},
+  ],
+  HCL: [
+    {sec:"语文应用与阅读理解（试卷二）", weight:"PPA1 (20%) · EYA 试卷二", items: items([
+      "短文填空：根据语境选择贴切词语",
+      "病句改正：根据四大类型语病找出并修改病句",
+      "说明文的顺序和说明方法",
+      "议论文的论证方法：举例、引用、对比、比喻论证",
+      "记叙文相关的语文技能",
+      "各种人物描写手法",
+      "各种修辞手法",
+      "阅读理解六大层次：复述、解释、重整、伸展、评鉴、创新",
+      "片段缩写：按原则将段落缩写成约80字",
+    ])},
+    {sec:"作文：议论文、演讲词与情境作文（试卷一）", weight:"PPA2 (15%) · EYA 试卷一", items: items([
+      "审题：找出关键词语，拟订写作范围和内容要点",
+      "议论文三要素：论点、论据、论证",
+      "运用举例、引用、对比、比喻论证法写作",
+      "演讲词的写作与说服元素",
+      "情境作文：运用心理描写等技巧深化主题",
+      "情境作文：运用修辞手法，写借景抒情的散文",
+      "材料作文：根据题目要求选择典型材料",
+      "修改文章语言",
+    ])},
+    {sec:"实用文：电子邮件与网上论坛（试卷一）", weight:"EYA 试卷一", items: items([
+      "审定电子实用文的内容要求与写作目的",
+      "掌握私人电邮的格式与语气",
+      "掌握公务电邮的格式与语言",
+      "掌握网上论坛的格式与会考要求",
+    ])},
+    {sec:"口试：口头报告与讨论", weight:"AA-OL 口试 (20%)", items: items([
+      "观看录像短片并拟写报告稿",
+      "结合话题与短片内容呈献不超过2分钟的口头报告",
+      "根据主考员的提问进行讨论",
+      "在讨论中延伸观点并使用准确华语",
+    ])},
+  ],
+  MA1: [
+    {sec:"Algebra and Functions", weight:"CBA2 · EYA", items: items([
+      "Partial fractions for rational functions",
+      "Binomial expansion of (a+b)^n and (1+x)^n",
+      "Find terms in products of binomial expansions",
+      "Represent non-linear relationships in linear form",
+      "Solve modelling problems using linear law",
+      "Display and interpret matrices of any order",
+      "Add, multiply and scalar multiply matrices",
+      "Use 2 by 2 zero and identity matrices",
+    ])},
+    {sec:"Geometry and Trigonometry", weight:"EYA", items: items([
+      "Gradient, midpoint and distance in coordinate geometry",
+      "Parallel and perpendicular line conditions",
+      "Equation of a line in general, gradient-intercept and double-intercept forms",
+      "Equation of a circle and completing the square",
+      "Line-circle intersection problems",
+      "Addition, double-angle and R-formula trigonometric identities",
+      "Vector addition, subtraction and scalar multiplication",
+      "Parallel vectors and collinearity proofs",
+      "Midpoint theorem and tangent-chord theorem proofs",
+    ])},
+    {sec:"Statistics and Probability", weight:"EYA", items: items([
+      "Experiment, event, outcome and sample space",
+      "Experimental probability and law of large numbers",
+      "Complementary and mutually exclusive events",
+      "Tree diagrams and probability diagrams",
+      "Independent and dependent events",
+      "Combined event probability calculations",
+      "Conditional probability and Bayes theorem (enrichment)",
+    ])},
+    {sec:"Calculus", weight:"EYA", items: items([
+      "Standard derivative notation and derived functions",
+      "Differentiate standard functions, products and quotients",
+      "Chain rule for function of a function",
+      "Tangents and normals",
+      "Increasing/decreasing functions and stationary points",
+      "Maximum, minimum and stationary inflexion points",
+      "Kinematics and related rates",
+      "Indefinite integration as reverse differentiation",
+      "Integrate algebraic, trigonometric and exponential functions",
+      "Area bounded by curves",
+    ])},
+  ],
+  MA2: [
+    {sec:"Algebra and Functions", weight:"CBA2 · EYA", items: items([
+      "Partial fractions for rational functions",
+      "Binomial expansion of (a+b)^n and (1+x)^n",
+      "Find terms in products of binomial expansions",
+      "Represent non-linear relationships in linear form",
+      "Solve modelling problems using linear law",
+      "Display and interpret matrices of any order",
+      "Add, multiply and scalar multiply matrices",
+      "Use 2 by 2 zero and identity matrices",
+    ])},
+    {sec:"Geometry and Trigonometry", weight:"EYA", items: items([
+      "Gradient, midpoint and distance in coordinate geometry",
+      "Parallel and perpendicular line conditions",
+      "Equation of a line in general, gradient-intercept and double-intercept forms",
+      "Equation of a circle and completing the square",
+      "Line-circle intersection problems",
+      "Addition, double-angle and R-formula trigonometric identities",
+      "Vector addition, subtraction and scalar multiplication",
+      "Parallel vectors and collinearity proofs",
+      "Midpoint theorem and tangent-chord theorem proofs",
+    ])},
+    {sec:"Statistics and Probability", weight:"EYA", items: items([
+      "Experiment, event, outcome and sample space",
+      "Experimental probability and law of large numbers",
+      "Complementary and mutually exclusive events",
+      "Tree diagrams and probability diagrams",
+      "Independent and dependent events",
+      "Combined event probability calculations",
+      "Conditional probability and Bayes theorem (enrichment)",
+    ])},
+    {sec:"Calculus", weight:"EYA", items: items([
+      "Standard derivative notation and derived functions",
+      "Differentiate standard functions, products and quotients",
+      "Chain rule for function of a function",
+      "Tangents and normals",
+      "Increasing/decreasing functions and stationary points",
+      "Maximum, minimum and stationary inflexion points",
+      "Kinematics and related rates",
+      "Indefinite integration as reverse differentiation",
+      "Integrate algebraic, trigonometric and exponential functions",
+      "Area bounded by curves",
+    ])},
+  ],
+  INA: [
+    {sec:"Economy & Society in a Globalised World", weight:"AA · EYA", items: items([
+      "Globalisation intensifies and accelerates flows and interactions",
+      "Technology, MNCs, consumers and governments drive global interconnections",
+      "Arguments for trade and protectionism",
+      "Singapore and the imperative of free trade",
+      "Uneven impacts of globalisation and free trade",
+      "Social justice through fair distribution of resources",
+      "Gather and evaluate sources for substantiated conclusions",
+    ])},
+    {sec:"Advocacy in a Globalised World", weight:"AA · EYA", items: items([
+      "Advocacy represents interests to achieve change and empowerment",
+      "Build evidence on what needs to change and how change can happen",
+      "Influence people with power while staying culturally aware",
+      "Global citizenship and local-global interconnections",
+      "Consequentialism, deontology and virtue ethics",
+      "Perspective-taking and ethical decision-making",
+      "Create an advocacy product with evidence and reflection",
+    ])},
+    {sec:"Politics in a Globalised World", weight:"EYA", items: items([
+      "Diplomacy among state and non-state actors",
+      "National interest, sovereignty and vulnerability",
+      "Soft power and hard power",
+      "International rule of law and stability",
+      "Singapore diplomacy with ASEAN",
+      "South China Sea conflict",
+      "Foreign policy in US-China rivalry",
+    ])},
+  ],
+};
+
+/* ============================================================
+   MUTABLE DATA — start as defaults, then load from storage
+   ============================================================ */
+let EXAMS = JSON.parse(JSON.stringify(DEFAULT_EXAMS));
+let SUBJECTS = JSON.parse(JSON.stringify(DEFAULT_SUBJECTS));
+let TOPICS = JSON.parse(JSON.stringify(DEFAULT_TOPICS));
+
+const state = {
+  checkedTopics: {},
+  goals: [],
+  weekPlan: {},
+  selectedSubject: "BIO",
+  calMonthOffset: 0,
+  editingSubject: null,
+};
+
+const TODAY = new Date();
+TODAY.setHours(0,0,0,0);
+
+function fmtDate(d){
+  return d.toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short', year:'numeric'});
+}
+function daysBetween(a,b){
+  const ms = (new Date(b.getFullYear(),b.getMonth(),b.getDate())) - (new Date(a.getFullYear(),a.getMonth(),a.getDate()));
+  return Math.round(ms/86400000);
+}
+
+/* ============================================================
+   STORAGE — localStorage + Supabase cloud sync
+   ============================================================ */
+let saveTimer = null;
+function flagSaved(){
+  const ind = document.getElementById('saveIndicator');
+  if(!ind) return;
+  ind.classList.add('show');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(()=>ind.classList.remove('show'), 1200);
+}
+
+function collectData(){
+  return {
+    EXAMS, SUBJECTS, TOPICS,
+    checkedTopics: state.checkedTopics,
+    goals: state.goals,
+    weekPlan: state.weekPlan,
+    selectedSubject: state.selectedSubject,
+    contentVersion: CONTENT_VERSION,
+  };
+}
+
+function applyData(data){
+  if(!data || typeof data !== 'object') return;
+  // accept both new (EXAMS) and legacy lowercase (exams) shapes
+  const exams = data.EXAMS || data.exams;
+  if(Array.isArray(exams)) EXAMS = exams;
+  const subjects = data.SUBJECTS || data.subjects;
+  SUBJECTS = Object.assign({}, DEFAULT_SUBJECTS, (subjects && typeof subjects==='object') ? subjects : {});
+  const topics = data.TOPICS || data.topics;
+  if(topics && data.contentVersion === CONTENT_VERSION){
+    TOPICS = topics; // student's own edits, current curriculum
+  } else {
+    // fresh / outdated curriculum → load updated defaults,
+    // but keep any custom subjects the student created themselves
+    TOPICS = JSON.parse(JSON.stringify(DEFAULT_TOPICS));
+    if(topics && typeof topics === 'object'){
+      Object.keys(topics).forEach(code=>{ if(!DEFAULT_TOPICS[code]) TOPICS[code] = topics[code]; });
+    }
+  }
+  if(data.checkedTopics) state.checkedTopics = data.checkedTopics;
+  if(Array.isArray(data.goals)) state.goals = data.goals;
+  if(data.weekPlan) state.weekPlan = data.weekPlan;
+  if(data.selectedSubject && SUBJECTS[data.selectedSubject]) state.selectedSubject = data.selectedSubject;
+}
+
+let cloudTimer = null;
+async function saveAll(){
+  const payload = collectData();
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(payload)); }catch(e){}
+  flagSaved();
+  if(currentUser){
+    clearTimeout(cloudTimer);
+    cloudTimer = setTimeout(async ()=>{
+      try{
+        await sb.from('user_progress').upsert({
+          user_id: currentUser.id,
+          email: currentUser.email,
+          data: payload,
+          updated_at: new Date().toISOString(),
+        });
+      }catch(e){ console.error('Cloud save failed', e); }
+    }, 800);
+  }
+}
+
+async function loadAll(){
+  let data = null;
+  if(currentUser){
+    try{
+      const { data:row } = await sb.from('user_progress').select('data').eq('user_id', currentUser.id).maybeSingle();
+      if(row && row.data && Object.keys(row.data).length) data = row.data;
+    }catch(e){ console.error('Cloud load failed', e); }
+  }
+  if(!data){
+    try{ const raw = localStorage.getItem(LS_KEY); if(raw) data = JSON.parse(raw); }catch(e){}
+  }
+  if(data) applyData(data);
+  // back up local → cloud on first login when the account has no row yet
+  if(currentUser && !data){ saveAll(); }
+  else if(currentUser){ // ensure cloud reflects any curriculum refresh applied above
+    saveAll();
+  }
+}
+
+/* ============================================================
+   TAB SWITCHING
+   ============================================================ */
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-'+tab.dataset.tab).classList.add('active');
+  });
+});
+
+/* ============================================================
+   OVERVIEW RENDER
+   ============================================================ */
+function getFutureExams(){
+  return EXAMS
+    .map(e=>({...e, dateObj:new Date(e.date+"T00:00:00")}))
+    .filter(e=>daysBetween(TODAY,e.dateObj) >= 0)
+    .sort((a,b)=>a.dateObj-b.dateObj);
+}
+
+function renderOverview(){
+  document.getElementById('todayStamp').textContent = "TODAY · " + TODAY.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}).toUpperCase();
+
+  const future = getFutureExams();
+  const next = future[0];
+  if(next){
+    document.getElementById('nextExamName').textContent = next.name;
+    document.getElementById('nextExamDate').textContent = fmtDate(next.dateObj);
+    document.getElementById('countDays').textContent = daysBetween(TODAY, next.dateObj);
+  } else {
+    document.getElementById('nextExamName').textContent = "All exams done 🎉";
+    document.getElementById('nextExamDate').textContent = "";
+    document.getElementById('countDays').textContent = "0";
+  }
+
+  const upnextWrap = document.getElementById('upnextList');
+  upnextWrap.innerHTML = "";
+  future.slice(0,6).forEach(e=>{
+    const d = daysBetween(TODAY, e.dateObj);
+    const row = document.createElement('div');
+    row.className = 'upnext-row';
+    row.innerHTML = `<span class="upnext-name">${e.name}</span>
+      <span><span class="upnext-date mono">${e.dateObj.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</span>
+      <span class="upnext-days">T-${d}</span></span>`;
+    upnextWrap.appendChild(row);
+  });
+
+  const totalExams = EXAMS.length;
+  const passed = totalExams - future.length;
+  const olevelCount = EXAMS.filter(e=>e.name.includes("O-Level")).length;
+  const eyaCount = EXAMS.filter(e=>e.name.includes("EYA")).length;
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat"><div class="stat-num disp">${future.length}</div><div class="stat-lbl mono">Items remaining</div></div>
+    <div class="stat"><div class="stat-num disp">${eyaCount}</div><div class="stat-lbl mono">EYA papers</div></div>
+    <div class="stat"><div class="stat-num disp">${olevelCount}</div><div class="stat-lbl mono">O-Level items</div></div>
+    <div class="stat"><div class="stat-num disp">${passed}</div><div class="stat-lbl mono">Items passed</div></div>
+  `;
+
+  renderSubjGrid('overviewSubjGrid', false);
+}
+
+/* ============================================================
+   SUBJECT GRID (shared between overview + study tab)
+   ============================================================ */
+function subjectProgress(subj){
+  const secs = TOPICS[subj];
+  if(!secs) return {done:0, total:0, pct:0};
+  let done=0, total=0;
+  secs.forEach((sec,si)=>{
+    sec.items.forEach((it,ii)=>{
+      total++;
+      if(state.checkedTopics[`${subj}_${si}_${ii}`]) done++;
+    });
+  });
+  return {done, total, pct: total? Math.round(done/total*100):0};
+}
+
+function renderSubjGrid(elId, clickable){
+  const wrap = document.getElementById(elId);
+  wrap.innerHTML = "";
+  Object.keys(SUBJECTS).forEach(code=>{
+    const sub = SUBJECTS[code];
+    const hasTopics = !!TOPICS[code];
+    const prog = hasTopics ? subjectProgress(code) : null;
+    const card = document.createElement('div');
+    card.className = 'subj-card' + (state.selectedSubject===code && elId==='studySubjGrid' ? ' selected':'');
+    card.innerHTML = `
+      <div>
+        <div class="subj-code mono">${code}</div>
+        <div class="subj-name">${sub.name}</div>
+      </div>
+      ${hasTopics ? `
+        <div>
+          <div class="subj-bar-track"><div class="subj-bar-fill" style="width:${prog.pct}%"></div></div>
+          <div class="subj-pct mono">${prog.done}/${prog.total} topics · ${prog.pct}%</div>
+        </div>
+      ` : `<div class="subj-pct mono" style="opacity:.4">syllabus checklist not loaded yet</div>`}
+    `;
+    if(hasTopics){
+      card.addEventListener('click', ()=>{
+        state.selectedSubject = code;
+        document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+        document.querySelector('.tab[data-tab="study"]').classList.add('active');
+        document.getElementById('panel-study').classList.add('active');
+        renderStudyTab();
+      });
+    }
+    wrap.appendChild(card);
+  });
+}
+
+/* ============================================================
+   STUDY TAB
+   ============================================================ */
+function renderStudyTab(){
+  renderSubjGrid('studySubjGrid', true);
+  const wrap = document.getElementById('topicSectionsWrap');
+  wrap.innerHTML = "";
+  const subj = state.selectedSubject;
+  const secs = TOPICS[subj];
+  if(!secs){
+    wrap.innerHTML = `<div class="empty-state">No syllabus checklist loaded for this subject yet.</div>`;
+    return;
+  }
+  secs.forEach((sec, si)=>{
+    let doneCount=0;
+    sec.items.forEach((it,ii)=>{ if(state.checkedTopics[`${subj}_${si}_${ii}`]) doneCount++; });
+    const section = document.createElement('div');
+    section.className = 'topic-section';
+    section.style.marginBottom = '14px';
+    section.innerHTML = `
+      <div class="topic-section-head">
+        <div class="topic-section-title">${sec.sec}</div>
+        <div class="topic-section-meta">${doneCount}/${sec.items.length} done · assessed in ${sec.weight}</div>
+      </div>
+      <div class="topic-list"></div>
+    `;
+    const list = section.querySelector('.topic-list');
+    sec.items.forEach((it,ii)=>{
+      const [text, tag] = it;
+      const key = `${subj}_${si}_${ii}`;
+      const checked = !!state.checkedTopics[key];
+      const row = document.createElement('div');
+      row.className = 'topic-row' + (checked ? ' done':'');
+      row.innerHTML = `
+        <div class="topic-check ${checked?'checked':''}">${checked?'✓':''}</div>
+        <div class="topic-text">${text}</div>
+        <div class="topic-tag ${tag==='core'?'tag-core':'tag-enrich'}">${tag==='core'?'core':'enrich'}</div>
+      `;
+      row.addEventListener('click', ()=>{
+        state.checkedTopics[key] = !state.checkedTopics[key];
+        renderStudyTab();
+        renderOverview();
+        saveAll();
+      });
+      list.appendChild(row);
+    });
+    wrap.appendChild(section);
+  });
+}
+
+/* ============================================================
+   CALENDAR TAB
+   ============================================================ */
+function renderCalendar(){
+  const base = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
+  const view = new Date(base.getFullYear(), base.getMonth()+state.calMonthOffset, 1);
+  const year = view.getFullYear(), month = view.getMonth();
+  document.getElementById('calMonthLabel').textContent = view.toLocaleDateString('en-GB',{month:'long', year:'numeric'});
+
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = "";
+  ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(d=>{
+    const el = document.createElement('div');
+    el.className = 'cal-dow mono';
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+
+  const firstDay = new Date(year, month, 1);
+  let startOffset = firstDay.getDay()-1;
+  if(startOffset<0) startOffset=6;
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+
+  const examsByDate = {};
+  EXAMS.forEach(e=>{
+    examsByDate[e.date] = examsByDate[e.date] || [];
+    examsByDate[e.date].push(e);
+  });
+
+  for(let i=0;i<startOffset;i++){
+    const c = document.createElement('div');
+    c.className = 'cal-cell empty';
+    grid.appendChild(c);
+  }
+  for(let d=1; d<=daysInMonth; d++){
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const cell = document.createElement('div');
+    const isToday = (year===TODAY.getFullYear() && month===TODAY.getMonth() && d===TODAY.getDate());
+    cell.className = 'cal-cell' + (isToday?' today':'');
+    let html = `<div class="cal-daynum">${d}</div>`;
+    (examsByDate[dateStr]||[]).forEach(e=>{
+      html += `<div class="cal-event" title="${e.name}">${e.subj} — ${e.name.split('—')[1] ? e.name.split('—')[1].trim() : e.name}</div>`;
+    });
+    cell.innerHTML = html;
+    grid.appendChild(cell);
+  }
+
+  const listWrap = document.getElementById('fullListWrap');
+  const all = EXAMS.map(e=>({...e, dateObj:new Date(e.date+"T00:00:00")})).sort((a,b)=>a.dateObj-b.dateObj);
+  listWrap.innerHTML = `<div class="topic-section"><div class="topic-list">` +
+    all.map(e=>{
+      const past = daysBetween(TODAY,e.dateObj) < 0;
+      return `<div class="topic-row" style="${past?'opacity:.4':''}">
+        <div class="topic-text"><strong>${e.dateObj.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short'})}</strong> — ${e.name}</div>
+        <div class="topic-tag" style="background:var(--ink-dim);color:var(--ink)">${e.subj}</div>
+      </div>`;
+    }).join('') + `</div></div>`;
+}
+
+document.getElementById('prevMonth').addEventListener('click', ()=>{state.calMonthOffset--; renderCalendar();});
+document.getElementById('nextMonth').addEventListener('click', ()=>{state.calMonthOffset++; renderCalendar();});
+
+/* ============================================================
+   GOALS TAB
+   ============================================================ */
+function renderGoals(){
+  const wrap = document.getElementById('goalList');
+  if(state.goals.length===0){
+    wrap.innerHTML = `<div class="empty-state">No goals yet — add your first one above.</div>`;
+  } else {
+    wrap.innerHTML = "";
+    state.goals.forEach((g, idx)=>{
+      const row = document.createElement('div');
+      row.className = 'goal-row';
+      row.innerHTML = `
+        <div class="topic-check ${g.done?'checked':''}" style="cursor:pointer">${g.done?'✓':''}</div>
+        <div class="goal-text ${g.done?'done':''}">${g.text}</div>
+        <div class="goal-del mono" style="cursor:pointer">remove</div>
+      `;
+      row.querySelector('.topic-check').addEventListener('click', ()=>{ g.done=!g.done; renderGoals(); saveAll(); });
+      row.querySelector('.goal-del').addEventListener('click', ()=>{ state.goals.splice(idx,1); renderGoals(); saveAll(); });
+      wrap.appendChild(row);
+    });
+  }
+}
+document.getElementById('goalAddBtn').addEventListener('click', addGoal);
+document.getElementById('goalInput').addEventListener('keydown', e=>{ if(e.key==='Enter') addGoal(); });
+function addGoal(){
+  const input = document.getElementById('goalInput');
+  const val = input.value.trim();
+  if(!val) return;
+  state.goals.push({text:val, done:false});
+  input.value = "";
+  renderGoals();
+  saveAll();
+}
+
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+function renderWeekPlan(){
+  const wrap = document.getElementById('weekGrid');
+  wrap.innerHTML = "";
+  DAYS.forEach(day=>{
+    const col = document.createElement('div');
+    col.className = 'week-day';
+    const slots = state.weekPlan[day] || ["","",""];
+    col.innerHTML = `<div class="week-day-name mono">${day}</div>` +
+      slots.map((s,i)=>`<div class="week-slot ${s?'filled':'empty-slot'}" data-day="${day}" data-idx="${i}">${s || '+ add'}</div>`).join('');
+    wrap.appendChild(col);
+  });
+  wrap.querySelectorAll('.week-slot').forEach(slot=>{
+    slot.addEventListener('click', ()=>{
+      const day = slot.dataset.day, idx = +slot.dataset.idx;
+      const current = (state.weekPlan[day]||["","",""])[idx] || "";
+      const val = prompt("What's the study task for "+day+"?", current);
+      if(val !== null){
+        if(!state.weekPlan[day]) state.weekPlan[day] = ["","",""];
+        state.weekPlan[day][idx] = val;
+        renderWeekPlan();
+        saveAll();
+      }
+    });
+  });
+}
+
+/* ============================================================
+   EDIT DATA TAB — exams
+   ============================================================ */
+function populateExamSubjDropdown(){
+  const sel = document.getElementById('examSubjInput');
+  const current = sel.value;
+  sel.innerHTML = Object.keys(SUBJECTS).map(code=>`<option value="${code}">${code} — ${SUBJECTS[code].name}</option>`).join('');
+  if(current && SUBJECTS[current]) sel.value = current;
+}
+
+function renderExamEditList(){
+  populateExamSubjDropdown();
+  const wrap = document.getElementById('examEditList');
+  const sorted = EXAMS.map((e,idx)=>({...e, _idx:idx, dateObj:new Date(e.date+"T00:00:00")})).sort((a,b)=>a.dateObj-b.dateObj);
+  if(sorted.length===0){
+    wrap.innerHTML = `<div class="empty-state">No exams yet — add one above.</div>`;
+    return;
+  }
+  wrap.innerHTML = sorted.map(e=>`
+    <div class="exam-row">
+      <div class="exam-row-date mono">${e.dateObj.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}</div>
+      <div class="exam-row-name">${e.name}</div>
+      <div class="exam-row-subj mono">${e.subj}</div>
+      <div class="exam-row-del" data-idx="${e._idx}">remove</div>
+    </div>
+  `).join('');
+  wrap.querySelectorAll('.exam-row-del').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const idx = +btn.dataset.idx;
+      EXAMS.splice(idx,1);
+      renderExamEditList();
+      renderOverview();
+      renderCalendar();
+      saveAll();
+    });
+  });
+}
+
+document.getElementById('examAddBtn').addEventListener('click', ()=>{
+  const date = document.getElementById('examDateInput').value;
+  const name = document.getElementById('examNameInput').value.trim();
+  const subj = document.getElementById('examSubjInput').value;
+  if(!date || !name){ alert('Please fill in both a date and an exam name.'); return; }
+  EXAMS.push({date, name, subj});
+  document.getElementById('examDateInput').value = "";
+  document.getElementById('examNameInput').value = "";
+  renderExamEditList();
+  renderOverview();
+  renderCalendar();
+  saveAll();
+});
+
+/* ============================================================
+   EDIT DATA TAB — subjects + topic checklist editor
+   ============================================================ */
+function renderSubjEditList(){
+  const wrap = document.getElementById('subjEditList');
+  wrap.innerHTML = "";
+  Object.keys(SUBJECTS).forEach(code=>{
+    const row = document.createElement('div');
+    row.className = 'subj-edit-row' + (state.editingSubject===code ? ' active-edit':'');
+    const hasTopics = !!TOPICS[code];
+    row.innerHTML = `
+      <div style="flex:1">
+        <span class="mono" style="font-size:11px; opacity:.7">${code}</span> — ${SUBJECTS[code].name}
+        <span class="mono" style="font-size:10px; opacity:.5"> ${hasTopics ? '· '+TOPICS[code].length+' sections' : '· no checklist yet'}</span>
+      </div>
+      <div class="goal-del mono" data-code="${code}">delete subject</div>
+    `;
+    row.addEventListener('click', (e)=>{
+      if(e.target.classList.contains('goal-del')) return;
+      state.editingSubject = code;
+      renderSubjEditList();
+      renderTopicEditor();
+    });
+    row.querySelector('.goal-del').addEventListener('click', (e)=>{
+      e.stopPropagation();
+      if(!confirm(`Delete subject "${SUBJECTS[code].name}"? This also removes its topic checklist and any exams tagged ${code}.`)) return;
+      delete SUBJECTS[code];
+      delete TOPICS[code];
+      EXAMS = EXAMS.filter(ex=>ex.subj!==code);
+      if(state.editingSubject===code) state.editingSubject=null;
+      renderSubjEditList();
+      renderTopicEditor();
+      renderOverview();
+      renderCalendar();
+      renderStudyTab();
+      saveAll();
+    });
+    wrap.appendChild(row);
+  });
+}
+
+document.getElementById('addSubjBtn').addEventListener('click', ()=>{
+  const code = document.getElementById('newSubjCode').value.trim().toUpperCase();
+  const name = document.getElementById('newSubjName').value.trim();
+  if(!code || !name){ alert('Please fill in both a code and a full name.'); return; }
+  if(SUBJECTS[code]){ alert('That subject code already exists.'); return; }
+  SUBJECTS[code] = {name, color:"#5B7A6B"};
+  TOPICS[code] = [];
+  document.getElementById('newSubjCode').value = "";
+  document.getElementById('newSubjName').value = "";
+  state.editingSubject = code;
+  renderSubjEditList();
+  renderTopicEditor();
+  renderOverview();
+  renderStudyTab();
+  saveAll();
+});
+
+function renderTopicEditor(){
+  const wrap = document.getElementById('topicEditorWrap');
+  const code = state.editingSubject;
+  if(!code){
+    wrap.innerHTML = `<div class="empty-state">Select a subject on the left to build or edit its syllabus checklist.</div>`;
+    return;
+  }
+  if(!TOPICS[code]) TOPICS[code] = [];
+  const secs = TOPICS[code];
+  let html = `<div class="topic-editor">
+    <div class="topic-section-title" style="margin-bottom:12px;">${SUBJECTS[code].name} — syllabus checklist</div>`;
+  secs.forEach((sec, si)=>{
+    html += `<div class="sec-editor" data-si="${si}">
+      <div class="sec-editor-head">
+        <input type="text" class="sec-editor-title-input" data-si="${si}" value="${sec.sec.replace(/"/g,'&quot;')}" placeholder="Section name">
+        <span class="goal-del mono" data-action="delsec" data-si="${si}" style="margin-left:8px;">delete section</span>
+      </div>
+      <div class="field-row" style="margin-bottom:8px;">
+        <div class="field"><label>Assessed in</label><input type="text" class="sec-editor-weight" data-si="${si}" value="${(sec.weight||'').replace(/"/g,'&quot;')}" placeholder="e.g. EYA"></div>
+      </div>
+      <div class="item-list" data-si="${si}">`;
+    sec.items.forEach((it, ii)=>{
+      const [text, tag] = it;
+      html += `<div class="item-edit-row" data-si="${si}" data-ii="${ii}">
+        <input type="text" class="item-text-input" data-si="${si}" data-ii="${ii}" value="${text.replace(/"/g,'&quot;')}">
+        <select class="item-tag-select" data-si="${si}" data-ii="${ii}">
+          <option value="core" ${tag==='core'?'selected':''}>core</option>
+          <option value="enrich" ${tag==='enrich'?'selected':''}>enrich</option>
+        </select>
+        <span class="goal-del mono" data-action="delitem" data-si="${si}" data-ii="${ii}">×</span>
+      </div>`;
+    });
+    html += `</div>
+      <button class="btn btn-outline btn-small" data-action="additem" data-si="${si}">+ add topic line</button>
+    </div>`;
+  });
+  html += `<button class="btn btn-small" data-action="addsec" style="margin-top:6px;">+ add section</button>
+  </div>`;
+  wrap.innerHTML = html;
+
+  wrap.querySelectorAll('.sec-editor-title-input').forEach(inp=>{
+    inp.addEventListener('input', ()=>{ TOPICS[code][+inp.dataset.si].sec = inp.value; });
+    inp.addEventListener('blur', ()=>{ renderStudyTab(); saveAll(); });
+  });
+  wrap.querySelectorAll('.sec-editor-weight').forEach(inp=>{
+    inp.addEventListener('input', ()=>{ TOPICS[code][+inp.dataset.si].weight = inp.value; });
+    inp.addEventListener('blur', ()=>{ renderStudyTab(); saveAll(); });
+  });
+  wrap.querySelectorAll('.item-text-input').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      TOPICS[code][+inp.dataset.si].items[+inp.dataset.ii][0] = inp.value;
+    });
+    inp.addEventListener('blur', ()=>{ renderStudyTab(); saveAll(); });
+  });
+  wrap.querySelectorAll('.item-tag-select').forEach(sel=>{
+    sel.addEventListener('change', ()=>{
+      TOPICS[code][+sel.dataset.si].items[+sel.dataset.ii][1] = sel.value;
+      renderStudyTab(); saveAll();
+    });
+  });
+  wrap.querySelectorAll('[data-action="delsec"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      TOPICS[code].splice(+btn.dataset.si,1);
+      renderTopicEditor(); renderSubjEditList(); renderStudyTab(); saveAll();
+    });
+  });
+  wrap.querySelectorAll('[data-action="delitem"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      TOPICS[code][+btn.dataset.si].items.splice(+btn.dataset.ii,1);
+      renderTopicEditor(); renderStudyTab(); saveAll();
+    });
+  });
+  wrap.querySelectorAll('[data-action="additem"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      TOPICS[code][+btn.dataset.si].items.push(["New topic — click to edit", "core"]);
+      renderTopicEditor(); renderStudyTab(); saveAll();
+    });
+  });
+  const addSecBtn = wrap.querySelector('[data-action="addsec"]');
+  if(addSecBtn){
+    addSecBtn.addEventListener('click', ()=>{
+      TOPICS[code].push({sec:"New section", weight:"", items:[["New topic — click to edit","core"]]});
+      renderTopicEditor(); renderSubjEditList(); renderStudyTab(); saveAll();
+    });
+  }
+}
+
+/* ============================================================
+   FOCUS TIMER (Pomodoro)
+   ============================================================ */
+const PRESETS = {
+  classic: { label:"Classic", focus:25, short:5, long:15, interval:4 },
+  deep:    { label:"Deep Work", focus:50, short:10, long:20, interval:3 },
+  sprint:  { label:"Quick Sprint", focus:15, short:3, long:10, interval:4 },
+  custom:  { label:"Custom", focus:25, short:5, long:15, interval:4 },
+};
+const pomo = {
+  presetId: "classic",
+  custom: { focus:25, short:5, long:15, interval:4 },
+  autoStart: false,
+  sound: true,
+  // running state
+  phase: "focus",        // focus | short | long
+  cyclesDone: 0,         // completed focus blocks in current set
+  running: false,
+  endsAt: null,          // ms timestamp when current phase ends
+  remainingMs: null,     // ms left when paused
+  // logging
+  completedFocus: [],    // {ts, minutes}
+};
+let pomoTick = null;
+let baseTitle = document.title;
+
+function pomoCfg(){
+  return pomo.presetId === "custom" ? pomo.custom : PRESETS[pomo.presetId];
+}
+function phaseMinutes(phase){
+  const c = pomoCfg();
+  return phase==="focus" ? c.focus : phase==="short" ? c.short : c.long;
+}
+function phaseLabel(phase){
+  return phase==="focus" ? "Focus" : phase==="short" ? "Short break" : "Long break";
+}
+
+function loadPomodoro(){
+  try{
+    const raw = localStorage.getItem(LS_POMODORO);
+    if(raw){
+      const d = JSON.parse(raw);
+      Object.assign(pomo, d);
+      if(!PRESETS[pomo.presetId]) pomo.presetId = "classic";
+    }
+  }catch(e){}
+  // prune completedFocus to today only for the stat
+}
+function savePomodoro(){
+  try{ localStorage.setItem(LS_POMODORO, JSON.stringify(pomo)); }catch(e){}
+}
+
+function beep(){
+  if(!pomo.sound) return;
+  try{
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const now = ctx.currentTime;
+    [880, 1320].forEach((f,i)=>{
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = f;
+      const t = now + i*0.18;
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.25, t+0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t+0.16);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(t); osc.stop(t+0.18);
+    });
+    setTimeout(()=>{ try{ctx.close();}catch(e){}}, 800);
+  }catch(e){}
+}
+
+function remainingMsNow(){
+  if(pomo.running && pomo.endsAt) return Math.max(0, pomo.endsAt - Date.now());
+  if(pomo.remainingMs != null) return pomo.remainingMs;
+  return phaseMinutes(pomo.phase)*60000;
+}
+
+function fmtClock(ms){
+  const total = Math.round(ms/1000);
+  const m = Math.floor(total/60), s = total%60;
+  return String(m).padStart(2,'0')+":"+String(s).padStart(2,'0');
+}
+
+function todayKey(){ const d=new Date(); return d.getFullYear()+"-"+d.getMonth()+"-"+d.getDate(); }
+function focusMinutesToday(){
+  const key = todayKey();
+  return pomo.completedFocus.filter(e=>e.key===key).reduce((a,e)=>a+e.minutes,0);
+}
+function focusBlocksToday(){
+  const key = todayKey();
+  return pomo.completedFocus.filter(e=>e.key===key).length;
+}
+
+function renderPomodoro(){
+  // presets
+  const pr = document.getElementById('presetRow');
+  pr.innerHTML = "";
+  Object.keys(PRESETS).forEach(id=>{
+    const p = PRESETS[id];
+    const btn = document.createElement('button');
+    btn.className = 'preset-btn mono' + (pomo.presetId===id ? ' active':'');
+    btn.type = "button";
+    const cfg = id==="custom" ? pomo.custom : p;
+    btn.innerHTML = `${p.label}<div class="preset-meta">${cfg.focus}/${cfg.short}</div>`;
+    btn.addEventListener('click', ()=>{
+      pomo.presetId = id;
+      resetTimer(false);
+      document.getElementById('customFields').style.display = id==="custom" ? "block" : "none";
+      renderPomodoro();
+      savePomodoro();
+    });
+    pr.appendChild(btn);
+  });
+  document.getElementById('customFields').style.display = pomo.presetId==="custom" ? "block" : "none";
+  document.getElementById('cFocus').value = pomo.custom.focus;
+  document.getElementById('cShort').value = pomo.custom.short;
+  document.getElementById('cLong').value = pomo.custom.long;
+  document.getElementById('cInterval').value = pomo.custom.interval;
+
+  // toggles
+  const at = document.getElementById('autoToggle');
+  at.textContent = pomo.autoStart ? "On" : "Off";
+  at.classList.toggle('on', pomo.autoStart);
+  const st = document.getElementById('soundToggle');
+  st.textContent = pomo.sound ? "On" : "Off";
+  st.classList.toggle('on', pomo.sound);
+
+  // clock + phase
+  const clock = document.getElementById('timerClock');
+  clock.textContent = fmtClock(remainingMsNow());
+  clock.className = "timer-clock disp " + (pomo.phase==="focus" ? "focus" : "break");
+  document.getElementById('timerPhase').textContent = phaseLabel(pomo.phase);
+  document.getElementById('timerStart').textContent = pomo.running ? "Pause" : "Start";
+
+  // cycle dots
+  const cfg = pomoCfg();
+  const dots = document.getElementById('timerDots');
+  dots.innerHTML = "";
+  for(let i=0;i<cfg.interval;i++){
+    const dot = document.createElement('div');
+    dot.className = 'cycle-dot' + (i < pomo.cyclesDone ? ' filled':'');
+    dots.appendChild(dot);
+  }
+  document.getElementById('timerCycleLbl').textContent =
+    pomo.phase==="focus" ? `Focus block ${Math.min(pomo.cyclesDone+1,cfg.interval)} of ${cfg.interval}` : "Break time";
+
+  // stats
+  document.getElementById('focusToday').textContent = focusMinutesToday() + " min";
+  document.getElementById('focusBlocks').textContent = focusBlocksToday() + " focus blocks completed";
+}
+
+function updateTitle(){
+  if(pomo.running){
+    document.title = fmtClock(remainingMsNow()) + " · " + phaseLabel(pomo.phase) + " · Exam Control";
+  } else {
+    document.title = baseTitle;
+  }
+}
+
+function tick(){
+  if(!pomo.running) return;
+  const rem = remainingMsNow();
+  document.getElementById('timerClock').textContent = fmtClock(rem);
+  updateTitle();
+  if(rem <= 0){ completePhase(); }
+}
+
+function startTick(){
+  clearInterval(pomoTick);
+  pomoTick = setInterval(tick, 500);
+}
+
+function completePhase(){
+  clearInterval(pomoTick);
+  const finished = pomo.phase;
+  beep();
+  if(finished==="focus"){
+    // log the focus block
+    pomo.completedFocus.push({ key: todayKey(), ts: Date.now(), minutes: phaseMinutes("focus") });
+    pomo.cyclesDone++;
+    const cfg = pomoCfg();
+    pomo.phase = (pomo.cyclesDone % cfg.interval === 0) ? "long" : "short";
+  } else {
+    if(finished==="long") pomo.cyclesDone = 0;
+    pomo.phase = "focus";
+  }
+  pomo.running = false;
+  pomo.endsAt = null;
+  pomo.remainingMs = phaseMinutes(pomo.phase)*60000;
+  savePomodoro();
+  renderPomodoro();
+  if(pomo.autoStart){ startTimer(); }
+}
+
+function startTimer(){
+  const rem = pomo.remainingMs != null ? pomo.remainingMs : phaseMinutes(pomo.phase)*60000;
+  pomo.endsAt = Date.now() + rem;
+  pomo.remainingMs = null;
+  pomo.running = true;
+  savePomodoro();
+  startTick();
+  renderPomodoro();
+}
+function pauseTimer(){
+  pomo.remainingMs = remainingMsNow();
+  pomo.running = false;
+  pomo.endsAt = null;
+  clearInterval(pomoTick);
+  savePomodoro();
+  renderPomodoro();
+  updateTitle();
+}
+function resetTimer(keepPhase){
+  clearInterval(pomoTick);
+  pomo.running = false;
+  pomo.endsAt = null;
+  if(!keepPhase){ pomo.phase = "focus"; pomo.cyclesDone = 0; }
+  pomo.remainingMs = phaseMinutes(pomo.phase)*60000;
+  savePomodoro();
+  renderPomodoro();
+  updateTitle();
+}
+
+document.getElementById('timerStart').addEventListener('click', ()=>{
+  if(pomo.running) pauseTimer(); else startTimer();
+});
+document.getElementById('timerReset').addEventListener('click', ()=> resetTimer(false));
+document.getElementById('timerSkip').addEventListener('click', ()=>{
+  clearInterval(pomoTick);
+  pomo.remainingMs = 0;
+  completePhase();
+});
+document.getElementById('autoToggle').addEventListener('click', ()=>{ pomo.autoStart = !pomo.autoStart; savePomodoro(); renderPomodoro(); });
+document.getElementById('soundToggle').addEventListener('click', ()=>{ pomo.sound = !pomo.sound; savePomodoro(); renderPomodoro(); if(pomo.sound) beep(); });
+
+['cFocus','cShort','cLong','cInterval'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', ()=>{
+    const clamp = (v,min,max,def)=>{ v=parseInt(v,10); if(isNaN(v)) return def; return Math.max(min,Math.min(max,v)); };
+    pomo.custom.focus = clamp(document.getElementById('cFocus').value,5,120,25);
+    pomo.custom.short = clamp(document.getElementById('cShort').value,1,30,5);
+    pomo.custom.long = clamp(document.getElementById('cLong').value,1,45,15);
+    pomo.custom.interval = clamp(document.getElementById('cInterval').value,2,8,4);
+    if(pomo.presetId==="custom" && !pomo.running) resetTimer(true);
+    savePomodoro();
+    renderPomodoro();
+  });
+});
+
+/* ============================================================
+   AUTH
+   ============================================================ */
+const authGate = document.getElementById('authGate');
+const appShell = document.getElementById('appShell');
+let authMode = "signin";
+
+function setAuthMode(mode){
+  authMode = mode;
+  document.getElementById('authTabSignin').classList.toggle('active', mode==="signin");
+  document.getElementById('authTabSignup').classList.toggle('active', mode==="signup");
+  document.getElementById('authSubmit').textContent = mode==="signin" ? "Sign in" : "Create account";
+  document.getElementById('authPassword').setAttribute('autocomplete', mode==="signin" ? "current-password" : "new-password");
+  document.getElementById('authForgot').style.display = mode==="signin" ? "block" : "none";
+  hideAuthMsg();
+}
+function showAuthMsg(text, kind){
+  const el = document.getElementById('authMsg');
+  el.textContent = text;
+  el.className = "auth-msg " + (kind==="ok" ? "ok" : "err");
+  el.style.display = "block";
+}
+function hideAuthMsg(){ document.getElementById('authMsg').style.display = "none"; }
+
+document.getElementById('authTabSignin').addEventListener('click', ()=>setAuthMode("signin"));
+document.getElementById('authTabSignup').addEventListener('click', ()=>setAuthMode("signup"));
+
+document.getElementById('authForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  hideAuthMsg();
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  if(!email){ showAuthMsg("Enter your email address."); return; }
+  if(!password){ showAuthMsg("Enter your password."); return; }
+  if(authMode==="signup" && password.length < 8){ showAuthMsg("Password must be at least 8 characters."); return; }
+  const btn = document.getElementById('authSubmit');
+  btn.disabled = true;
+  btn.textContent = authMode==="signin" ? "Signing in…" : "Creating account…";
+  try{
+    if(authMode==="signin"){
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if(error) showAuthMsg(error.message);
+    } else {
+      const { data, error } = await sb.auth.signUp({ email, password });
+      if(error) showAuthMsg(error.message);
+      else if(!data.session){
+        showAuthMsg("Account created. Check your inbox to confirm your email, then sign in.", "ok");
+        setAuthMode("signin");
+      }
+    }
+  }catch(err){
+    showAuthMsg(err.message || "Something went wrong. Please try again.");
+  }finally{
+    btn.disabled = false;
+    btn.textContent = authMode==="signin" ? "Sign in" : "Create account";
+  }
+});
+
+document.getElementById('authForgot').addEventListener('click', async ()=>{
+  const email = document.getElementById('authEmail').value.trim();
+  if(!email){ showAuthMsg("Enter your email above first, then tap Forgot password."); return; }
+  try{
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
+    if(error) showAuthMsg(error.message);
+    else showAuthMsg("Password reset email sent. Check your inbox.", "ok");
+  }catch(err){ showAuthMsg(err.message || "Could not send the reset email."); }
+});
+
+document.getElementById('signOutBtn').addEventListener('click', async ()=>{
+  await sb.auth.signOut();
+});
+
+let appStarted = false;
+async function startApp(session){
+  currentUser = session.user;
+  document.getElementById('acctEmail').textContent = currentUser.email || "";
+  authGate.classList.add('hidden');
+  appShell.style.display = "block";
+  if(!appStarted){
+    appStarted = true;
+    baseTitle = document.title;
+    loadPomodoro();
+    await loadAll();
+    renderOverview();
+    renderCalendar();
+    renderStudyTab();
+    renderGoals();
+    renderWeekPlan();
+    renderExamEditList();
+    renderSubjEditList();
+    renderTopicEditor();
+    renderPomodoro();
+    if(pomo.running){
+      // resume a running timer after refresh; complete if it elapsed while away
+      if(pomo.endsAt && pomo.endsAt <= Date.now()){ completePhase(); }
+      else if(pomo.endsAt){ startTick(); }
+    }
+  }
+}
+function showGate(){
+  currentUser = null;
+  appShell.style.display = "none";
+  authGate.classList.remove('hidden');
+}
+
+async function initAuth(){
+  const { data:{ session } } = await sb.auth.getSession();
+  if(session){ startApp(session); } else { showGate(); }
+  sb.auth.onAuthStateChange((_event, s)=>{
+    if(s && s.user){ startApp(s); }
+    else { showGate(); }
+  });
+}
+initAuth();
+
+// flush pending cloud sync when leaving the tab
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === "hidden" && currentUser){
+    try{
+      sb.from('user_progress').upsert({
+        user_id: currentUser.id, email: currentUser.email,
+        data: collectData(), updated_at: new Date().toISOString(),
+      });
+    }catch(e){}
+  }
+});
+</script>
+</body>
+</html>
