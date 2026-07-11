@@ -590,13 +590,32 @@ function items(list){
   return list.map(t => [t, /enrich/i.test(t) ? "enrich" : "core"]);
 }
 
+/* Stable slug + id helpers — MUST match the students' existing data so that
+   saved progress (checkedTopics) keyed by section/topic id keeps aligning. */
+function slug(s){
+  return String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+}
+function buildTopics(subj, sections){
+  const sc = subj.toLowerCase();
+  return sections.map((sec, si)=>({
+    id: `sec_${sc}_${slug(sec.sec)}_${si}`,
+    sec: sec.sec,
+    weight: sec.weight,
+    items: sec.items.map((it, ii)=>{
+      const text = Array.isArray(it) ? it[0] : it.text;
+      const tag  = Array.isArray(it) ? it[1] : (it.tag || "core");
+      return { id: `topic_${sc}_${slug(sec.sec)}_${slug(text)}_${ii}`, tag, text };
+    })
+  }));
+}
+
 /* ============================================================
-   DATA — syllabus topic checklists
+   DATA — syllabus topic checklists (raw content).
    Science (Bio/Chem/Phys) from the earlier curriculum maps;
    EL / HCL / Geography / Math / Inquiry & Advocacy rebuilt from
    the 2026 Y4 curriculum maps & assessment frameworks.
    ============================================================ */
-const DEFAULT_TOPICS = {
+const RAW_TOPICS = {
   BIO: [
     {sec:"Natural Selection & Reproduction", weight:"CBA-1 · CBA-2 · EYA", items:[
       ["Natural selection: variation & competition drive differential survival", "core"],
@@ -1146,23 +1165,36 @@ const DEFAULT_TOPICS = {
 };
 
 /* ============================================================
-   MUTABLE DATA — start as defaults, then load from storage
+   MUTABLE DATA — built from defaults, then replaced by the
+   student's own saved data on load (their data always wins).
    ============================================================ */
-let EXAMS = JSON.parse(JSON.stringify(DEFAULT_EXAMS));
+const DEFAULT_TOPICS = {};
+Object.keys(RAW_TOPICS).forEach(code=>{ DEFAULT_TOPICS[code] = buildTopics(code, RAW_TOPICS[code]); });
+
+function buildDefaultExams(){
+  return DEFAULT_EXAMS.map((e, idx)=>({ id:`exam_${e.date}_${slug(e.name)}_${idx}`, date:e.date, name:e.name, subj:e.subj }));
+}
+
+let EXAMS = buildDefaultExams();
 let SUBJECTS = JSON.parse(JSON.stringify(DEFAULT_SUBJECTS));
 let TOPICS = JSON.parse(JSON.stringify(DEFAULT_TOPICS));
+// The full object we loaded from storage, kept verbatim so that saving never
+// drops keys we don't manage (lastSavedISO, contentVersion, future fields…).
+let loadedRaw = {};
+
+const TODAY = new Date();
+TODAY.setHours(0,0,0,0);
 
 const state = {
   checkedTopics: {},
   goals: [],
   weekPlan: {},
   selectedSubject: "BIO",
-  calMonthOffset: 0,
+  calYear: TODAY.getFullYear(),
+  calMonth: TODAY.getMonth(),
   editingSubject: null,
+  contentVersion: CONTENT_VERSION,
 };
-
-const TODAY = new Date();
-TODAY.setHours(0,0,0,0);
 
 function fmtDate(d){
   return d.toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short', year:'numeric'});
@@ -1171,6 +1203,39 @@ function daysBetween(a,b){
   const ms = (new Date(b.getFullYear(),b.getMonth(),b.getDate())) - (new Date(a.getFullYear(),a.getMonth(),a.getDate()));
   return Math.round(ms/86400000);
 }
+
+/* Normalise topics/exams so every section, item and exam carries a stable id.
+   Existing ids from the student's saved data are preserved untouched (so their
+   checked-off progress keeps matching); only missing ids are backfilled. */
+function normalizeTopics(topics){
+  const out = {};
+  Object.keys(topics||{}).forEach(subj=>{
+    const sc = subj.toLowerCase();
+    out[subj] = (topics[subj]||[]).map((sec, si)=>{
+      const secName = sec.sec || sec.title || "Section";
+      const secId = sec.id || `sec_${sc}_${slug(secName)}_${si}`;
+      return {
+        id: secId,
+        sec: secName,
+        weight: sec.weight || "",
+        items: (sec.items||[]).map((it, ii)=>{
+          const text = Array.isArray(it) ? it[0] : (it.text != null ? it.text : "");
+          const tag  = Array.isArray(it) ? (it[1]||"core") : (it.tag || "core");
+          const id   = (!Array.isArray(it) && it.id) ? it.id : `topic_${sc}_${slug(secName)}_${slug(text)}_${ii}`;
+          return { id, tag, text };
+        })
+      };
+    });
+  });
+  return out;
+}
+function normalizeExams(exams){
+  return (exams||[]).map((e, idx)=>({
+    id: e.id || `exam_${e.date}_${slug(e.name||"")}_${idx}`,
+    date: e.date, name: e.name, subj: e.subj
+  }));
+}
+function checkedKey(subj, sec, it){ return `${subj}_${sec.id}_${it.id}`; }
 
 /* ============================================================
    STORAGE — localStorage + Supabase cloud sync
@@ -1184,59 +1249,66 @@ function flagSaved(){
   saveTimer = setTimeout(()=>ind.classList.remove('show'), 1200);
 }
 
+// Build the save payload by MERGING onto whatever we loaded, so no unknown
+// keys are ever lost, and using the same lowercase schema the student's data
+// already uses.
 function collectData(){
-  return {
-    EXAMS, SUBJECTS, TOPICS,
+  return Object.assign({}, loadedRaw, {
+    exams: EXAMS,
+    topics: TOPICS,
+    subjects: SUBJECTS,
     checkedTopics: state.checkedTopics,
     goals: state.goals,
     weekPlan: state.weekPlan,
+    calYear: state.calYear,
+    calMonth: state.calMonth,
     selectedSubject: state.selectedSubject,
-    contentVersion: CONTENT_VERSION,
-  };
+    contentVersion: state.contentVersion || CONTENT_VERSION,
+    lastSavedISO: new Date().toISOString(),
+  });
 }
 
 function applyData(data){
-  if(!data || typeof data !== 'object') return;
-  // accept both new (EXAMS) and legacy lowercase (exams) shapes
-  const exams = data.EXAMS || data.exams;
-  if(Array.isArray(exams)) EXAMS = exams;
-  const subjects = data.SUBJECTS || data.subjects;
+  loadedRaw = (data && typeof data === 'object') ? data : {};
+  const exams = loadedRaw.exams || loadedRaw.EXAMS;
+  EXAMS = (Array.isArray(exams) && exams.length) ? normalizeExams(exams) : buildDefaultExams();
+  const topics = loadedRaw.topics || loadedRaw.TOPICS;
+  TOPICS = (topics && Object.keys(topics).length) ? normalizeTopics(topics) : JSON.parse(JSON.stringify(DEFAULT_TOPICS));
+  const subjects = loadedRaw.subjects || loadedRaw.SUBJECTS;
   SUBJECTS = Object.assign({}, DEFAULT_SUBJECTS, (subjects && typeof subjects==='object') ? subjects : {});
-  const topics = data.TOPICS || data.topics;
-  if(topics && data.contentVersion === CONTENT_VERSION){
-    TOPICS = topics; // student's own edits, current curriculum
-  } else {
-    // fresh / outdated curriculum → load updated defaults,
-    // but keep any custom subjects the student created themselves
-    TOPICS = JSON.parse(JSON.stringify(DEFAULT_TOPICS));
-    if(topics && typeof topics === 'object'){
-      Object.keys(topics).forEach(code=>{ if(!DEFAULT_TOPICS[code]) TOPICS[code] = topics[code]; });
-    }
-  }
-  if(data.checkedTopics) state.checkedTopics = data.checkedTopics;
-  if(Array.isArray(data.goals)) state.goals = data.goals;
-  if(data.weekPlan) state.weekPlan = data.weekPlan;
-  if(data.selectedSubject && SUBJECTS[data.selectedSubject]) state.selectedSubject = data.selectedSubject;
+  Object.keys(TOPICS).forEach(code=>{ if(!SUBJECTS[code]) SUBJECTS[code] = { name: code, color:"#5B7A6B" }; });
+  state.checkedTopics = (loadedRaw.checkedTopics && typeof loadedRaw.checkedTopics==='object') ? loadedRaw.checkedTopics : {};
+  state.goals = Array.isArray(loadedRaw.goals) ? loadedRaw.goals : [];
+  state.weekPlan = (loadedRaw.weekPlan && typeof loadedRaw.weekPlan==='object') ? loadedRaw.weekPlan : {};
+  state.selectedSubject = (loadedRaw.selectedSubject && TOPICS[loadedRaw.selectedSubject]) ? loadedRaw.selectedSubject : (Object.keys(TOPICS)[0] || "BIO");
+  if(typeof loadedRaw.calYear === 'number') state.calYear = loadedRaw.calYear;
+  if(typeof loadedRaw.calMonth === 'number') state.calMonth = loadedRaw.calMonth;
+  state.contentVersion = loadedRaw.contentVersion || CONTENT_VERSION;
 }
 
 let cloudTimer = null;
+let dirty = false;
 async function saveAll(){
+  dirty = true;
   const payload = collectData();
   try{ localStorage.setItem(LS_KEY, JSON.stringify(payload)); }catch(e){}
   flagSaved();
   if(currentUser){
     clearTimeout(cloudTimer);
-    cloudTimer = setTimeout(async ()=>{
-      try{
-        await sb.from('user_progress').upsert({
-          user_id: currentUser.id,
-          email: currentUser.email,
-          data: payload,
-          updated_at: new Date().toISOString(),
-        });
-      }catch(e){ console.error('Cloud save failed', e); }
-    }, 800);
+    cloudTimer = setTimeout(()=>flushCloud(), 800);
   }
+}
+async function flushCloud(){
+  if(!currentUser) return;
+  try{
+    await sb.from('user_progress').upsert({
+      user_id: currentUser.id,
+      email: currentUser.email,
+      data: collectData(),
+      updated_at: new Date().toISOString(),
+    });
+    dirty = false;
+  }catch(e){ console.error('Cloud save failed', e); }
 }
 
 async function loadAll(){
@@ -1250,12 +1322,10 @@ async function loadAll(){
   if(!data){
     try{ const raw = localStorage.getItem(LS_KEY); if(raw) data = JSON.parse(raw); }catch(e){}
   }
-  if(data) applyData(data);
-  // back up local → cloud on first login when the account has no row yet
+  applyData(data || {});
+  // Only write on a genuinely new account (nothing anywhere yet). Never
+  // re-save existing data on load — that is what could clobber real progress.
   if(currentUser && !data){ saveAll(); }
-  else if(currentUser){ // ensure cloud reflects any curriculum refresh applied above
-    saveAll();
-  }
 }
 
 /* ============================================================
@@ -1328,10 +1398,10 @@ function subjectProgress(subj){
   const secs = TOPICS[subj];
   if(!secs) return {done:0, total:0, pct:0};
   let done=0, total=0;
-  secs.forEach((sec,si)=>{
-    sec.items.forEach((it,ii)=>{
+  secs.forEach((sec)=>{
+    sec.items.forEach((it)=>{
       total++;
-      if(state.checkedTopics[`${subj}_${si}_${ii}`]) done++;
+      if(state.checkedTopics[checkedKey(subj, sec, it)]) done++;
     });
   });
   return {done, total, pct: total? Math.round(done/total*100):0};
@@ -1387,21 +1457,21 @@ function renderStudyTab(){
   }
   secs.forEach((sec, si)=>{
     let doneCount=0;
-    sec.items.forEach((it,ii)=>{ if(state.checkedTopics[`${subj}_${si}_${ii}`]) doneCount++; });
+    sec.items.forEach((it)=>{ if(state.checkedTopics[checkedKey(subj, sec, it)]) doneCount++; });
     const section = document.createElement('div');
     section.className = 'topic-section';
     section.style.marginBottom = '14px';
     section.innerHTML = `
       <div class="topic-section-head">
         <div class="topic-section-title">${sec.sec}</div>
-        <div class="topic-section-meta">${doneCount}/${sec.items.length} done · assessed in ${sec.weight}</div>
+        <div class="topic-section-meta">${doneCount}/${sec.items.length} done${sec.weight ? ' · assessed in '+sec.weight : ''}</div>
       </div>
       <div class="topic-list"></div>
     `;
     const list = section.querySelector('.topic-list');
-    sec.items.forEach((it,ii)=>{
-      const [text, tag] = it;
-      const key = `${subj}_${si}_${ii}`;
+    sec.items.forEach((it)=>{
+      const text = it.text, tag = it.tag || "core";
+      const key = checkedKey(subj, sec, it);
       const checked = !!state.checkedTopics[key];
       const row = document.createElement('div');
       row.className = 'topic-row' + (checked ? ' done':'');
@@ -1426,8 +1496,7 @@ function renderStudyTab(){
    CALENDAR TAB
    ============================================================ */
 function renderCalendar(){
-  const base = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
-  const view = new Date(base.getFullYear(), base.getMonth()+state.calMonthOffset, 1);
+  const view = new Date(state.calYear, state.calMonth, 1);
   const year = view.getFullYear(), month = view.getMonth();
   document.getElementById('calMonthLabel').textContent = view.toLocaleDateString('en-GB',{month:'long', year:'numeric'});
 
@@ -1481,8 +1550,14 @@ function renderCalendar(){
     }).join('') + `</div></div>`;
 }
 
-document.getElementById('prevMonth').addEventListener('click', ()=>{state.calMonthOffset--; renderCalendar();});
-document.getElementById('nextMonth').addEventListener('click', ()=>{state.calMonthOffset++; renderCalendar();});
+document.getElementById('prevMonth').addEventListener('click', ()=>{
+  state.calMonth--; if(state.calMonth<0){ state.calMonth=11; state.calYear--; }
+  renderCalendar(); saveAll();
+});
+document.getElementById('nextMonth').addEventListener('click', ()=>{
+  state.calMonth++; if(state.calMonth>11){ state.calMonth=0; state.calYear++; }
+  renderCalendar(); saveAll();
+});
 
 /* ============================================================
    GOALS TAB
@@ -1589,7 +1664,7 @@ document.getElementById('examAddBtn').addEventListener('click', ()=>{
   const name = document.getElementById('examNameInput').value.trim();
   const subj = document.getElementById('examSubjInput').value;
   if(!date || !name){ alert('Please fill in both a date and an exam name.'); return; }
-  EXAMS.push({date, name, subj});
+  EXAMS.push({ id:`exam_${date}_${slug(name)}_${Date.now()}`, date, name, subj });
   document.getElementById('examDateInput').value = "";
   document.getElementById('examNameInput').value = "";
   renderExamEditList();
@@ -1678,7 +1753,7 @@ function renderTopicEditor(){
       </div>
       <div class="item-list" data-si="${si}">`;
     sec.items.forEach((it, ii)=>{
-      const [text, tag] = it;
+      const text = it.text || "", tag = it.tag || "core";
       html += `<div class="item-edit-row" data-si="${si}" data-ii="${ii}">
         <input type="text" class="item-text-input" data-si="${si}" data-ii="${ii}" value="${text.replace(/"/g,'&quot;')}">
         <select class="item-tag-select" data-si="${si}" data-ii="${ii}">
@@ -1706,13 +1781,14 @@ function renderTopicEditor(){
   });
   wrap.querySelectorAll('.item-text-input').forEach(inp=>{
     inp.addEventListener('input', ()=>{
-      TOPICS[code][+inp.dataset.si].items[+inp.dataset.ii][0] = inp.value;
+      // keep the item's stable id so any checked progress stays aligned
+      TOPICS[code][+inp.dataset.si].items[+inp.dataset.ii].text = inp.value;
     });
     inp.addEventListener('blur', ()=>{ renderStudyTab(); saveAll(); });
   });
   wrap.querySelectorAll('.item-tag-select').forEach(sel=>{
     sel.addEventListener('change', ()=>{
-      TOPICS[code][+sel.dataset.si].items[+sel.dataset.ii][1] = sel.value;
+      TOPICS[code][+sel.dataset.si].items[+sel.dataset.ii].tag = sel.value;
       renderStudyTab(); saveAll();
     });
   });
@@ -1730,14 +1806,17 @@ function renderTopicEditor(){
   });
   wrap.querySelectorAll('[data-action="additem"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      TOPICS[code][+btn.dataset.si].items.push(["New topic — click to edit", "core"]);
+      const sec = TOPICS[code][+btn.dataset.si];
+      sec.items.push({ id:`topic_${code.toLowerCase()}_${slug(sec.sec)}_new_${Date.now()}`, tag:"core", text:"New topic — click to edit" });
       renderTopicEditor(); renderStudyTab(); saveAll();
     });
   });
   const addSecBtn = wrap.querySelector('[data-action="addsec"]');
   if(addSecBtn){
     addSecBtn.addEventListener('click', ()=>{
-      TOPICS[code].push({sec:"New section", weight:"", items:[["New topic — click to edit","core"]]});
+      const si = TOPICS[code].length;
+      const secId = `sec_${code.toLowerCase()}_new_${Date.now()}`;
+      TOPICS[code].push({ id:secId, sec:"New section", weight:"", items:[{ id:`topic_${code.toLowerCase()}_new_${Date.now()}`, tag:"core", text:"New topic — click to edit" }] });
       renderTopicEditor(); renderSubjEditList(); renderStudyTab(); saveAll();
     });
   }
@@ -2108,15 +2187,12 @@ async function initAuth(){
 }
 initAuth();
 
-// flush pending cloud sync when leaving the tab
+// flush a pending edit when leaving the tab — only if there is an unsaved edit,
+// so simply viewing the app never rewrites the stored data.
 document.addEventListener('visibilitychange', ()=>{
-  if(document.visibilityState === "hidden" && currentUser){
-    try{
-      sb.from('user_progress').upsert({
-        user_id: currentUser.id, email: currentUser.email,
-        data: collectData(), updated_at: new Date().toISOString(),
-      });
-    }catch(e){}
+  if(document.visibilityState === "hidden" && currentUser && dirty){
+    clearTimeout(cloudTimer);
+    flushCloud();
   }
 });
 </script>
