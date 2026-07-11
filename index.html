@@ -1210,27 +1210,42 @@ function daysBetween(a,b){
 function normalizeTopics(topics){
   const out = {};
   Object.keys(topics||{}).forEach(subj=>{
+    // Older app versions wrote foreign structures into this map (e.g. numeric
+    // keys holding single topic objects). Only subject-code → [sections]
+    // entries are valid; skip anything else instead of crashing on it.
+    const secs = topics[subj];
+    if(!Array.isArray(secs)) return;
     const sc = subj.toLowerCase();
-    out[subj] = (topics[subj]||[]).map((sec, si)=>{
+    out[subj] = secs.filter(sec=>sec && typeof sec==='object').map((sec, si)=>{
       const secName = sec.sec || sec.title || "Section";
       const secId = sec.id || `sec_${sc}_${slug(secName)}_${si}`;
       return {
         id: secId,
         sec: secName,
         weight: sec.weight || "",
-        items: (sec.items||[]).map((it, ii)=>{
-          const text = Array.isArray(it) ? it[0] : (it.text != null ? it.text : "");
-          const tag  = Array.isArray(it) ? (it[1]||"core") : (it.tag || "core");
-          const id   = (!Array.isArray(it) && it.id) ? it.id : `topic_${sc}_${slug(secName)}_${slug(text)}_${ii}`;
+        items: (Array.isArray(sec.items) ? sec.items : []).map((it, ii)=>{
+          const isArr = Array.isArray(it);
+          const obj = (!isArr && it && typeof it==='object') ? it : null;
+          const text = isArr ? String(it[0] ?? "") : (obj && obj.text != null ? String(obj.text) : "");
+          const tag  = isArr ? (it[1]||"core") : ((obj && obj.tag) || "core");
+          const id   = (obj && obj.id) ? obj.id : `topic_${sc}_${slug(secName)}_${slug(text)}_${ii}`;
           return { id, tag, text };
         })
       };
     });
+    if(!out[subj].length) delete out[subj];
   });
   return out;
 }
+function normalizeGoals(goals){
+  if(!Array.isArray(goals)) return [];
+  return goals.filter(g=>g && typeof g==='object').map(g=>({
+    text: g.text != null ? String(g.text) : String(g.title || ""),
+    done: typeof g.done === 'boolean' ? g.done : g.status === 'done',
+  })).filter(g=>g.text);
+}
 function normalizeExams(exams){
-  return (exams||[]).map((e, idx)=>({
+  return (exams||[]).filter(e=>e && typeof e==='object' && e.date && e.name).map((e, idx)=>({
     id: e.id || `exam_${e.date}_${slug(e.name||"")}_${idx}`,
     date: e.date, name: e.name, subj: e.subj
   }));
@@ -1253,7 +1268,7 @@ function flagSaved(){
 // keys are ever lost, and using the same lowercase schema the student's data
 // already uses.
 function collectData(){
-  return Object.assign({}, loadedRaw, {
+  const merged = Object.assign({}, loadedRaw, {
     exams: EXAMS,
     topics: TOPICS,
     subjects: SUBJECTS,
@@ -1266,19 +1281,31 @@ function collectData(){
     contentVersion: state.contentVersion || CONTENT_VERSION,
     lastSavedISO: new Date().toISOString(),
   });
+  // Drop stale uppercase duplicates from older app versions so the canonical
+  // lowercase keys are the single source of truth from here on.
+  delete merged.EXAMS; delete merged.TOPICS; delete merged.SUBJECTS;
+  return merged;
 }
 
 function applyData(data){
   loadedRaw = (data && typeof data === 'object') ? data : {};
-  const exams = loadedRaw.exams || loadedRaw.EXAMS;
-  EXAMS = (Array.isArray(exams) && exams.length) ? normalizeExams(exams) : buildDefaultExams();
-  const topics = loadedRaw.topics || loadedRaw.TOPICS;
-  TOPICS = (topics && Object.keys(topics).length) ? normalizeTopics(topics) : JSON.parse(JSON.stringify(DEFAULT_TOPICS));
+  const rawExams = Array.isArray(loadedRaw.exams) ? loadedRaw.exams : loadedRaw.EXAMS;
+  const exams = normalizeExams(Array.isArray(rawExams) ? rawExams : []);
+  EXAMS = exams.length ? exams : buildDefaultExams();
+  // Prefer whichever topics map actually contains valid checklists — old app
+  // versions polluted one of the two keys with foreign data.
+  const fromLower = normalizeTopics(loadedRaw.topics);
+  const fromUpper = normalizeTopics(loadedRaw.TOPICS);
+  const topics = Object.keys(fromLower).length ? fromLower : fromUpper;
+  TOPICS = Object.keys(topics).length ? topics : JSON.parse(JSON.stringify(DEFAULT_TOPICS));
   const subjects = loadedRaw.subjects || loadedRaw.SUBJECTS;
-  SUBJECTS = Object.assign({}, DEFAULT_SUBJECTS, (subjects && typeof subjects==='object') ? subjects : {});
+  SUBJECTS = Object.assign({}, DEFAULT_SUBJECTS, (subjects && typeof subjects==='object' && !Array.isArray(subjects)) ? subjects : {});
+  Object.keys(SUBJECTS).forEach(code=>{
+    if(!SUBJECTS[code] || typeof SUBJECTS[code] !== 'object' || !SUBJECTS[code].name) SUBJECTS[code] = { name: String(code), color:"#5B7A6B" };
+  });
   Object.keys(TOPICS).forEach(code=>{ if(!SUBJECTS[code]) SUBJECTS[code] = { name: code, color:"#5B7A6B" }; });
   state.checkedTopics = (loadedRaw.checkedTopics && typeof loadedRaw.checkedTopics==='object') ? loadedRaw.checkedTopics : {};
-  state.goals = Array.isArray(loadedRaw.goals) ? loadedRaw.goals : [];
+  state.goals = normalizeGoals(loadedRaw.goals);
   state.weekPlan = (loadedRaw.weekPlan && typeof loadedRaw.weekPlan==='object') ? loadedRaw.weekPlan : {};
   state.selectedSubject = (loadedRaw.selectedSubject && TOPICS[loadedRaw.selectedSubject]) ? loadedRaw.selectedSubject : (Object.keys(TOPICS)[0] || "BIO");
   if(typeof loadedRaw.calYear === 'number') state.calYear = loadedRaw.calYear;
@@ -2153,8 +2180,16 @@ async function startApp(session){
   if(!appStarted){
     appStarted = true;
     baseTitle = document.title;
-    loadPomodoro();
-    await loadAll();
+    try{ loadPomodoro(); }catch(e){ console.error('Pomodoro load failed', e); }
+    // If loading or normalising saved data fails for any reason, fall back to
+    // defaults rather than leaving the app blank — and never overwrite the
+    // cloud copy in that state.
+    try{
+      await loadAll();
+    }catch(e){
+      console.error('Data load failed; showing defaults without saving', e);
+      try{ applyData({}); }catch(e2){ console.error(e2); }
+    }
     renderOverview();
     renderCalendar();
     renderStudyTab();
