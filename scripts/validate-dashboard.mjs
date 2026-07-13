@@ -13,6 +13,7 @@ new Function(inlineScripts[0]);
 assert.match(html, /options:\s*\{\s*emailRedirectTo:\s*APP_URL\s*\}/);
 assert.match(html, /resetPasswordForEmail\(email,\s*\{\s*redirectTo:\s*APP_URL\s*\}\)/);
 assert.match(html, /Email verified successfully/);
+assert.match(html, /The confirmation-email limit has been reached/);
 assert.match(html, /window\.location\.hostname\.endsWith\("github\.io"\)/);
 
 const deployWorkflow = fs.readFileSync(new URL("../.github/workflows/deploy-pages.yml", import.meta.url), "utf8");

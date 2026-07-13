@@ -2189,6 +2189,13 @@ function showAuthMsg(text, kind){
   el.style.display = "block";
 }
 function hideAuthMsg(){ document.getElementById('authMsg').style.display = "none"; }
+function friendlyAuthError(error){
+  const message = String(error?.message || error || "Something went wrong. Please try again.");
+  if(/rate limit|rate exceeded|too many requests/i.test(message)){
+    return "The confirmation-email limit has been reached. Your account is safe. Please wait up to one hour before creating an account or requesting another email.";
+  }
+  return message;
+}
 function showAppNotice(text){
   const el = document.getElementById('appNotice');
   el.textContent = text;
@@ -2212,21 +2219,21 @@ document.getElementById('authForm').addEventListener('submit', async (e)=>{
   try{
     if(authMode==="signin"){
       const { error } = await sb.auth.signInWithPassword({ email, password });
-      if(error) showAuthMsg(error.message);
+      if(error) showAuthMsg(friendlyAuthError(error));
     } else {
       const { data, error } = await sb.auth.signUp({
         email,
         password,
         options: { emailRedirectTo: APP_URL }
       });
-      if(error) showAuthMsg(error.message);
+      if(error) showAuthMsg(friendlyAuthError(error));
       else if(!data.session){
         setAuthMode("signin");
         showAuthMsg("Account created. Check your inbox to confirm your email, then return here to sign in.", "ok");
       }
     }
   }catch(err){
-    showAuthMsg(err.message || "Something went wrong. Please try again.");
+    showAuthMsg(friendlyAuthError(err));
   }finally{
     btn.disabled = false;
     btn.textContent = authMode==="signin" ? "Sign in" : "Create account";
@@ -2238,9 +2245,9 @@ document.getElementById('authForgot').addEventListener('click', async ()=>{
   if(!email){ showAuthMsg("Enter your email above first, then tap Forgot password."); return; }
   try{
     const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: APP_URL });
-    if(error) showAuthMsg(error.message);
+    if(error) showAuthMsg(friendlyAuthError(error));
     else showAuthMsg("Password reset email sent. Check your inbox.", "ok");
-  }catch(err){ showAuthMsg(err.message || "Could not send the reset email."); }
+  }catch(err){ showAuthMsg(friendlyAuthError(err)); }
 });
 
 document.getElementById('signOutBtn').addEventListener('click', async ()=>{
