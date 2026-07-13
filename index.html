@@ -281,6 +281,8 @@
   .auth-forgot{font-family:'IBM Plex Mono',monospace; font-size:10.5px; opacity:0.6; text-align:center; margin-top:14px; cursor:pointer;}
   .auth-forgot:hover{opacity:1; color:var(--red);}
   .auth-foot{font-family:'IBM Plex Mono',monospace; font-size:10px; opacity:0.45; text-align:center; margin-top:14px; line-height:1.5;}
+  .app-notice{display:none; max-width:1180px; margin:12px auto 0; padding:10px 14px; border:1px solid var(--sage); background:var(--sage-dim); color:var(--sage); font-family:'IBM Plex Mono',monospace; font-size:11.5px; line-height:1.5;}
+  .app-notice.show{display:block;}
 </style>
 </head>
 <body>
@@ -317,6 +319,8 @@
 
 <!-- ============ APP (hidden until signed in) ============ -->
 <div id="appShell" style="display:none;">
+
+<div class="app-notice" id="appNotice" role="status"></div>
 
 <div class="masthead">
   <div class="masthead-row">
@@ -532,8 +536,22 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
   auth: { persistSession: true, autoRefreshToken: true }
 });
 let currentUser = null;
+const APP_URL = window.location.origin === "null"
+  ? window.location.href.split(/[?#]/)[0]
+  : `${window.location.origin}${window.location.pathname}`;
+function readAuthCallback(){
+  const query = new URLSearchParams(window.location.search);
+  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const get = key=>query.get(key) || hash.get(key);
+  return {
+    type: get("type"),
+    hasToken: !!(get("code") || get("access_token") || get("refresh_token")),
+    error: get("error_description") || get("error")
+  };
+}
+const AUTH_CALLBACK = readAuthCallback();
 
-const CONTENT_VERSION = "2026-t3t4-curriculum-v3";
+const CONTENT_VERSION = "2026-t3t4-curriculum-v4";
 const LS_KEY = "examcontrol-data";
 const LS_POMODORO = "examcontrol-pomodoro";
 
@@ -1252,6 +1270,42 @@ function normalizeExams(exams){
 }
 function checkedKey(subj, sec, it){ return `${subj}_${sec.id}_${it.id}`; }
 
+const SUBJECT_NAME_ALIASES = {
+  english:"english", englishlanguage:"english",
+  chinese:"hcl", higherchinese:"hcl", higherchineselanguage:"hcl",
+  mathematics1:"math1", math1:"math1", maths1:"math1",
+  mathematics2:"math2", math2:"math2", maths2:"math2", math2higher:"math2",
+  biology:"biology", chemistry:"chemistry", physics:"physics",
+  geography:"geography",
+  inquiryadvocacy:"ina", inquiryandadvocacy:"ina",
+  spanish:"spanish"
+};
+function subjectIdentity(code, subject){
+  const compact = String(subject?.name || code).toLowerCase().replace(/[^a-z0-9]+/g,"");
+  return SUBJECT_NAME_ALIASES[compact] || compact;
+}
+function hasCurriculum(code, topics){
+  return Array.isArray(topics[code]) && topics[code].some(sec=>
+    Array.isArray(sec.items) && sec.items.some(it=>String(it.text || "").trim())
+  );
+}
+function removeEmptySubjectDuplicates(subjects, topics){
+  const populatedIdentities = new Set(
+    Object.keys(subjects)
+      .filter(code=>hasCurriculum(code, topics))
+      .map(code=>subjectIdentity(code, subjects[code]))
+  );
+  let changed = false;
+  Object.keys(subjects).forEach(code=>{
+    if(!hasCurriculum(code, topics) && populatedIdentities.has(subjectIdentity(code, subjects[code]))){
+      delete subjects[code];
+      delete topics[code];
+      changed = true;
+    }
+  });
+  return changed;
+}
+
 /* ============================================================
    STORAGE — localStorage + Supabase cloud sync
    ============================================================ */
@@ -1298,12 +1352,20 @@ function applyData(data){
   const fromUpper = normalizeTopics(loadedRaw.TOPICS);
   const topics = Object.keys(fromLower).length ? fromLower : fromUpper;
   TOPICS = Object.keys(topics).length ? topics : JSON.parse(JSON.stringify(DEFAULT_TOPICS));
+  dataWasSanitized = false;
+  Object.keys(DEFAULT_TOPICS).forEach(code=>{
+    if(!hasCurriculum(code, TOPICS)){
+      TOPICS[code] = JSON.parse(JSON.stringify(DEFAULT_TOPICS[code]));
+      dataWasSanitized = true;
+    }
+  });
   const subjects = loadedRaw.subjects || loadedRaw.SUBJECTS;
   SUBJECTS = Object.assign({}, DEFAULT_SUBJECTS, (subjects && typeof subjects==='object' && !Array.isArray(subjects)) ? subjects : {});
   Object.keys(SUBJECTS).forEach(code=>{
     if(!SUBJECTS[code] || typeof SUBJECTS[code] !== 'object' || !SUBJECTS[code].name) SUBJECTS[code] = { name: String(code), color:"#5B7A6B" };
   });
   Object.keys(TOPICS).forEach(code=>{ if(!SUBJECTS[code]) SUBJECTS[code] = { name: code, color:"#5B7A6B" }; });
+  dataWasSanitized = removeEmptySubjectDuplicates(SUBJECTS, TOPICS) || dataWasSanitized;
   state.checkedTopics = (loadedRaw.checkedTopics && typeof loadedRaw.checkedTopics==='object') ? loadedRaw.checkedTopics : {};
   state.goals = normalizeGoals(loadedRaw.goals);
   state.weekPlan = (loadedRaw.weekPlan && typeof loadedRaw.weekPlan==='object') ? loadedRaw.weekPlan : {};
@@ -1315,6 +1377,7 @@ function applyData(data){
 
 let cloudTimer = null;
 let dirty = false;
+let dataWasSanitized = false;
 async function saveAll(){
   dirty = true;
   const payload = collectData();
@@ -1328,12 +1391,13 @@ async function saveAll(){
 async function flushCloud(){
   if(!currentUser) return;
   try{
-    await sb.from('user_progress').upsert({
+    const { error } = await sb.from('user_progress').upsert({
       user_id: currentUser.id,
       email: currentUser.email,
       data: collectData(),
       updated_at: new Date().toISOString(),
     });
+    if(error) throw error;
     dirty = false;
   }catch(e){ console.error('Cloud save failed', e); }
 }
@@ -1342,7 +1406,8 @@ async function loadAll(){
   let data = null;
   if(currentUser){
     try{
-      const { data:row } = await sb.from('user_progress').select('data').eq('user_id', currentUser.id).maybeSingle();
+      const { data:row, error } = await sb.from('user_progress').select('data').eq('user_id', currentUser.id).maybeSingle();
+      if(error) throw error;
       if(row && row.data && Object.keys(row.data).length) data = row.data;
     }catch(e){ console.error('Cloud load failed', e); }
   }
@@ -1350,9 +1415,9 @@ async function loadAll(){
     try{ const raw = localStorage.getItem(LS_KEY); if(raw) data = JSON.parse(raw); }catch(e){}
   }
   applyData(data || {});
-  // Only write on a genuinely new account (nothing anywhere yet). Never
-  // re-save existing data on load — that is what could clobber real progress.
-  if(currentUser && !data){ saveAll(); }
+  // Write on a new account or after the narrow curriculum repair above. A
+  // normal load never rewrites an existing student's saved progress.
+  if(currentUser && (!data || dataWasSanitized)){ saveAll(); }
 }
 
 /* ============================================================
@@ -2122,6 +2187,11 @@ function showAuthMsg(text, kind){
   el.style.display = "block";
 }
 function hideAuthMsg(){ document.getElementById('authMsg').style.display = "none"; }
+function showAppNotice(text){
+  const el = document.getElementById('appNotice');
+  el.textContent = text;
+  el.classList.add('show');
+}
 
 document.getElementById('authTabSignin').addEventListener('click', ()=>setAuthMode("signin"));
 document.getElementById('authTabSignup').addEventListener('click', ()=>setAuthMode("signup"));
@@ -2142,11 +2212,15 @@ document.getElementById('authForm').addEventListener('submit', async (e)=>{
       const { error } = await sb.auth.signInWithPassword({ email, password });
       if(error) showAuthMsg(error.message);
     } else {
-      const { data, error } = await sb.auth.signUp({ email, password });
+      const { data, error } = await sb.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: APP_URL }
+      });
       if(error) showAuthMsg(error.message);
       else if(!data.session){
-        showAuthMsg("Account created. Check your inbox to confirm your email, then sign in.", "ok");
         setAuthMode("signin");
+        showAuthMsg("Account created. Check your inbox to confirm your email, then return here to sign in.", "ok");
       }
     }
   }catch(err){
@@ -2161,7 +2235,7 @@ document.getElementById('authForgot').addEventListener('click', async ()=>{
   const email = document.getElementById('authEmail').value.trim();
   if(!email){ showAuthMsg("Enter your email above first, then tap Forgot password."); return; }
   try{
-    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: APP_URL });
     if(error) showAuthMsg(error.message);
     else showAuthMsg("Password reset email sent. Check your inbox.", "ok");
   }catch(err){ showAuthMsg(err.message || "Could not send the reset email."); }
@@ -2214,9 +2288,30 @@ function showGate(){
 
 async function initAuth(){
   const { data:{ session } } = await sb.auth.getSession();
-  if(session){ startApp(session); } else { showGate(); }
+  if(session){
+    await startApp(session);
+    if(AUTH_CALLBACK.type === "signup" || (AUTH_CALLBACK.hasToken && !AUTH_CALLBACK.type)){
+      showAppNotice("Email verified successfully. Your account is ready and your progress will sync across devices.");
+    }
+  } else {
+    showGate();
+    if(AUTH_CALLBACK.error){
+      showAuthMsg(`The email link could not be completed: ${AUTH_CALLBACK.error}. Your email may already be verified, so try signing in.`);
+    } else if(AUTH_CALLBACK.type === "signup" || AUTH_CALLBACK.hasToken){
+      showAuthMsg("Email verified successfully. Sign in to open your dashboard.", "ok");
+    }
+  }
+  if(AUTH_CALLBACK.error || AUTH_CALLBACK.type || AUTH_CALLBACK.hasToken){
+    window.history.replaceState({}, document.title, APP_URL);
+  }
   sb.auth.onAuthStateChange((_event, s)=>{
-    if(s && s.user){ startApp(s); }
+    if(s && s.user){
+      startApp(s).then(()=>{
+        if(AUTH_CALLBACK.type === "signup" || (AUTH_CALLBACK.hasToken && !AUTH_CALLBACK.type)){
+          showAppNotice("Email verified successfully. Your account is ready and your progress will sync across devices.");
+        }
+      });
+    }
     else { showGate(); }
   });
 }

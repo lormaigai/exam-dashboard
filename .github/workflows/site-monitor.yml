@@ -1,0 +1,20 @@
+name: Monitor deployed dashboard
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check public site
+        shell: bash
+        run: |
+          body="$(curl --fail --silent --show-error --location https://lormaigai.github.io/exam-dashboard/)"
+          [[ "$body" == *"EXAM CONTROL"* ]]
+          [[ "$body" == *"CONTENT_VERSION"* ]]

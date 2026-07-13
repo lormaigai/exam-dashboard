@@ -21,6 +21,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Validate dashboard
+        run: node scripts/validate-dashboard.mjs
+
       - name: Assemble static site
         run: |
           mkdir -p _site
@@ -45,3 +48,18 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Verify deployed dashboard
+        shell: bash
+        run: |
+          site_url="${{ steps.deployment.outputs.page_url }}"
+          for attempt in {1..20}; do
+            body="$(curl --fail --silent --show-error --location "${site_url}?deploy=${GITHUB_SHA}" || true)"
+            if [[ "$body" == *"EXAM CONTROL"* && "$body" == *"CONTENT_VERSION"* ]]; then
+              echo "Dashboard is live at $site_url"
+              exit 0
+            fi
+            sleep 6
+          done
+          echo "Dashboard did not become healthy at $site_url" >&2
+          exit 1
