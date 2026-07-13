@@ -13,6 +13,10 @@ new Function(inlineScripts[0]);
 assert.match(html, /options:\s*\{\s*emailRedirectTo:\s*APP_URL\s*\}/);
 assert.match(html, /resetPasswordForEmail\(email,\s*\{\s*redirectTo:\s*APP_URL\s*\}\)/);
 assert.match(html, /Email verified successfully/);
+assert.match(html, /window\.location\.hostname\.endsWith\("github\.io"\)/);
+
+const deployWorkflow = fs.readFileSync(new URL("../.github/workflows/deploy-pages.yml", import.meta.url), "utf8");
+assert.match(deployWorkflow, /cp index\.html _site\/404\.html/);
 
 const appScript = inlineScripts[0];
 const helperStart = appScript.indexOf("const SUBJECT_NAME_ALIASES");

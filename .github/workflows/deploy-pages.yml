@@ -28,6 +28,7 @@ jobs:
         run: |
           mkdir -p _site
           cp index.html _site/index.html
+          cp index.html _site/404.html
           touch _site/.nojekyll
 
       - name: Upload Pages artifact

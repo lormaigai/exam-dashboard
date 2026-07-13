@@ -538,7 +538,9 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
 let currentUser = null;
 const APP_URL = window.location.origin === "null"
   ? window.location.href.split(/[?#]/)[0]
-  : `${window.location.origin}${window.location.pathname}`;
+  : window.location.hostname.endsWith("github.io")
+    ? `${window.location.origin}/exam-dashboard/`
+    : `${window.location.origin}${window.location.pathname}`;
 function readAuthCallback(){
   const query = new URLSearchParams(window.location.search);
   const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
