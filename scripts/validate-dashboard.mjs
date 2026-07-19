@@ -16,6 +16,26 @@ assert.match(html, /Email verified successfully/);
 assert.match(html, /The confirmation-email limit has been reached/);
 assert.match(html, /window\.location\.hostname\.endsWith\("github\.io"\)/);
 
+// Subject onboarding and per-account preferences must remain present together.
+assert.match(html, /id="subjectOnboarding"/);
+assert.match(html, /id="changeSubjectsBtn"/);
+assert.match(html, /id="editCoach"/);
+assert.match(html, /You can edit your exam dates and subject topics here\./);
+assert.match(html, /\{name:"Sciences", codes:\["BIO","CHEM","PHY"\]\}/);
+assert.match(html, /\{name:"Humanities", codes:\["GEOG","HIST","LIT","INA"\]\}/);
+assert.match(html, /\{name:"Languages", codes:\["EL","HCL","SPA"\]\}/);
+assert.match(html, /\{name:"Maths", codes:\["MA1","MA2"\]\}/);
+assert.match(html, /\$\{LS_KEY\}:\$\{currentUser\.id\}/);
+assert.match(html, /state\.activeSubjects = selected/);
+
+// Curriculum source checks: these labels come directly from the supplied PDFs.
+assert.match(html, /The Art of the Short Story/);
+assert.match(html, /A Doll's House/);
+assert.match(html, /My Mother Pattu/);
+assert.match(html, /Treaty of Versailles: conflicting interests of the Big Three/);
+assert.match(html, /Cuban Missile Crisis/);
+assert.match(html, /Cold War Expands into Asia \(1945-1969\)/);
+
 const deployWorkflow = fs.readFileSync(new URL("../.github/workflows/deploy-pages.yml", import.meta.url), "utf8");
 assert.match(deployWorkflow, /cp index\.html _site\/404\.html/);
 

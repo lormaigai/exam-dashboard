@@ -283,6 +283,29 @@
   .auth-foot{font-family:'IBM Plex Mono',monospace; font-size:10px; opacity:0.45; text-align:center; margin-top:14px; line-height:1.5;}
   .app-notice{display:none; max-width:1180px; margin:12px auto 0; padding:10px 14px; border:1px solid var(--sage); background:var(--sage-dim); color:var(--sage); font-family:'IBM Plex Mono',monospace; font-size:11.5px; line-height:1.5;}
   .app-notice.show{display:block;}
+  .onboarding{position:fixed; inset:0; z-index:900; display:none; overflow-y:auto; background:var(--paper); padding:28px;}
+  .onboarding.show{display:block;}
+  .onboarding-inner{width:min(780px,100%); margin:0 auto; padding:24px 0 40px;}
+  .onboarding-kicker{font-family:'IBM Plex Mono',monospace; color:var(--red); font-size:11px; text-transform:uppercase; letter-spacing:1.5px;}
+  .onboarding-title{font-family:'Archivo Expanded',sans-serif; font-size:32px; line-height:1.1; margin-top:8px;}
+  .onboarding-copy{font-size:14px; line-height:1.55; margin-top:10px; max-width:620px; opacity:.72;}
+  .subject-groups{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:24px 0;}
+  @media(max-width:650px){.subject-groups{grid-template-columns:1fr;}.onboarding{padding:18px;}.onboarding-title{font-size:27px;}}
+  .subject-group{border-top:3px solid var(--ink); padding-top:10px;}
+  .subject-group-title{font-family:'Archivo Expanded',sans-serif; font-size:14px; text-transform:uppercase; margin-bottom:8px;}
+  .subject-options{display:grid; gap:6px;}
+  .subject-option{display:flex; align-items:center; gap:10px; border:1px solid var(--line); background:var(--paper); padding:10px 12px; cursor:pointer;}
+  .subject-option:hover{border-color:var(--ink);}
+  .subject-option:has(input:checked){border-color:var(--sage); background:var(--sage-dim);}
+  .subject-option input{width:18px; height:18px; accent-color:var(--sage);}
+  .subject-option-code{margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:10px; opacity:.55;}
+  .onboarding-actions{display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+  .onboarding-error{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--red); display:none;}
+  .edit-coach{position:fixed; z-index:850; display:none; width:min(310px,calc(100vw - 32px)); padding:12px 14px; background:var(--amber); color:var(--ink); border:2px solid var(--ink); font-size:12px; line-height:1.45; box-shadow:4px 4px 0 var(--ink);}
+  .edit-coach.show{display:block;}
+  .edit-coach::before{content:""; position:absolute; top:-12px; right:28px; width:18px; height:18px; background:var(--amber); border-left:2px solid var(--ink); border-top:2px solid var(--ink); transform:rotate(45deg);}
+  .tab.coach-target{opacity:1; background:var(--amber); color:var(--ink); border-top-color:var(--ink); animation:coachPulse 1.2s ease-in-out 2;}
+  @keyframes coachPulse{50%{transform:translateY(-4px);}}
 </style>
 </head>
 <body>
@@ -317,6 +340,21 @@
   </div>
 </div>
 
+<!-- ============ SUBJECT ONBOARDING ============ -->
+<div class="onboarding" id="subjectOnboarding" aria-hidden="true">
+  <div class="onboarding-inner">
+    <div class="onboarding-kicker">Set up your dashboard</div>
+    <h1 class="onboarding-title">Which subjects do you take?</h1>
+    <p class="onboarding-copy">Choose every subject you want Exam Control to track. Your dashboard, calendar and syllabus checklists will only show these subjects.</p>
+    <div class="subject-groups" id="onboardingSubjectGroups"></div>
+    <div class="onboarding-actions">
+      <button class="btn" id="saveSubjectSelection" type="button">Save my subjects</button>
+      <button class="btn btn-outline" id="cancelSubjectSelection" type="button" style="display:none;">Cancel</button>
+      <span class="onboarding-error" id="onboardingError">Select at least one subject.</span>
+    </div>
+  </div>
+</div>
+
 <!-- ============ APP (hidden until signed in) ============ -->
 <div id="appShell" style="display:none;">
 
@@ -326,7 +364,7 @@
   <div class="masthead-row">
     <div>
       <div class="masthead-title">EXAM CONTROL — Y4 2026</div>
-      <div class="masthead-sub">Triple Science · Geography · Math 1 &amp; 2 · EL · HCL · Inquiry &amp; Advocacy · Spanish</div>
+      <div class="masthead-sub" id="mastheadSubjects">Your selected subjects</div>
     </div>
     <div class="masthead-right">
       <div class="acct">
@@ -348,7 +386,7 @@
     <button class="tab" data-tab="study">Study Tracker</button>
     <button class="tab" data-tab="focus">Focus Timer</button>
     <button class="tab" data-tab="goals">Goals &amp; Weekly Plan</button>
-    <button class="tab" data-tab="editdata">Edit Data</button>
+    <button class="tab" data-tab="editdata" id="editDataTab">Edit Data</button>
   </div>
 
   <!-- ============ OVERVIEW ============ -->
@@ -486,6 +524,12 @@
   <!-- ============ EDIT DATA ============ -->
   <div class="panel" id="panel-editdata">
     <div class="sec-head">
+      <div class="sec-title">Subjects in Your Dashboard</div>
+      <div class="sec-note">change this whenever your subject combination changes</div>
+    </div>
+    <button class="btn btn-outline" id="changeSubjectsBtn" type="button">Change selected subjects</button>
+
+    <div class="sec-head">
       <div class="sec-title">Add / Edit Exams</div>
       <div class="sec-note">new exams show up instantly in the countdown &amp; calendar</div>
     </div>
@@ -525,6 +569,8 @@
 
 </div><!-- /appShell -->
 
+<div class="edit-coach" id="editCoach" role="status">You can edit your exam dates and subject topics here.</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* ============================================================
@@ -553,7 +599,7 @@ function readAuthCallback(){
 }
 const AUTH_CALLBACK = readAuthCallback();
 
-const CONTENT_VERSION = "2026-t3t4-curriculum-v4";
+const CONTENT_VERSION = "2026-t3t4-curriculum-v5";
 const LS_KEY = "examcontrol-data";
 const LS_POMODORO = "examcontrol-pomodoro";
 
@@ -596,6 +642,8 @@ const DEFAULT_SUBJECTS = {
   CHEM:{name:"Chemistry", color:"#C1432E"},
   PHY:{name:"Physics", color:"#D9A441"},
   GEOG:{name:"Geography", color:"#1A2332"},
+  HIST:{name:"History", color:"#7A4E3A"},
+  LIT:{name:"English Literature", color:"#8B6F2A"},
   MA1:{name:"Math 1", color:"#5B7A6B"},
   MA2:{name:"Math 2 (Higher)", color:"#C1432E"},
   EL:{name:"English Language", color:"#D9A441"},
@@ -603,6 +651,13 @@ const DEFAULT_SUBJECTS = {
   INA:{name:"Inquiry & Advocacy", color:"#5B7A6B"},
   SPA:{name:"Spanish", color:"#C1432E"},
 };
+
+const SUBJECT_GROUPS = [
+  {name:"Sciences", codes:["BIO","CHEM","PHY"]},
+  {name:"Humanities", codes:["GEOG","HIST","LIT","INA"]},
+  {name:"Languages", codes:["EL","HCL","SPA"]},
+  {name:"Maths", codes:["MA1","MA2"]},
+];
 
 /* helper: turn a flat list of skill strings into [text, tag] items,
    tagging anything mentioning "enrichment" as enrich, else core */
@@ -1153,6 +1208,96 @@ const RAW_TOPICS = {
       "Area bounded by curves",
     ])},
   ],
+  HIST: [
+    {sec:"Unit 1: Causes of World War Two", weight:"CBA1 (T2W2) · EYA", items: items([
+      "Treaty of Versailles: conflicting interests of the Big Three",
+      "Why the Treaty of Versailles failed to provide lasting peace",
+      "Weaknesses of the League of Nations as a cause of war",
+      "Hitler's expansionist foreign policy as a cause of war",
+      "Appeasement as a failed Allied diplomatic strategy",
+      "Compare multiple causes and judge their relative importance",
+    ])},
+    {sec:"Unit 2: Cold War in Europe (1945-1963)", weight:"AA-NR (T2W9) · EYA", items: items([
+      "Ideological conflict between capitalism and communism",
+      "Long-term distrust and the end of US isolationism",
+      "Emergence of a bipolar world after World War Two",
+      "Post-war Soviet expansion and breakdown of the wartime alliance",
+      "The atomic bomb and origins of Cold War tension",
+      "Truman Doctrine and Marshall Plan containment policies",
+      "Cominform and Comecon as Soviet responses",
+      "Causes and consequences of the Berlin Blockade (1948-1949)",
+      "Division of Germany and impact on the Cold War",
+      "Reasons for the nuclear arms race",
+      "Mutually Assured Destruction and deterrence",
+      "Cuban Missile Crisis: causes, decisions and consequences",
+    ])},
+    {sec:"Unit 3: Cold War Expands into Asia (1945-1969)", weight:"CBA2 (T3W6) · EYA", items: items([
+      "Causes of the Korean War",
+      "Traditionalist and revisionist interpretations of the Korean War",
+      "The Korean War as civil war and proxy war",
+      "Reasons for United States involvement in Vietnam",
+      "US involvement under the Kennedy administration",
+      "US involvement under the Johnson administration",
+      "Soviet and Chinese involvement in Asian Cold War conflicts",
+      "Compare US foreign policy in Korea and Vietnam",
+      "Change and continuity across the Korean and Vietnam Wars",
+    ])},
+    {sec:"Historical Thinking and Exam Skills", weight:"CBA1 · CBA2 · EYA", items: items([
+      "Infer meaning and message from historical sources",
+      "Compare and contrast sources using purpose and context",
+      "Evaluate source credibility and reliability",
+      "Test assertions by synthesising evidence across sources",
+      "Distinguish historical facts from interpretations",
+      "Use contextual knowledge to evaluate perspectives",
+      "Construct a structured historical essay with a clear judgement",
+      "Marshal precise evidence to support explanations",
+      "Evaluate multiple causes, consequences and perspectives",
+      "Formulate and defend a position on a historical issue",
+    ])},
+  ],
+  LIT: [
+    {sec:"The Art of the Short Story", weight:"AANR1 (T2W3) · AANR2 (T2W8)", items: items([
+      "Plot, subplot and plot structure",
+      "Narrative structure and point of view",
+      "Narrator types, including unreliable and self-conscious narrators",
+      "Character types, characterisation and motivation",
+      "Internal and external conflict",
+      "Setting, atmosphere, mood, tone and voice",
+      "Figurative language, imagery and sound devices",
+      "Irony, diction, symbolism, motif and allusion",
+      "How short-story form condenses action and deepens characterisation",
+      "My Mother Pattu",
+      "The Story of an Hour",
+      "A Starry Hill",
+      "Miss Brill",
+      "A Story of a Letter",
+    ])},
+    {sec:"Drama: A Doll's House", weight:"EYA (T4W4)", items: items([
+      "Exposition, plot structure and dramatic conflict",
+      "Setting, mise-en-scene, stage directions and props",
+      "Dialogue, monologue, soliloquy and subtext",
+      "Characterisation and character motivation",
+      "Nora's development and navigation of social expectations",
+      "Coming-of-age, gender, patriarchy and power",
+      "Control, religion, culture and language",
+      "Close reading of key excerpts",
+      "Apply a feminist lens to character and theme",
+      "Respond to passage-based and essay questions",
+    ])},
+    {sec:"Critical Reading and Writing", weight:"AANR1 · AANR2 · EYA", items: items([
+      "Determine themes and trace their development across a text",
+      "Analyse how content, form and craft shape meaning",
+      "Evaluate the cumulative effect of word choice and tone",
+      "Analyse how structure contributes to meaning and aesthetic impact",
+      "Make intertextual comparisons across genres",
+      "Connect text to self, other texts and the wider world",
+      "Use precise literary metalanguage",
+      "Build an insightful thesis and coherent line of argument",
+      "Select specific textual evidence and analyse its significance",
+      "Plan, organise and write persuasive literary essays",
+      "Express ideas with precision, economy and logical transitions",
+    ])},
+  ],
   INA: [
     {sec:"Economy & Society in a Globalised World", weight:"AA · EYA", items: items([
       "Globalisation intensifies and accelerates flows and interactions",
@@ -1213,8 +1358,25 @@ const state = {
   calYear: TODAY.getFullYear(),
   calMonth: TODAY.getMonth(),
   editingSubject: null,
+  activeSubjects: [],
+  onboardingComplete: false,
+  editCoachSeen: false,
   contentVersion: CONTENT_VERSION,
 };
+
+function activeSubjectCodes(){
+  return state.activeSubjects.filter(code=>SUBJECTS[code]);
+}
+function isSubjectActive(code){
+  return activeSubjectCodes().includes(code);
+}
+function activeExams(){
+  const active = new Set(activeSubjectCodes());
+  return EXAMS.filter(exam=>active.has(exam.subj));
+}
+function userStorageKey(){
+  return currentUser ? `${LS_KEY}:${currentUser.id}` : `${LS_KEY}:guest`;
+}
 
 function fmtDate(d){
   return d.toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short', year:'numeric'});
@@ -1334,6 +1496,9 @@ function collectData(){
     calYear: state.calYear,
     calMonth: state.calMonth,
     selectedSubject: state.selectedSubject,
+    activeSubjects: state.activeSubjects,
+    onboardingComplete: state.onboardingComplete,
+    editCoachSeen: state.editCoachSeen,
     contentVersion: state.contentVersion || CONTENT_VERSION,
     lastSavedISO: new Date().toISOString(),
   });
@@ -1362,6 +1527,7 @@ function applyData(data){
     }
   });
   const subjects = loadedRaw.subjects || loadedRaw.SUBJECTS;
+  const savedSubjectCodes = (subjects && typeof subjects==='object' && !Array.isArray(subjects)) ? Object.keys(subjects) : [];
   SUBJECTS = Object.assign({}, DEFAULT_SUBJECTS, (subjects && typeof subjects==='object' && !Array.isArray(subjects)) ? subjects : {});
   Object.keys(SUBJECTS).forEach(code=>{
     if(!SUBJECTS[code] || typeof SUBJECTS[code] !== 'object' || !SUBJECTS[code].name) SUBJECTS[code] = { name: String(code), color:"#5B7A6B" };
@@ -1371,7 +1537,16 @@ function applyData(data){
   state.checkedTopics = (loadedRaw.checkedTopics && typeof loadedRaw.checkedTopics==='object') ? loadedRaw.checkedTopics : {};
   state.goals = normalizeGoals(loadedRaw.goals);
   state.weekPlan = (loadedRaw.weekPlan && typeof loadedRaw.weekPlan==='object') ? loadedRaw.weekPlan : {};
-  state.selectedSubject = (loadedRaw.selectedSubject && TOPICS[loadedRaw.selectedSubject]) ? loadedRaw.selectedSubject : (Object.keys(TOPICS)[0] || "BIO");
+  const savedActive = Array.isArray(loadedRaw.activeSubjects) ? loadedRaw.activeSubjects.filter(code=>SUBJECTS[code]) : savedSubjectCodes.filter(code=>SUBJECTS[code]);
+  state.activeSubjects = [...new Set(savedActive)];
+  state.onboardingComplete = Object.prototype.hasOwnProperty.call(loadedRaw,"onboardingComplete")
+    ? loadedRaw.onboardingComplete === true
+    : savedSubjectCodes.length > 0;
+  state.editCoachSeen = loadedRaw.editCoachSeen === true;
+  const firstActive = activeSubjectCodes()[0];
+  state.selectedSubject = (loadedRaw.selectedSubject && isSubjectActive(loadedRaw.selectedSubject) && TOPICS[loadedRaw.selectedSubject])
+    ? loadedRaw.selectedSubject
+    : (firstActive || "BIO");
   if(typeof loadedRaw.calYear === 'number') state.calYear = loadedRaw.calYear;
   if(typeof loadedRaw.calMonth === 'number') state.calMonth = loadedRaw.calMonth;
   state.contentVersion = loadedRaw.contentVersion || CONTENT_VERSION;
@@ -1383,7 +1558,7 @@ let dataWasSanitized = false;
 async function saveAll(){
   dirty = true;
   const payload = collectData();
-  try{ localStorage.setItem(LS_KEY, JSON.stringify(payload)); }catch(e){}
+  try{ localStorage.setItem(userStorageKey(), JSON.stringify(payload)); }catch(e){}
   flagSaved();
   if(currentUser){
     clearTimeout(cloudTimer);
@@ -1414,13 +1589,99 @@ async function loadAll(){
     }catch(e){ console.error('Cloud load failed', e); }
   }
   if(!data){
-    try{ const raw = localStorage.getItem(LS_KEY); if(raw) data = JSON.parse(raw); }catch(e){}
+    try{ const raw = localStorage.getItem(userStorageKey()); if(raw) data = JSON.parse(raw); }catch(e){}
   }
   applyData(data || {});
   // Write on a new account or after the narrow curriculum repair above. A
   // normal load never rewrites an existing student's saved progress.
-  if(currentUser && (!data || dataWasSanitized)){ saveAll(); }
+  if(currentUser && state.onboardingComplete && (!data || dataWasSanitized)){ saveAll(); }
 }
+
+/* ============================================================
+   SUBJECT ONBOARDING
+   ============================================================ */
+let onboardingOpenedForEdit = false;
+function renderOnboardingChoices(){
+  const selected = new Set(activeSubjectCodes());
+  const wrap = document.getElementById('onboardingSubjectGroups');
+  wrap.innerHTML = SUBJECT_GROUPS.map(group=>`
+    <section class="subject-group">
+      <h2 class="subject-group-title">${group.name}</h2>
+      <div class="subject-options">
+        ${group.codes.map(code=>`
+          <label class="subject-option">
+            <input type="checkbox" value="${code}" ${selected.has(code)?'checked':''}>
+            <span>${DEFAULT_SUBJECTS[code].name}</span>
+            <span class="subject-option-code">${code}</span>
+          </label>
+        `).join('')}
+      </div>
+    </section>
+  `).join('');
+}
+function openSubjectOnboarding(forEdit=false){
+  onboardingOpenedForEdit = forEdit;
+  renderOnboardingChoices();
+  document.getElementById('onboardingError').style.display = "none";
+  document.getElementById('saveSubjectSelection').textContent = forEdit ? "Update my subjects" : "Save my subjects";
+  document.getElementById('cancelSubjectSelection').style.display = forEdit ? "inline-flex" : "none";
+  const overlay = document.getElementById('subjectOnboarding');
+  overlay.classList.add('show');
+  overlay.setAttribute('aria-hidden','false');
+}
+function closeSubjectOnboarding(){
+  const overlay = document.getElementById('subjectOnboarding');
+  overlay.classList.remove('show');
+  overlay.setAttribute('aria-hidden','true');
+}
+function renderSubjectAwareViews(){
+  const names = activeSubjectCodes().map(code=>SUBJECTS[code].name);
+  document.getElementById('mastheadSubjects').textContent = names.join(' · ') || "Choose your subjects";
+  renderOverview();
+  renderCalendar();
+  renderStudyTab();
+  renderExamEditList();
+  renderSubjEditList();
+  renderTopicEditor();
+}
+function positionEditCoach(){
+  const target = document.getElementById('editDataTab');
+  const coach = document.getElementById('editCoach');
+  if(!coach.classList.contains('show')) return;
+  const rect = target.getBoundingClientRect();
+  const left = Math.max(16, Math.min(window.innerWidth-326, rect.right-310));
+  coach.style.left = `${left}px`;
+  coach.style.top = `${rect.bottom+14}px`;
+}
+function showEditCoach(){
+  if(state.editCoachSeen) return;
+  const target = document.getElementById('editDataTab');
+  target.classList.add('coach-target');
+  document.getElementById('editCoach').classList.add('show');
+  positionEditCoach();
+}
+function dismissEditCoach(markSeen=true){
+  document.getElementById('editDataTab').classList.remove('coach-target');
+  document.getElementById('editCoach').classList.remove('show');
+  if(markSeen && !state.editCoachSeen){ state.editCoachSeen = true; saveAll(); }
+}
+
+document.getElementById('saveSubjectSelection').addEventListener('click', ()=>{
+  const selected = [...document.querySelectorAll('#onboardingSubjectGroups input:checked')].map(input=>input.value);
+  if(!selected.length){ document.getElementById('onboardingError').style.display = "inline"; return; }
+  const wasComplete = state.onboardingComplete;
+  state.activeSubjects = selected;
+  state.onboardingComplete = true;
+  if(!isSubjectActive(state.selectedSubject)) state.selectedSubject = selected[0];
+  if(state.editingSubject && !isSubjectActive(state.editingSubject)) state.editingSubject = null;
+  closeSubjectOnboarding();
+  renderSubjectAwareViews();
+  saveAll();
+  if(!wasComplete && !onboardingOpenedForEdit) requestAnimationFrame(showEditCoach);
+});
+document.getElementById('cancelSubjectSelection').addEventListener('click', closeSubjectOnboarding);
+document.getElementById('changeSubjectsBtn').addEventListener('click', ()=>openSubjectOnboarding(true));
+window.addEventListener('resize', positionEditCoach);
 
 /* ============================================================
    TAB SWITCHING
@@ -1431,6 +1692,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
     tab.classList.add('active');
     document.getElementById('panel-'+tab.dataset.tab).classList.add('active');
+    if(tab.dataset.tab === 'editdata') dismissEditCoach();
   });
 });
 
@@ -1438,7 +1700,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
    OVERVIEW RENDER
    ============================================================ */
 function getFutureExams(){
-  return EXAMS
+  return activeExams()
     .map(e=>({...e, dateObj:new Date(e.date+"T00:00:00")}))
     .filter(e=>daysBetween(TODAY,e.dateObj) >= 0)
     .sort((a,b)=>a.dateObj-b.dateObj);
@@ -1471,10 +1733,11 @@ function renderOverview(){
     upnextWrap.appendChild(row);
   });
 
-  const totalExams = EXAMS.length;
+  const visibleExams = activeExams();
+  const totalExams = visibleExams.length;
   const passed = totalExams - future.length;
-  const olevelCount = EXAMS.filter(e=>e.name.includes("O-Level")).length;
-  const eyaCount = EXAMS.filter(e=>e.name.includes("EYA")).length;
+  const olevelCount = visibleExams.filter(e=>e.name.includes("O-Level")).length;
+  const eyaCount = visibleExams.filter(e=>e.name.includes("EYA")).length;
   document.getElementById('statsRow').innerHTML = `
     <div class="stat"><div class="stat-num disp">${future.length}</div><div class="stat-lbl mono">Items remaining</div></div>
     <div class="stat"><div class="stat-num disp">${eyaCount}</div><div class="stat-lbl mono">EYA papers</div></div>
@@ -1504,7 +1767,7 @@ function subjectProgress(subj){
 function renderSubjGrid(elId, clickable){
   const wrap = document.getElementById(elId);
   wrap.innerHTML = "";
-  Object.keys(SUBJECTS).forEach(code=>{
+  activeSubjectCodes().forEach(code=>{
     const sub = SUBJECTS[code];
     const hasTopics = !!TOPICS[code];
     const prog = hasTopics ? subjectProgress(code) : null;
@@ -1543,6 +1806,7 @@ function renderStudyTab(){
   renderSubjGrid('studySubjGrid', true);
   const wrap = document.getElementById('topicSectionsWrap');
   wrap.innerHTML = "";
+  if(!isSubjectActive(state.selectedSubject)) state.selectedSubject = activeSubjectCodes()[0];
   const subj = state.selectedSubject;
   const secs = TOPICS[subj];
   if(!secs){
@@ -1609,7 +1873,7 @@ function renderCalendar(){
   const daysInMonth = new Date(year, month+1, 0).getDate();
 
   const examsByDate = {};
-  EXAMS.forEach(e=>{
+  activeExams().forEach(e=>{
     examsByDate[e.date] = examsByDate[e.date] || [];
     examsByDate[e.date].push(e);
   });
@@ -1633,7 +1897,7 @@ function renderCalendar(){
   }
 
   const listWrap = document.getElementById('fullListWrap');
-  const all = EXAMS.map(e=>({...e, dateObj:new Date(e.date+"T00:00:00")})).sort((a,b)=>a.dateObj-b.dateObj);
+  const all = activeExams().map(e=>({...e, dateObj:new Date(e.date+"T00:00:00")})).sort((a,b)=>a.dateObj-b.dateObj);
   listWrap.innerHTML = `<div class="topic-section"><div class="topic-list">` +
     all.map(e=>{
       const past = daysBetween(TODAY,e.dateObj) < 0;
@@ -1721,14 +1985,16 @@ function renderWeekPlan(){
 function populateExamSubjDropdown(){
   const sel = document.getElementById('examSubjInput');
   const current = sel.value;
-  sel.innerHTML = Object.keys(SUBJECTS).map(code=>`<option value="${code}">${code} — ${SUBJECTS[code].name}</option>`).join('');
-  if(current && SUBJECTS[current]) sel.value = current;
+  sel.innerHTML = activeSubjectCodes().map(code=>`<option value="${code}">${code} — ${SUBJECTS[code].name}</option>`).join('');
+  if(current && isSubjectActive(current)) sel.value = current;
 }
 
 function renderExamEditList(){
   populateExamSubjDropdown();
   const wrap = document.getElementById('examEditList');
-  const sorted = EXAMS.map((e,idx)=>({...e, _idx:idx, dateObj:new Date(e.date+"T00:00:00")})).sort((a,b)=>a.dateObj-b.dateObj);
+  const sorted = EXAMS.map((e,idx)=>({...e, _idx:idx, dateObj:new Date(e.date+"T00:00:00")}))
+    .filter(e=>isSubjectActive(e.subj))
+    .sort((a,b)=>a.dateObj-b.dateObj);
   if(sorted.length===0){
     wrap.innerHTML = `<div class="empty-state">No exams yet — add one above.</div>`;
     return;
@@ -1773,7 +2039,7 @@ document.getElementById('examAddBtn').addEventListener('click', ()=>{
 function renderSubjEditList(){
   const wrap = document.getElementById('subjEditList');
   wrap.innerHTML = "";
-  Object.keys(SUBJECTS).forEach(code=>{
+  activeSubjectCodes().forEach(code=>{
     const row = document.createElement('div');
     row.className = 'subj-edit-row' + (state.editingSubject===code ? ' active-edit':'');
     const hasTopics = !!TOPICS[code];
@@ -1795,6 +2061,7 @@ function renderSubjEditList(){
       if(!confirm(`Delete subject "${SUBJECTS[code].name}"? This also removes its topic checklist and any exams tagged ${code}.`)) return;
       delete SUBJECTS[code];
       delete TOPICS[code];
+      state.activeSubjects = state.activeSubjects.filter(active=>active!==code);
       EXAMS = EXAMS.filter(ex=>ex.subj!==code);
       if(state.editingSubject===code) state.editingSubject=null;
       renderSubjEditList();
@@ -1815,6 +2082,7 @@ document.getElementById('addSubjBtn').addEventListener('click', ()=>{
   if(SUBJECTS[code]){ alert('That subject code already exists.'); return; }
   SUBJECTS[code] = {name, color:"#5B7A6B"};
   TOPICS[code] = [];
+  state.activeSubjects.push(code);
   document.getElementById('newSubjCode').value = "";
   document.getElementById('newSubjName').value = "";
   state.editingSubject = code;
@@ -2255,13 +2523,15 @@ document.getElementById('signOutBtn').addEventListener('click', async ()=>{
 });
 
 let appStarted = false;
+let startedUserId = null;
 async function startApp(session){
   currentUser = session.user;
   document.getElementById('acctEmail').textContent = currentUser.email || "";
   authGate.classList.add('hidden');
   appShell.style.display = "block";
-  if(!appStarted){
+  if(!appStarted || startedUserId !== session.user.id){
     appStarted = true;
+    startedUserId = session.user.id;
     baseTitle = document.title;
     try{ loadPomodoro(); }catch(e){ console.error('Pomodoro load failed', e); }
     // If loading or normalising saved data fails for any reason, fall back to
@@ -2273,15 +2543,11 @@ async function startApp(session){
       console.error('Data load failed; showing defaults without saving', e);
       try{ applyData({}); }catch(e2){ console.error(e2); }
     }
-    renderOverview();
-    renderCalendar();
-    renderStudyTab();
+    renderSubjectAwareViews();
     renderGoals();
     renderWeekPlan();
-    renderExamEditList();
-    renderSubjEditList();
-    renderTopicEditor();
     renderPomodoro();
+    if(!state.onboardingComplete) openSubjectOnboarding(false);
     if(pomo.running){
       // resume a running timer after refresh; complete if it elapsed while away
       if(pomo.endsAt && pomo.endsAt <= Date.now()){ completePhase(); }
@@ -2291,6 +2557,10 @@ async function startApp(session){
 }
 function showGate(){
   currentUser = null;
+  appStarted = false;
+  startedUserId = null;
+  closeSubjectOnboarding();
+  dismissEditCoach(false);
   appShell.style.display = "none";
   authGate.classList.remove('hidden');
 }
