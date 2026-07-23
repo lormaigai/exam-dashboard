@@ -613,7 +613,7 @@ const DEFAULT_EXAMS = [
   {date:"2026-07-16", name:"EL AANR Due — 3pm", subj:"EL"},
   {date:"2026-07-16", name:"HCL Oral O-Level", subj:"HCL"},
   {date:"2026-07-31", name:"Spanish O-Level Oral", subj:"SPA"},
-  {date:"2026-08-03", name:"Geography CBA2", subj:"GEOG"},
+  {date:"2026-08-04", name:"Geography CBA2", subj:"GEOG"},
   {date:"2026-08-03", name:"Spanish Oral O-Levels (Day 1/2)", subj:"SPA"},
   {date:"2026-08-04", name:"Spanish Oral O-Levels (Day 2/2)", subj:"SPA"},
   {date:"2026-08-11", name:"Math 2 CBA2", subj:"MA2"},
@@ -1520,6 +1520,12 @@ function applyData(data){
   const topics = Object.keys(fromLower).length ? fromLower : fromUpper;
   TOPICS = Object.keys(topics).length ? topics : JSON.parse(JSON.stringify(DEFAULT_TOPICS));
   dataWasSanitized = false;
+  EXAMS.forEach(exam=>{
+    if(exam.subj === "GEOG" && exam.name === "Geography CBA2" && exam.date === "2026-08-03"){
+      exam.date = "2026-08-04";
+      dataWasSanitized = true;
+    }
+  });
   Object.keys(DEFAULT_TOPICS).forEach(code=>{
     if(!hasCurriculum(code, TOPICS)){
       TOPICS[code] = JSON.parse(JSON.stringify(DEFAULT_TOPICS[code]));

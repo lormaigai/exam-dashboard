@@ -35,6 +35,8 @@ assert.match(html, /My Mother Pattu/);
 assert.match(html, /Treaty of Versailles: conflicting interests of the Big Three/);
 assert.match(html, /Cuban Missile Crisis/);
 assert.match(html, /Cold War Expands into Asia \(1945-1969\)/);
+assert.match(html, /\{date:"2026-08-04", name:"Geography CBA2", subj:"GEOG"\}/);
+assert.match(html, /exam\.name === "Geography CBA2" && exam\.date === "2026-08-03"/);
 
 const deployWorkflow = fs.readFileSync(new URL("../.github/workflows/deploy-pages.yml", import.meta.url), "utf8");
 assert.match(deployWorkflow, /cp index\.html _site\/404\.html/);
