@@ -26,10 +26,13 @@ assert.match(html, /id="onboardingThemePicker"/);
 assert.match(html, /id="editThemePicker"/);
 assert.match(html, /id="finishOnboarding"/);
 assert.match(html, /theme: state\.theme/);
-assert.match(html, /state\.theme = THEME_PRESETS\[loadedRaw\.theme\]/);
-for (const theme of ["editorial", "matcha", "rose", "powder", "lavender", "peach"]) {
+assert.match(html, /state\.theme = THEME_PRESETS\[savedTheme\]/);
+assert.match(html, /LEGACY_THEME_MAP = \{editorial:"graphite",matcha:"olive"\}/);
+for (const theme of ["graphite", "rose", "latte", "lavender", "butter", "powder", "peach", "mint", "berry", "olive"]) {
   assert.match(html, new RegExp(`${theme}:\\{name:`));
 }
+assert.match(html, /\.masthead\{[\s\S]*?background:var\(--theme-dark\);[\s\S]*?color:var\(--on-dark\)/);
+assert.match(html, /root\.style\.setProperty\('--ink','#0E0C0C'\)/);
 assert.match(html, /\{name:"Sciences", codes:\["BIO","CHEM","PHY"\]\}/);
 assert.match(html, /\{name:"Humanities", codes:\["GEOG","HIST","LIT","INA"\]\}/);
 assert.match(html, /\{name:"Languages", codes:\["EL","HCL","SPA"\]\}/);
@@ -57,7 +60,7 @@ assert.ok(themeStart >= 0 && themeEnd > themeStart, "Could not locate theme pres
 
 const themeContext = {};
 vm.runInNewContext(`${appScript.slice(themeStart, themeEnd)}\nglobalThis.themes = THEME_PRESETS;`, themeContext);
-assert.equal(Object.keys(themeContext.themes).length, 6);
+assert.equal(Object.keys(themeContext.themes).length, 10);
 const luminance = (hex) => {
   const channels = hex.slice(1).match(/../g).map((value) => parseInt(value, 16) / 255);
   const linear = channels.map((value) => value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
@@ -68,9 +71,8 @@ const contrast = (left, right) => {
   return (values[0] + 0.05) / (values[1] + 0.05);
 };
 for (const [key, preset] of Object.entries(themeContext.themes)) {
-  for (const color of ["ink", "red", "sage"]) {
-    assert.ok(contrast(preset.colors[color], preset.colors.paper) >= 4.5, `${key} ${color} contrast is too low`);
-  }
+  assert.ok(contrast("#0E0C0C", preset.colors.paper) >= 7, `${key} body text contrast is too low`);
+  assert.ok(contrast("#FFFFFF", preset.colors.surface) >= 4.5, `${key} dark-surface contrast is too low`);
 }
 
 const helperStart = appScript.indexOf("const SUBJECT_NAME_ALIASES");
