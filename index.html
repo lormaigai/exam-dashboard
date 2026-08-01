@@ -8,17 +8,17 @@
   @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
 
   :root{
-    --ink:#0E0C0C;
-    --ink2:#2D3235;
-    --paper:#F3F3F3;
-    --paper2:#E3E3E3;
-    --line:#8E8E8E;
-    --theme-mid:#B9B9B5;
-    --theme-dark:#636363;
-    --on-dark:#FFFFFF;
-    --red:#0E0C0C;
-    --amber:#B9B9B5;
-    --sage:#636363;
+    --ink:#1A2332;
+    --ink2:#232F44;
+    --paper:#F7F4ED;
+    --paper2:#EFEAE0;
+    --line:#D8D2C4;
+    --theme-mid:#D9A441;
+    --theme-dark:#1A2332;
+    --on-dark:#F7F4ED;
+    --red:#C1432E;
+    --amber:#D9A441;
+    --sage:#5B7A6B;
     --sage-dim:#5B7A6B33;
     --red-dim:#C1432E22;
     --amber-dim:#D9A44122;
@@ -211,14 +211,16 @@
   .btn-outline{background:var(--paper); color:var(--ink);}
   .btn-outline:hover{background:var(--ink); color:var(--on-dark);}
   .btn-small{font-size:10.5px; padding:5px 10px;}
-  .theme-picker{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px;}
-  @media(max-width:700px){.theme-picker{grid-template-columns:repeat(2,minmax(0,1fr));}}
-  .theme-option{min-width:0; border:2px solid var(--line); background:var(--paper); color:var(--ink); padding:10px; text-align:left;}
-  .theme-option:hover{border-color:var(--ink);}
-  .theme-option[aria-pressed="true"]{border-color:var(--ink); box-shadow:inset 0 -4px 0 var(--red);}
-  .theme-swatches{display:grid; grid-template-columns:repeat(5,1fr); height:22px; border:1px solid var(--line); margin-bottom:8px; overflow:hidden;}
-  .theme-swatch{display:block; min-width:0;}
-  .theme-name{font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:1px; white-space:normal;}
+  .colour-customizer{display:grid; grid-template-columns:1fr 1fr; gap:10px; max-width:720px;}
+  @media(max-width:600px){.colour-customizer{grid-template-columns:1fr;}}
+  .colour-control{display:block; border:2px solid var(--ink); background:var(--paper); padding:12px;}
+  .colour-control-title{display:block; font-family:'Archivo Expanded',sans-serif; font-weight:700; font-size:13px; text-transform:uppercase;}
+  .colour-control-note{display:block; font-size:11.5px; line-height:1.4; opacity:.62; margin-top:3px; min-height:32px;}
+  .colour-input-row{display:flex; align-items:center; gap:10px; margin-top:10px;}
+  .colour-input{width:58px; height:42px; padding:2px; border:1px solid var(--ink); background:var(--paper); cursor:pointer;}
+  .colour-hex{font-family:'IBM Plex Mono',monospace; font-size:12px; text-transform:uppercase;}
+  .colour-preview{display:grid; grid-template-columns:1fr 1fr; height:38px; max-width:720px; margin:10px 0; border:2px solid var(--ink);}
+  .colour-preview span{display:block;}
   .exam-row{display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--line); font-size:13px;}
   .exam-row-date{font-family:'IBM Plex Mono',monospace; font-size:11px; min-width:90px; opacity:0.7;}
   .exam-row-name{flex:1;}
@@ -368,12 +370,25 @@
       </div>
     </div>
     <div class="onboarding-step" id="appearanceOnboardingStep" hidden>
-      <div class="onboarding-kicker">Step 2 of 2 · Personalise</div>
-      <h1 class="onboarding-title">Make it yours.</h1>
-      <p class="onboarding-copy">Choose a clean colour palette for your dashboard. This only changes its appearance, not your study data.</p>
-      <div class="onboarding-theme-wrap">
-        <div class="theme-picker" id="onboardingThemePicker"></div>
-        <div class="onboarding-theme-note">You can switch palettes anytime from Edit Data.</div>
+        <div class="onboarding-kicker">Step 2 of 2 · Personalise</div>
+        <h1 class="onboarding-title">Make it yours.</h1>
+        <p class="onboarding-copy">Pick any two colours. Primary controls the page and cards; Secondary controls the header, dark panels and accents. The colour controls let you adjust the exact shade and darkness.</p>
+        <div class="onboarding-theme-wrap">
+        <div class="colour-customizer">
+          <label class="colour-control" for="onboardingPrimaryColour">
+            <span class="colour-control-title">1 · Primary colour</span>
+            <span class="colour-control-note">Page background and lighter panels</span>
+            <span class="colour-input-row"><input class="colour-input" type="color" id="onboardingPrimaryColour"><output class="colour-hex" id="onboardingPrimaryHex"></output></span>
+          </label>
+          <label class="colour-control" for="onboardingSecondaryColour">
+            <span class="colour-control-title">2 · Secondary colour</span>
+            <span class="colour-control-note">Header, dark panels and active accents</span>
+            <span class="colour-input-row"><input class="colour-input" type="color" id="onboardingSecondaryColour"><output class="colour-hex" id="onboardingSecondaryHex"></output></span>
+          </label>
+        </div>
+        <div class="colour-preview" id="onboardingColourPreview" aria-label="Colour pairing preview"><span></span><span></span></div>
+        <button class="btn btn-outline btn-small" id="onboardingRestoreOriginal" type="button">Restore original</button>
+        <div class="onboarding-theme-note">You can change this pairing anytime from Edit Data.</div>
       </div>
       <div class="onboarding-actions">
         <button class="btn btn-outline" id="backToSubjects" type="button">Back</button>
@@ -553,9 +568,22 @@
   <div class="panel" id="panel-editdata">
     <div class="sec-head">
       <div class="sec-title">Appearance</div>
-      <div class="sec-note">choose a palette · saved to your account</div>
+      <div class="sec-note">choose any two colours · saved to your account</div>
     </div>
-    <div class="theme-picker" id="editThemePicker"></div>
+    <div class="colour-customizer">
+      <label class="colour-control" for="editPrimaryColour">
+        <span class="colour-control-title">1 · Primary colour</span>
+        <span class="colour-control-note">Page background and lighter panels</span>
+        <span class="colour-input-row"><input class="colour-input" type="color" id="editPrimaryColour"><output class="colour-hex" id="editPrimaryHex"></output></span>
+      </label>
+      <label class="colour-control" for="editSecondaryColour">
+        <span class="colour-control-title">2 · Secondary colour</span>
+        <span class="colour-control-note">Header, dark panels and active accents</span>
+        <span class="colour-input-row"><input class="colour-input" type="color" id="editSecondaryColour"><output class="colour-hex" id="editSecondaryHex"></output></span>
+      </label>
+    </div>
+    <div class="colour-preview" id="editColourPreview" aria-label="Colour pairing preview"><span></span><span></span></div>
+    <button class="btn btn-outline btn-small" id="editRestoreOriginal" type="button">Restore original</button>
 
     <div class="sec-head">
       <div class="sec-title">Subjects in Your Dashboard</div>
@@ -603,7 +631,7 @@
 
 </div><!-- /appShell -->
 
-<div class="edit-coach" id="editCoach" role="status">You can change your colour palette, exam dates and subject topics here.</div>
+  <div class="edit-coach" id="editCoach" role="status">You can change your colour pairing, exam dates and subject topics here.</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -633,23 +661,10 @@ function readAuthCallback(){
 }
 const AUTH_CALLBACK = readAuthCallback();
 
-const CONTENT_VERSION = "2026-t3t4-curriculum-v7";
+const CONTENT_VERSION = "2026-t3t4-curriculum-v8";
 const LS_KEY = "examcontrol-data";
 const LS_POMODORO = "examcontrol-pomodoro";
-
-const THEME_PRESETS = {
-  graphite:{name:"Graphite", colors:{paper:"#F3F3F3",paper2:"#E3E3E3",line:"#8E8E8E",support:"#B9B9B5",surface:"#636363",accent:"#0E0C0C"}},
-  rose:{name:"Rose", colors:{paper:"#FFF0F5",paper2:"#FFCADB",line:"#FFA9C6",support:"#F9799B",surface:"#A94368",accent:"#ED408B"}},
-  latte:{name:"Latte", colors:{paper:"#F7EFEC",paper2:"#E4D3CD",line:"#C3A296",support:"#AA7B6F",surface:"#8D594E",accent:"#42281D"}},
-  lavender:{name:"Lavender", colors:{paper:"#F6EEF8",paper2:"#DDAEE4",line:"#A577B8",support:"#A858C8",surface:"#765F93",accent:"#7B4384"}},
-  butter:{name:"Butter", colors:{paper:"#FFF8DD",paper2:"#FFE785",line:"#FFDA59",support:"#FBC15D",surface:"#8A5A00",accent:"#FAA300"}},
-  powder:{name:"Powder Blue", colors:{paper:"#EFFAFF",paper2:"#D3F7FF",line:"#BAE3EA",support:"#83A8D4",surface:"#566F9D",accent:"#2874A6"}},
-  peach:{name:"Peach", colors:{paper:"#FFF3EA",paper2:"#FFC69F",line:"#FF9B67",support:"#FF7F1A",surface:"#9A3B12",accent:"#D3500D"}},
-  mint:{name:"Mint", colors:{paper:"#EFFBF8",paper2:"#CEF5EE",line:"#9BDAD0",support:"#9AD4BC",surface:"#396C6A",accent:"#328C8D"}},
-  berry:{name:"Berry", colors:{paper:"#FFF0F0",paper2:"#FFB8B7",line:"#FF8A89",support:"#F85454",surface:"#910100",accent:"#BD000D"}},
-  olive:{name:"Olive", colors:{paper:"#F3F4ED",paper2:"#DBDEC9",line:"#ABAE98",support:"#919561",surface:"#485639",accent:"#1D300B"}},
-};
-const LEGACY_THEME_MAP = {editorial:"graphite",matcha:"olive"};
+const ORIGINAL_APPEARANCE = {custom:false, primary:"#F7F4ED", secondary:"#1A2332"};
 
 /* ============================================================
    DEFAULT DATA — used only when a student has no saved data
@@ -1407,7 +1422,7 @@ const state = {
   calMonth: TODAY.getMonth(),
   editingSubject: null,
   activeSubjects: [],
-  theme: "graphite",
+  appearance: {...ORIGINAL_APPEARANCE},
   onboardingComplete: false,
   editCoachSeen: false,
   contentVersion: CONTENT_VERSION,
@@ -1426,48 +1441,76 @@ function activeExams(){
 function userStorageKey(){
   return currentUser ? `${LS_KEY}:${currentUser.id}` : `${LS_KEY}:guest`;
 }
-function applyTheme(themeKey){
-  const preset = THEME_PRESETS[themeKey] || THEME_PRESETS.graphite;
+function isHexColour(value){
+  return /^#[0-9a-f]{6}$/i.test(value || "");
+}
+function mixColours(left,right,amount){
+  const parse = value=>value.slice(1).match(/../g).map(part=>parseInt(part,16));
+  const a=parse(left), b=parse(right);
+  return '#'+a.map((value,index)=>Math.round(value+(b[index]-value)*amount).toString(16).padStart(2,'0')).join('').toUpperCase();
+}
+function colourLuminance(hex){
+  const channels=hex.slice(1).match(/../g).map(part=>parseInt(part,16)/255).map(value=>value<=.03928?value/12.92:((value+.055)/1.055)**2.4);
+  return .2126*channels[0]+.7152*channels[1]+.0722*channels[2];
+}
+function readableText(background){
+  const lum=colourLuminance(background);
+  const whiteContrast=1.05/(lum+.05);
+  const blackLum=colourLuminance('#0E0C0C');
+  const blackContrast=(lum+.05)/(blackLum+.05);
+  return whiteContrast>=blackContrast?'#FFFFFF':'#0E0C0C';
+}
+function applyAppearance(){
   const root = document.documentElement;
-  root.style.setProperty('--ink','#0E0C0C');
-  root.style.setProperty('--ink2','#2D3235');
-  root.style.setProperty('--paper',preset.colors.paper);
-  root.style.setProperty('--paper2',preset.colors.paper2);
-  root.style.setProperty('--line',preset.colors.line);
-  root.style.setProperty('--theme-mid',preset.colors.support);
-  root.style.setProperty('--theme-dark',preset.colors.surface);
-  root.style.setProperty('--on-dark','#FFFFFF');
-  root.style.setProperty('--red',preset.colors.accent);
-  root.style.setProperty('--amber',preset.colors.paper2);
-  root.style.setProperty('--sage',preset.colors.surface);
-  root.style.setProperty('--sage-dim',`${preset.colors.surface}33`);
-  root.style.setProperty('--red-dim',`${preset.colors.accent}22`);
-  root.style.setProperty('--amber-dim',`${preset.colors.paper2}55`);
-  root.style.setProperty('--ink-dim','#0E0C0C14');
+  if(!state.appearance.custom){
+    const original={ink:'#1A2332',ink2:'#232F44',paper:'#F7F4ED',paper2:'#EFEAE0',line:'#D8D2C4',mid:'#D9A441',dark:'#1A2332',onDark:'#F7F4ED',accent:'#C1432E',amber:'#D9A441',sage:'#5B7A6B'};
+    root.style.setProperty('--ink',original.ink); root.style.setProperty('--ink2',original.ink2);
+    root.style.setProperty('--paper',original.paper); root.style.setProperty('--paper2',original.paper2); root.style.setProperty('--line',original.line);
+    root.style.setProperty('--theme-mid',original.mid); root.style.setProperty('--theme-dark',original.dark); root.style.setProperty('--on-dark',original.onDark);
+    root.style.setProperty('--red',original.accent); root.style.setProperty('--amber',original.amber); root.style.setProperty('--sage',original.sage);
+    root.style.setProperty('--sage-dim','#5B7A6B33'); root.style.setProperty('--red-dim','#C1432E22'); root.style.setProperty('--amber-dim','#D9A44122'); root.style.setProperty('--ink-dim','#1A233214');
+    return;
+  }
+  const primary=state.appearance.primary, secondary=state.appearance.secondary;
+  const bodyText=readableText(primary), panelText=readableText(secondary);
+  root.style.setProperty('--ink',bodyText); root.style.setProperty('--ink2',bodyText);
+  root.style.setProperty('--paper',primary); root.style.setProperty('--paper2',mixColours(primary,bodyText,.08)); root.style.setProperty('--line',mixColours(primary,bodyText,.24));
+  root.style.setProperty('--theme-mid',mixColours(primary,secondary,.5)); root.style.setProperty('--theme-dark',secondary); root.style.setProperty('--on-dark',panelText);
+  root.style.setProperty('--red',secondary); root.style.setProperty('--amber',mixColours(primary,secondary,.5)); root.style.setProperty('--sage',secondary);
+  root.style.setProperty('--sage-dim',`${secondary}33`); root.style.setProperty('--red-dim',`${secondary}22`); root.style.setProperty('--amber-dim',`${primary}55`); root.style.setProperty('--ink-dim',`${bodyText}14`);
 }
-function renderThemePicker(containerId, persistOnChange=false){
-  const wrap = document.getElementById(containerId);
-  if(!wrap) return;
-  wrap.innerHTML = Object.entries(THEME_PRESETS).map(([key,preset])=>{
-    const swatches = ['paper2','line','support','surface','accent'].map(color=>
-      `<span class="theme-swatch" style="background:${preset.colors[color]}"></span>`
-    ).join('');
-    return `<button class="theme-option" type="button" data-theme="${key}" aria-pressed="${state.theme===key}">
-      <span class="theme-swatches" aria-hidden="true">${swatches}</span>
-      <span class="theme-name">${preset.name}</span>
-    </button>`;
-  }).join('');
-  wrap.querySelectorAll('.theme-option').forEach(option=>option.addEventListener('click',()=>{
-    state.theme = option.dataset.theme;
-    applyTheme(state.theme);
-    renderThemePickers();
-    if(persistOnChange) saveAll();
-  }));
+function syncAppearanceControls(){
+  ['onboarding','edit'].forEach(prefix=>{
+    const primary=document.getElementById(`${prefix}PrimaryColour`), secondary=document.getElementById(`${prefix}SecondaryColour`);
+    if(!primary || !secondary) return;
+    primary.value=state.appearance.primary; secondary.value=state.appearance.secondary;
+    document.getElementById(`${prefix}PrimaryHex`).textContent=state.appearance.primary;
+    document.getElementById(`${prefix}SecondaryHex`).textContent=state.appearance.secondary;
+    const preview=document.getElementById(`${prefix}ColourPreview`).children;
+    preview[0].style.background=state.appearance.primary; preview[1].style.background=state.appearance.secondary;
+  });
 }
-function renderThemePickers(){
-  renderThemePicker('onboardingThemePicker',false);
-  renderThemePicker('editThemePicker',true);
+function setAppearanceColour(field,value,persist){
+  if(!isHexColour(value)) return;
+  state.appearance={...state.appearance,custom:true,[field]:value.toUpperCase()};
+  applyAppearance(); syncAppearanceControls();
+  if(persist) saveAll();
 }
+function restoreOriginalAppearance(persist){
+  state.appearance={...ORIGINAL_APPEARANCE};
+  applyAppearance(); syncAppearanceControls();
+  if(persist) saveAll();
+}
+function bindAppearanceControls(){
+  ['onboarding','edit'].forEach(prefix=>{
+    const persist=prefix==='edit';
+    document.getElementById(`${prefix}PrimaryColour`).addEventListener('input',event=>setAppearanceColour('primary',event.target.value,persist));
+    document.getElementById(`${prefix}SecondaryColour`).addEventListener('input',event=>setAppearanceColour('secondary',event.target.value,persist));
+    document.getElementById(`${prefix}RestoreOriginal`).addEventListener('click',()=>restoreOriginalAppearance(persist));
+  });
+  syncAppearanceControls();
+}
+bindAppearanceControls();
 
 function fmtDate(d){
   return d.toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short', year:'numeric'});
@@ -1588,7 +1631,7 @@ function collectData(){
     calMonth: state.calMonth,
     selectedSubject: state.selectedSubject,
     activeSubjects: state.activeSubjects,
-    theme: state.theme,
+    appearance: state.appearance,
     onboardingComplete: state.onboardingComplete,
     editCoachSeen: state.editCoachSeen,
     contentVersion: state.contentVersion || CONTENT_VERSION,
@@ -1596,7 +1639,7 @@ function collectData(){
   });
   // Drop stale uppercase duplicates from older app versions so the canonical
   // lowercase keys are the single source of truth from here on.
-  delete merged.EXAMS; delete merged.TOPICS; delete merged.SUBJECTS;
+  delete merged.EXAMS; delete merged.TOPICS; delete merged.SUBJECTS; delete merged.theme;
   return merged;
 }
 
@@ -1637,9 +1680,12 @@ function applyData(data){
   state.weekPlan = (loadedRaw.weekPlan && typeof loadedRaw.weekPlan==='object') ? loadedRaw.weekPlan : {};
   const savedActive = Array.isArray(loadedRaw.activeSubjects) ? loadedRaw.activeSubjects.filter(code=>SUBJECTS[code]) : savedSubjectCodes.filter(code=>SUBJECTS[code]);
   state.activeSubjects = [...new Set(savedActive)];
-  const savedTheme = LEGACY_THEME_MAP[loadedRaw.theme] || loadedRaw.theme;
-  state.theme = THEME_PRESETS[savedTheme] ? savedTheme : "graphite";
-  applyTheme(state.theme);
+  const savedAppearance=loadedRaw.appearance;
+  state.appearance=(savedAppearance && savedAppearance.custom===true && isHexColour(savedAppearance.primary) && isHexColour(savedAppearance.secondary))
+    ? {custom:true,primary:savedAppearance.primary.toUpperCase(),secondary:savedAppearance.secondary.toUpperCase()}
+    : {...ORIGINAL_APPEARANCE};
+  if(loadedRaw.theme){ dataWasSanitized=true; }
+  applyAppearance();
   state.onboardingComplete = Object.prototype.hasOwnProperty.call(loadedRaw,"onboardingComplete")
     ? loadedRaw.onboardingComplete === true
     : savedSubjectCodes.length > 0;
@@ -1723,7 +1769,7 @@ function renderOnboardingChoices(){
 function openSubjectOnboarding(forEdit=false){
   onboardingOpenedForEdit = forEdit;
   renderOnboardingChoices();
-  renderThemePickers();
+  syncAppearanceControls();
   document.getElementById('subjectOnboardingStep').hidden = false;
   document.getElementById('appearanceOnboardingStep').hidden = true;
   document.getElementById('onboardingError').style.display = "none";
@@ -1747,7 +1793,7 @@ function renderSubjectAwareViews(){
   renderExamEditList();
   renderSubjEditList();
   renderTopicEditor();
-  renderThemePickers();
+  syncAppearanceControls();
 }
 function positionEditCoach(){
   const target = document.getElementById('editDataTab');

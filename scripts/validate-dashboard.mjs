@@ -20,19 +20,20 @@ assert.match(html, /window\.location\.hostname\.endsWith\("github\.io"\)/);
 assert.match(html, /id="subjectOnboarding"/);
 assert.match(html, /id="changeSubjectsBtn"/);
 assert.match(html, /id="editCoach"/);
-assert.match(html, /You can change your colour palette, exam dates and subject topics here\./);
+assert.match(html, /You can change your colour pairing, exam dates and subject topics here\./);
 assert.match(html, /id="appearanceOnboardingStep"/);
-assert.match(html, /id="onboardingThemePicker"/);
-assert.match(html, /id="editThemePicker"/);
 assert.match(html, /id="finishOnboarding"/);
-assert.match(html, /theme: state\.theme/);
-assert.match(html, /state\.theme = THEME_PRESETS\[savedTheme\]/);
-assert.match(html, /LEGACY_THEME_MAP = \{editorial:"graphite",matcha:"olive"\}/);
-for (const theme of ["graphite", "rose", "latte", "lavender", "butter", "powder", "peach", "mint", "berry", "olive"]) {
-  assert.match(html, new RegExp(`${theme}:\\{name:`));
+for (const id of ["onboardingPrimaryColour", "onboardingSecondaryColour", "editPrimaryColour", "editSecondaryColour"]) {
+  assert.match(html, new RegExp(`type="color" id="${id}"`));
 }
+assert.match(html, /id="onboardingRestoreOriginal"/);
+assert.match(html, /id="editRestoreOriginal"/);
+assert.match(html, /appearance: state\.appearance/);
+assert.match(html, /delete merged\.theme/);
+assert.match(html, /if\(loadedRaw\.theme\)\{ dataWasSanitized=true; \}/);
+assert.match(html, /ORIGINAL_APPEARANCE = \{custom:false, primary:"#F7F4ED", secondary:"#1A2332"\}/);
 assert.match(html, /\.masthead\{[\s\S]*?background:var\(--theme-dark\);[\s\S]*?color:var\(--on-dark\)/);
-assert.match(html, /root\.style\.setProperty\('--ink','#0E0C0C'\)/);
+assert.match(html, /const bodyText=readableText\(primary\), panelText=readableText\(secondary\)/);
 assert.match(html, /\{name:"Sciences", codes:\["BIO","CHEM","PHY"\]\}/);
 assert.match(html, /\{name:"Humanities", codes:\["GEOG","HIST","LIT","INA"\]\}/);
 assert.match(html, /\{name:"Languages", codes:\["EL","HCL","SPA"\]\}/);
@@ -54,26 +55,17 @@ const deployWorkflow = fs.readFileSync(new URL("../.github/workflows/deploy-page
 assert.match(deployWorkflow, /cp index\.html _site\/404\.html/);
 
 const appScript = inlineScripts[0];
-const themeStart = appScript.indexOf("const THEME_PRESETS");
-const themeEnd = appScript.indexOf("const DEFAULT_EXAMS", themeStart);
-assert.ok(themeStart >= 0 && themeEnd > themeStart, "Could not locate theme presets");
-
-const themeContext = {};
-vm.runInNewContext(`${appScript.slice(themeStart, themeEnd)}\nglobalThis.themes = THEME_PRESETS;`, themeContext);
-assert.equal(Object.keys(themeContext.themes).length, 10);
-const luminance = (hex) => {
-  const channels = hex.slice(1).match(/../g).map((value) => parseInt(value, 16) / 255);
-  const linear = channels.map((value) => value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
-  return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
-};
-const contrast = (left, right) => {
-  const values = [luminance(left), luminance(right)].sort((a, b) => b - a);
-  return (values[0] + 0.05) / (values[1] + 0.05);
-};
-for (const [key, preset] of Object.entries(themeContext.themes)) {
-  assert.ok(contrast("#0E0C0C", preset.colors.paper) >= 7, `${key} body text contrast is too low`);
-  assert.ok(contrast("#FFFFFF", preset.colors.surface) >= 4.5, `${key} dark-surface contrast is too low`);
-}
+const appearanceStart = appScript.indexOf("function isHexColour");
+const appearanceEnd = appScript.indexOf("function applyAppearance", appearanceStart);
+assert.ok(appearanceStart >= 0 && appearanceEnd > appearanceStart, "Could not locate appearance helpers");
+const appearanceContext = {};
+vm.runInNewContext(`${appScript.slice(appearanceStart, appearanceEnd)}
+  globalThis.result = {
+    valid: isHexColour("#A1b2C3"), invalid: isHexColour("pink"),
+    mixed: mixColours("#000000", "#FFFFFF", 0.5),
+    onLight: readableText("#FFC0CB"), onDark: readableText("#315C45")
+  };`, appearanceContext);
+assert.deepEqual({ ...appearanceContext.result }, { valid:true, invalid:false, mixed:"#808080", onLight:"#0E0C0C", onDark:"#FFFFFF" });
 
 const helperStart = appScript.indexOf("const SUBJECT_NAME_ALIASES");
 const helperEnd = appScript.indexOf("/* ============================================================\n   STORAGE", helperStart);
