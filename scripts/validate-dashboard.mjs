@@ -20,7 +20,16 @@ assert.match(html, /window\.location\.hostname\.endsWith\("github\.io"\)/);
 assert.match(html, /id="subjectOnboarding"/);
 assert.match(html, /id="changeSubjectsBtn"/);
 assert.match(html, /id="editCoach"/);
-assert.match(html, /You can edit your exam dates and subject topics here\./);
+assert.match(html, /You can change your colour palette, exam dates and subject topics here\./);
+assert.match(html, /id="appearanceOnboardingStep"/);
+assert.match(html, /id="onboardingThemePicker"/);
+assert.match(html, /id="editThemePicker"/);
+assert.match(html, /id="finishOnboarding"/);
+assert.match(html, /theme: state\.theme/);
+assert.match(html, /state\.theme = THEME_PRESETS\[loadedRaw\.theme\]/);
+for (const theme of ["editorial", "matcha", "rose", "powder", "lavender", "peach"]) {
+  assert.match(html, new RegExp(`${theme}:\\{name:`));
+}
 assert.match(html, /\{name:"Sciences", codes:\["BIO","CHEM","PHY"\]\}/);
 assert.match(html, /\{name:"Humanities", codes:\["GEOG","HIST","LIT","INA"\]\}/);
 assert.match(html, /\{name:"Languages", codes:\["EL","HCL","SPA"\]\}/);
@@ -42,6 +51,28 @@ const deployWorkflow = fs.readFileSync(new URL("../.github/workflows/deploy-page
 assert.match(deployWorkflow, /cp index\.html _site\/404\.html/);
 
 const appScript = inlineScripts[0];
+const themeStart = appScript.indexOf("const THEME_PRESETS");
+const themeEnd = appScript.indexOf("const DEFAULT_EXAMS", themeStart);
+assert.ok(themeStart >= 0 && themeEnd > themeStart, "Could not locate theme presets");
+
+const themeContext = {};
+vm.runInNewContext(`${appScript.slice(themeStart, themeEnd)}\nglobalThis.themes = THEME_PRESETS;`, themeContext);
+assert.equal(Object.keys(themeContext.themes).length, 6);
+const luminance = (hex) => {
+  const channels = hex.slice(1).match(/../g).map((value) => parseInt(value, 16) / 255);
+  const linear = channels.map((value) => value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+  return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+};
+const contrast = (left, right) => {
+  const values = [luminance(left), luminance(right)].sort((a, b) => b - a);
+  return (values[0] + 0.05) / (values[1] + 0.05);
+};
+for (const [key, preset] of Object.entries(themeContext.themes)) {
+  for (const color of ["ink", "red", "sage"]) {
+    assert.ok(contrast(preset.colors[color], preset.colors.paper) >= 4.5, `${key} ${color} contrast is too low`);
+  }
+}
+
 const helperStart = appScript.indexOf("const SUBJECT_NAME_ALIASES");
 const helperEnd = appScript.indexOf("/* ============================================================\n   STORAGE", helperStart);
 assert.ok(helperStart >= 0 && helperEnd > helperStart, "Could not locate curriculum deduplication helpers");

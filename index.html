@@ -208,6 +208,14 @@
   .btn-outline{background:var(--paper); color:var(--ink);}
   .btn-outline:hover{background:var(--ink); color:var(--paper);}
   .btn-small{font-size:10.5px; padding:5px 10px;}
+  .theme-picker{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px;}
+  @media(max-width:700px){.theme-picker{grid-template-columns:repeat(2,minmax(0,1fr));}}
+  .theme-option{min-width:0; border:2px solid var(--line); background:var(--paper); color:var(--ink); padding:10px; text-align:left;}
+  .theme-option:hover{border-color:var(--ink);}
+  .theme-option[aria-pressed="true"]{border-color:var(--ink); box-shadow:inset 0 -4px 0 var(--red);}
+  .theme-swatches{display:grid; grid-template-columns:repeat(5,1fr); height:22px; border:1px solid var(--line); margin-bottom:8px; overflow:hidden;}
+  .theme-swatch{display:block; min-width:0;}
+  .theme-name{font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:1px; white-space:normal;}
   .exam-row{display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--line); font-size:13px;}
   .exam-row-date{font-family:'IBM Plex Mono',monospace; font-size:11px; min-width:90px; opacity:0.7;}
   .exam-row-name{flex:1;}
@@ -289,6 +297,9 @@
   .onboarding-kicker{font-family:'IBM Plex Mono',monospace; color:var(--red); font-size:11px; text-transform:uppercase; letter-spacing:1.5px;}
   .onboarding-title{font-family:'Archivo Expanded',sans-serif; font-size:32px; line-height:1.1; margin-top:8px;}
   .onboarding-copy{font-size:14px; line-height:1.55; margin-top:10px; max-width:620px; opacity:.72;}
+  .onboarding-step[hidden]{display:none;}
+  .onboarding-theme-wrap{margin:24px 0;}
+  .onboarding-theme-note{font-family:'IBM Plex Mono',monospace; font-size:10.5px; line-height:1.5; margin-top:12px; opacity:.58;}
   .subject-groups{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:24px 0;}
   @media(max-width:650px){.subject-groups{grid-template-columns:1fr;}.onboarding{padding:18px;}.onboarding-title{font-size:27px;}}
   .subject-group{border-top:3px solid var(--ink); padding-top:10px;}
@@ -343,14 +354,29 @@
 <!-- ============ SUBJECT ONBOARDING ============ -->
 <div class="onboarding" id="subjectOnboarding" aria-hidden="true">
   <div class="onboarding-inner">
-    <div class="onboarding-kicker">Set up your dashboard</div>
-    <h1 class="onboarding-title">Which subjects do you take?</h1>
-    <p class="onboarding-copy">Choose every subject you want Exam Control to track. Your dashboard, calendar and syllabus checklists will only show these subjects.</p>
-    <div class="subject-groups" id="onboardingSubjectGroups"></div>
-    <div class="onboarding-actions">
-      <button class="btn" id="saveSubjectSelection" type="button">Save my subjects</button>
-      <button class="btn btn-outline" id="cancelSubjectSelection" type="button" style="display:none;">Cancel</button>
-      <span class="onboarding-error" id="onboardingError">Select at least one subject.</span>
+    <div class="onboarding-step" id="subjectOnboardingStep">
+      <div class="onboarding-kicker">Step 1 of 2 · Set up your dashboard</div>
+      <h1 class="onboarding-title">Which subjects do you take?</h1>
+      <p class="onboarding-copy">Choose every subject you want Exam Control to track. Your dashboard, calendar and syllabus checklists will only show these subjects.</p>
+      <div class="subject-groups" id="onboardingSubjectGroups"></div>
+      <div class="onboarding-actions">
+        <button class="btn" id="saveSubjectSelection" type="button">Continue</button>
+        <button class="btn btn-outline" id="cancelSubjectSelection" type="button" style="display:none;">Cancel</button>
+        <span class="onboarding-error" id="onboardingError">Select at least one subject.</span>
+      </div>
+    </div>
+    <div class="onboarding-step" id="appearanceOnboardingStep" hidden>
+      <div class="onboarding-kicker">Step 2 of 2 · Personalise</div>
+      <h1 class="onboarding-title">Make it yours.</h1>
+      <p class="onboarding-copy">Choose a clean colour palette for your dashboard. This only changes its appearance, not your study data.</p>
+      <div class="onboarding-theme-wrap">
+        <div class="theme-picker" id="onboardingThemePicker"></div>
+        <div class="onboarding-theme-note">You can switch palettes anytime from Edit Data.</div>
+      </div>
+      <div class="onboarding-actions">
+        <button class="btn btn-outline" id="backToSubjects" type="button">Back</button>
+        <button class="btn" id="finishOnboarding" type="button">Open my dashboard</button>
+      </div>
     </div>
   </div>
 </div>
@@ -524,6 +550,12 @@
   <!-- ============ EDIT DATA ============ -->
   <div class="panel" id="panel-editdata">
     <div class="sec-head">
+      <div class="sec-title">Appearance</div>
+      <div class="sec-note">choose a palette · saved to your account</div>
+    </div>
+    <div class="theme-picker" id="editThemePicker"></div>
+
+    <div class="sec-head">
       <div class="sec-title">Subjects in Your Dashboard</div>
       <div class="sec-note">change this whenever your subject combination changes</div>
     </div>
@@ -569,7 +601,7 @@
 
 </div><!-- /appShell -->
 
-<div class="edit-coach" id="editCoach" role="status">You can edit your exam dates and subject topics here.</div>
+<div class="edit-coach" id="editCoach" role="status">You can change your colour palette, exam dates and subject topics here.</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -599,9 +631,18 @@ function readAuthCallback(){
 }
 const AUTH_CALLBACK = readAuthCallback();
 
-const CONTENT_VERSION = "2026-t3t4-curriculum-v5";
+const CONTENT_VERSION = "2026-t3t4-curriculum-v6";
 const LS_KEY = "examcontrol-data";
 const LS_POMODORO = "examcontrol-pomodoro";
+
+const THEME_PRESETS = {
+  editorial:{name:"Editorial", colors:{ink:"#1A2332",ink2:"#232F44",paper:"#F7F4ED",paper2:"#EFEAE0",line:"#D8D2C4",red:"#C1432E",amber:"#D9A441",sage:"#526E60"}},
+  matcha:{name:"Matcha", colors:{ink:"#26351D",ink2:"#405038",paper:"#FAFAF4",paper2:"#E8ECD9",line:"#C9D0B5",red:"#A9493A",amber:"#D2A84D",sage:"#5D7646"}},
+  rose:{name:"Rose Tea", colors:{ink:"#382A31",ink2:"#513B45",paper:"#FFF9F8",paper2:"#F9E7E8",line:"#E8C5C8",red:"#B93F63",amber:"#D7A14B",sage:"#5F756B"}},
+  powder:{name:"Powder Blue", colors:{ink:"#213A5B",ink2:"#304F70",paper:"#FAFBFD",paper2:"#E7EEF6",line:"#C3D2E2",red:"#B94F60",amber:"#C99A43",sage:"#4F788F"}},
+  lavender:{name:"Lavender", colors:{ink:"#352D48",ink2:"#4A405F",paper:"#FBF9FC",paper2:"#EEE9F4",line:"#D4C8DE",red:"#985780",amber:"#C8A04B",sage:"#666684"}},
+  peach:{name:"Peach", colors:{ink:"#402D28",ink2:"#584039",paper:"#FFF9F5",paper2:"#FAE9DE",line:"#E7CAB9",red:"#B74724",amber:"#DDA044",sage:"#5C7465"}},
+};
 
 /* ============================================================
    DEFAULT DATA — used only when a student has no saved data
@@ -1359,6 +1400,7 @@ const state = {
   calMonth: TODAY.getMonth(),
   editingSubject: null,
   activeSubjects: [],
+  theme: "editorial",
   onboardingComplete: false,
   editCoachSeen: false,
   contentVersion: CONTENT_VERSION,
@@ -1376,6 +1418,38 @@ function activeExams(){
 }
 function userStorageKey(){
   return currentUser ? `${LS_KEY}:${currentUser.id}` : `${LS_KEY}:guest`;
+}
+function applyTheme(themeKey){
+  const preset = THEME_PRESETS[themeKey] || THEME_PRESETS.editorial;
+  const root = document.documentElement;
+  Object.entries(preset.colors).forEach(([name,value])=>root.style.setProperty(`--${name}`,value));
+  root.style.setProperty('--sage-dim',`${preset.colors.sage}33`);
+  root.style.setProperty('--red-dim',`${preset.colors.red}22`);
+  root.style.setProperty('--amber-dim',`${preset.colors.amber}22`);
+  root.style.setProperty('--ink-dim',`${preset.colors.ink}14`);
+}
+function renderThemePicker(containerId, persistOnChange=false){
+  const wrap = document.getElementById(containerId);
+  if(!wrap) return;
+  wrap.innerHTML = Object.entries(THEME_PRESETS).map(([key,preset])=>{
+    const swatches = ['paper2','sage','amber','red','ink'].map(color=>
+      `<span class="theme-swatch" style="background:${preset.colors[color]}"></span>`
+    ).join('');
+    return `<button class="theme-option" type="button" data-theme="${key}" aria-pressed="${state.theme===key}">
+      <span class="theme-swatches" aria-hidden="true">${swatches}</span>
+      <span class="theme-name">${preset.name}</span>
+    </button>`;
+  }).join('');
+  wrap.querySelectorAll('.theme-option').forEach(option=>option.addEventListener('click',()=>{
+    state.theme = option.dataset.theme;
+    applyTheme(state.theme);
+    renderThemePickers();
+    if(persistOnChange) saveAll();
+  }));
+}
+function renderThemePickers(){
+  renderThemePicker('onboardingThemePicker',false);
+  renderThemePicker('editThemePicker',true);
 }
 
 function fmtDate(d){
@@ -1497,6 +1571,7 @@ function collectData(){
     calMonth: state.calMonth,
     selectedSubject: state.selectedSubject,
     activeSubjects: state.activeSubjects,
+    theme: state.theme,
     onboardingComplete: state.onboardingComplete,
     editCoachSeen: state.editCoachSeen,
     contentVersion: state.contentVersion || CONTENT_VERSION,
@@ -1545,6 +1620,8 @@ function applyData(data){
   state.weekPlan = (loadedRaw.weekPlan && typeof loadedRaw.weekPlan==='object') ? loadedRaw.weekPlan : {};
   const savedActive = Array.isArray(loadedRaw.activeSubjects) ? loadedRaw.activeSubjects.filter(code=>SUBJECTS[code]) : savedSubjectCodes.filter(code=>SUBJECTS[code]);
   state.activeSubjects = [...new Set(savedActive)];
+  state.theme = THEME_PRESETS[loadedRaw.theme] ? loadedRaw.theme : "editorial";
+  applyTheme(state.theme);
   state.onboardingComplete = Object.prototype.hasOwnProperty.call(loadedRaw,"onboardingComplete")
     ? loadedRaw.onboardingComplete === true
     : savedSubjectCodes.length > 0;
@@ -1628,8 +1705,11 @@ function renderOnboardingChoices(){
 function openSubjectOnboarding(forEdit=false){
   onboardingOpenedForEdit = forEdit;
   renderOnboardingChoices();
+  renderThemePickers();
+  document.getElementById('subjectOnboardingStep').hidden = false;
+  document.getElementById('appearanceOnboardingStep').hidden = true;
   document.getElementById('onboardingError').style.display = "none";
-  document.getElementById('saveSubjectSelection').textContent = forEdit ? "Update my subjects" : "Save my subjects";
+  document.getElementById('saveSubjectSelection').textContent = forEdit ? "Update my subjects" : "Continue";
   document.getElementById('cancelSubjectSelection').style.display = forEdit ? "inline-flex" : "none";
   const overlay = document.getElementById('subjectOnboarding');
   overlay.classList.add('show');
@@ -1649,6 +1729,7 @@ function renderSubjectAwareViews(){
   renderExamEditList();
   renderSubjEditList();
   renderTopicEditor();
+  renderThemePickers();
 }
 function positionEditCoach(){
   const target = document.getElementById('editDataTab');
@@ -1675,15 +1756,31 @@ function dismissEditCoach(markSeen=true){
 document.getElementById('saveSubjectSelection').addEventListener('click', ()=>{
   const selected = [...document.querySelectorAll('#onboardingSubjectGroups input:checked')].map(input=>input.value);
   if(!selected.length){ document.getElementById('onboardingError').style.display = "inline"; return; }
-  const wasComplete = state.onboardingComplete;
   state.activeSubjects = selected;
-  state.onboardingComplete = true;
   if(!isSubjectActive(state.selectedSubject)) state.selectedSubject = selected[0];
   if(state.editingSubject && !isSubjectActive(state.editingSubject)) state.editingSubject = null;
+  renderSubjectAwareViews();
+  if(onboardingOpenedForEdit){
+    closeSubjectOnboarding();
+    saveAll();
+    return;
+  }
+  document.getElementById('subjectOnboardingStep').hidden = true;
+  document.getElementById('appearanceOnboardingStep').hidden = false;
+  document.getElementById('subjectOnboarding').scrollTop = 0;
+  saveAll();
+});
+document.getElementById('backToSubjects').addEventListener('click',()=>{
+  document.getElementById('appearanceOnboardingStep').hidden = true;
+  document.getElementById('subjectOnboardingStep').hidden = false;
+  document.getElementById('subjectOnboarding').scrollTop = 0;
+});
+document.getElementById('finishOnboarding').addEventListener('click',()=>{
+  state.onboardingComplete = true;
   closeSubjectOnboarding();
   renderSubjectAwareViews();
   saveAll();
-  if(!wasComplete && !onboardingOpenedForEdit) requestAnimationFrame(showEditCoach);
+  requestAnimationFrame(showEditCoach);
 });
 document.getElementById('cancelSubjectSelection').addEventListener('click', closeSubjectOnboarding);
 document.getElementById('changeSubjectsBtn').addEventListener('click', ()=>openSubjectOnboarding(true));
