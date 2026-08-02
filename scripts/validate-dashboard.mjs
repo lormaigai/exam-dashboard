@@ -29,10 +29,15 @@ for (const id of ["onboardingPrimaryColour", "onboardingSecondaryColour", "onboa
 for (const id of ["onboardingFontChoice", "editFontChoice"]) {
   assert.match(html, new RegExp(`id="${id}"`));
 }
-for (const font of ["original", "studio", "editorial", "modern", "soft"]) {
-  assert.match(html, new RegExp(`<option value="${font}">`));
+for (const font of ["original", "studio", "editorial", "modern", "soft", "gaegu", "comic", "cursive", "bold", "italic"]) {
   assert.match(html, new RegExp(`${font}:\\{body:`));
 }
+assert.match(html, /class="font-picker" id="onboardingFontChoice"/);
+assert.match(html, /class="font-picker" id="editFontChoice"/);
+assert.match(html, /class="font-option" type="button" data-font="\$\{key\}"/);
+assert.match(html, /font-family:\$\{font\.display\};font-style:\$\{font\.style\}/);
+assert.match(html, /family=Gaegu:wght@400;700/);
+assert.match(html, /'Comic Sans MS','Comic Sans',cursive/);
 assert.match(html, /id="onboardingRestoreOriginal"/);
 assert.match(html, /id="editRestoreOriginal"/);
 assert.match(html, /appearance: state\.appearance/);
@@ -41,6 +46,8 @@ assert.match(html, /if\(loadedRaw\.theme\)\{ dataWasSanitized=true; \}/);
 assert.match(html, /ORIGINAL_APPEARANCE = \{custom:false, primary:"#F7F4ED", secondary:"#1A2332", text:"#1A2332", font:"original"\}/);
 assert.match(html, /--font-body:'Inter',sans-serif/);
 assert.match(html, /root\.style\.setProperty\('--font-body',font\.body\)/);
+assert.match(html, /root\.style\.setProperty\('--font-body-style',font\.style\)/);
+assert.match(html, /root\.style\.setProperty\('--font-body-weight',font\.weight\)/);
 assert.match(html, /\.masthead\{[\s\S]*?background:var\(--theme-dark\);[\s\S]*?color:var\(--on-dark\)/);
 assert.match(html, /bodyText=state\.appearance\.text/);
 assert.match(html, /const migratedText=isHexColour\(savedAppearance\.text\)/);
