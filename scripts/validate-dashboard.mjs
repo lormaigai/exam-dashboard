@@ -20,20 +20,31 @@ assert.match(html, /window\.location\.hostname\.endsWith\("github\.io"\)/);
 assert.match(html, /id="subjectOnboarding"/);
 assert.match(html, /id="changeSubjectsBtn"/);
 assert.match(html, /id="editCoach"/);
-assert.match(html, /You can change your colour pairing, exam dates and subject topics here\./);
+assert.match(html, /You can change your colours, font, exam dates and subject topics here\./);
 assert.match(html, /id="appearanceOnboardingStep"/);
 assert.match(html, /id="finishOnboarding"/);
-for (const id of ["onboardingPrimaryColour", "onboardingSecondaryColour", "editPrimaryColour", "editSecondaryColour"]) {
+for (const id of ["onboardingPrimaryColour", "onboardingSecondaryColour", "onboardingTextColour", "editPrimaryColour", "editSecondaryColour", "editTextColour"]) {
   assert.match(html, new RegExp(`type="color" id="${id}"`));
+}
+for (const id of ["onboardingFontChoice", "editFontChoice"]) {
+  assert.match(html, new RegExp(`id="${id}"`));
+}
+for (const font of ["original", "studio", "editorial", "modern", "soft"]) {
+  assert.match(html, new RegExp(`<option value="${font}">`));
+  assert.match(html, new RegExp(`${font}:\\{body:`));
 }
 assert.match(html, /id="onboardingRestoreOriginal"/);
 assert.match(html, /id="editRestoreOriginal"/);
 assert.match(html, /appearance: state\.appearance/);
 assert.match(html, /delete merged\.theme/);
 assert.match(html, /if\(loadedRaw\.theme\)\{ dataWasSanitized=true; \}/);
-assert.match(html, /ORIGINAL_APPEARANCE = \{custom:false, primary:"#F7F4ED", secondary:"#1A2332"\}/);
+assert.match(html, /ORIGINAL_APPEARANCE = \{custom:false, primary:"#F7F4ED", secondary:"#1A2332", text:"#1A2332", font:"original"\}/);
+assert.match(html, /--font-body:'Inter',sans-serif/);
+assert.match(html, /root\.style\.setProperty\('--font-body',font\.body\)/);
 assert.match(html, /\.masthead\{[\s\S]*?background:var\(--theme-dark\);[\s\S]*?color:var\(--on-dark\)/);
-assert.match(html, /const bodyText=readableText\(primary\), panelText=readableText\(secondary\)/);
+assert.match(html, /bodyText=state\.appearance\.text/);
+assert.match(html, /const migratedText=isHexColour\(savedAppearance\.text\)/);
+assert.match(html, /const migratedFont=savedAppearance && FONT_OPTIONS\[savedAppearance\.font\]/);
 assert.match(html, /\{name:"Sciences", codes:\["BIO","CHEM","PHY"\]\}/);
 assert.match(html, /\{name:"Humanities", codes:\["GEOG","HIST","LIT","INA"\]\}/);
 assert.match(html, /\{name:"Languages", codes:\["EL","HCL","SPA"\]\}/);
