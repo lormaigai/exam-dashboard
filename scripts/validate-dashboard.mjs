@@ -9,6 +9,7 @@ const inlineScripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script
 
 assert.equal(inlineScripts.length, 1, "Expected one inline application script");
 new Function(inlineScripts[0]);
+assert.match(html, /2026-t3t4-curriculum-v11/);
 
 assert.match(html, /options:\s*\{\s*emailRedirectTo:\s*APP_URL\s*\}/);
 assert.match(html, /resetPasswordForEmail\(email,\s*\{\s*redirectTo:\s*APP_URL\s*\}\)/);
@@ -23,6 +24,10 @@ assert.match(html, /id="editCoach"/);
 assert.match(html, /You can change your colours, font, exam dates and subject topics here\./);
 assert.match(html, /id="appearanceOnboardingStep"/);
 assert.match(html, /id="finishOnboarding"/);
+assert.match(html, /id="onboardingDisplayName"/);
+assert.match(html, /id="welcomeMessage"/);
+assert.match(html, /id="editDisplayName"/);
+assert.match(html, /Welcome back, \$\{name\}/);
 for (const id of ["onboardingPrimaryColour", "onboardingSecondaryColour", "onboardingTextColour", "editPrimaryColour", "editSecondaryColour", "editTextColour"]) {
   assert.match(html, new RegExp(`type="color" id="${id}"`));
 }
@@ -41,6 +46,12 @@ assert.match(html, /'Comic Sans MS','Comic Sans',cursive/);
 assert.match(html, /id="onboardingRestoreOriginal"/);
 assert.match(html, /id="editRestoreOriginal"/);
 assert.match(html, /appearance: state\.appearance/);
+assert.match(html, /todos: state\.todos/);
+assert.match(html, /displayName: state\.displayName/);
+assert.match(html, /widgets: state\.widgets/);
+assert.match(html, /focusHistory: pomo\.completedFocus/);
+assert.match(html, /delete merged\.goals/);
+assert.match(html, /normalizeTodos\(Array\.isArray\(loadedRaw\.todos\) \? loadedRaw\.todos : loadedRaw\.goals\)/);
 assert.match(html, /delete merged\.theme/);
 assert.match(html, /if\(loadedRaw\.theme\)\{ dataWasSanitized=true; \}/);
 assert.match(html, /ORIGINAL_APPEARANCE = \{custom:false, primary:"#F7F4ED", secondary:"#1A2332", text:"#1A2332", font:"original"\}/);
@@ -52,6 +63,21 @@ assert.match(html, /\.masthead\{[\s\S]*?background:var\(--theme-dark\);[\s\S]*?c
 assert.match(html, /bodyText=state\.appearance\.text/);
 assert.match(html, /const migratedText=isHexColour\(savedAppearance\.text\)/);
 assert.match(html, /const migratedFont=savedAppearance && FONT_OPTIONS\[savedAppearance\.font\]/);
+assert.match(html, /id="addWidgetBtn"/);
+assert.match(html, /id="widgetMenu"/);
+assert.match(html, /id="dashboardWidgets"/);
+for (const widget of ["studyPattern", "todoProgress", "weeklySchedule", "syllabusProgress", "upcomingExams"]) {
+  assert.match(html, new RegExp(`${widget}:\\{name:`));
+}
+assert.match(html, /id="todoInput"/);
+assert.match(html, /id="todoSubject"/);
+assert.match(html, /id="todoDueDate"/);
+assert.match(html, /id="todoEstimate"/);
+assert.match(html, /choose a to-do and assign a time/);
+assert.match(html, /To-Do &amp; Weekly Plan/);
+assert.doesNotMatch(html, /id="goalInput"|id="goalAddBtn"|id="goalList"/);
+assert.match(html, /class="widget-remove"/);
+assert.match(html, /\$\{LS_POMODORO\}:\$\{currentUser\.id\}/);
 assert.match(html, /\{name:"Sciences", codes:\["BIO","CHEM","PHY"\]\}/);
 assert.match(html, /\{name:"Humanities", codes:\["GEOG","HIST","LIT","INA"\]\}/);
 assert.match(html, /\{name:"Languages", codes:\["EL","HCL","SPA"\]\}/);
@@ -73,6 +99,22 @@ const deployWorkflow = fs.readFileSync(new URL("../.github/workflows/deploy-page
 assert.match(deployWorkflow, /cp index\.html _site\/404\.html/);
 
 const appScript = inlineScripts[0];
+const todoStart = appScript.indexOf("function escapeHTML");
+const todoEnd = appScript.indexOf("function normalizeExams", todoStart);
+assert.ok(todoStart >= 0 && todoEnd > todoStart, "Could not locate to-do migration helpers");
+const todoContext = {};
+vm.runInNewContext(`${appScript.slice(todoStart, todoEnd)}
+  globalThis.result = {
+    todos: normalizeTodos([{title:"Old goal",status:"done"}]),
+    plan: normalizeWeekPlan({Mon:["Legacy plan",{id:"p2",todoId:"t1",text:"Linked task",time:"16:30"}]})
+  };`, todoContext);
+assert.equal(todoContext.result.todos.length, 1);
+assert.equal(todoContext.result.todos[0].text, "Old goal");
+assert.equal(todoContext.result.todos[0].done, true);
+assert.equal(todoContext.result.plan.Mon[0].text, "Legacy plan");
+assert.equal(todoContext.result.plan.Mon[1].todoId, "t1");
+assert.equal(todoContext.result.plan.Mon[1].time, "16:30");
+
 const appearanceStart = appScript.indexOf("function isHexColour");
 const appearanceEnd = appScript.indexOf("function applyAppearance", appearanceStart);
 assert.ok(appearanceStart >= 0 && appearanceEnd > appearanceStart, "Could not locate appearance helpers");
