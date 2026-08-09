@@ -9,7 +9,7 @@ const inlineScripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script
 
 assert.equal(inlineScripts.length, 1, "Expected one inline application script");
 new Function(inlineScripts[0]);
-assert.match(html, /2026-t3t4-curriculum-v11/);
+assert.match(html, /2026-t3t4-curriculum-v12/);
 
 assert.match(html, /options:\s*\{\s*emailRedirectTo:\s*APP_URL\s*\}/);
 assert.match(html, /resetPasswordForEmail\(email,\s*\{\s*redirectTo:\s*APP_URL\s*\}\)/);
@@ -95,10 +95,65 @@ assert.match(html, /Cold War Expands into Asia \(1945-1969\)/);
 assert.match(html, /\{date:"2026-08-04", name:"Geography CBA2", subj:"GEOG"\}/);
 assert.match(html, /exam\.name === "Geography CBA2" && exam\.date === "2026-08-03"/);
 
+const revisedExams = [
+  ["2026-09-01", "Spanish Prelim Writing", "SPA"],
+  ["2026-09-02", "Spanish Prelim LC and Reading", "SPA"],
+  ["2026-09-15", "Chemistry AA-PR", "CHEM"],
+  ["2026-09-18", "Biology AA-PR", "BIO"],
+  ["2026-09-29", "Physics AA-PR", "PHY"],
+  ["2026-09-30", "English Language EYA", "EL"],
+  ["2026-10-01", "Higher Chinese EYA", "HCL"],
+  ["2026-10-02", "Inquiry & Advocacy EYA", "INA"],
+  ["2026-10-06", "Math 2 (Higher) EYA", "MA2"],
+  ["2026-10-07", "Geography EYA", "GEOG"],
+  ["2026-10-07", "Math 1 EYA", "MA1"],
+  ["2026-10-08", "Chemistry EYA", "CHEM"],
+  ["2026-10-09", "Biology EYA", "BIO"],
+  ["2026-10-12", "Spanish O-Levels Paper 1 (8am)", "SPA"],
+  ["2026-10-13", "Physics EYA", "PHY"],
+  ["2026-10-14", "Spanish O-Levels Paper 2 (Main + LC, 8am)", "SPA"],
+  ["2026-11-03", "HCL O-Levels Written (8-11am)", "HCL"],
+];
+for (const [date, name, subject] of revisedExams) {
+  assert.match(html, new RegExp(`\\{date:"${date}", name:"${name.replace(/[()+]/g, "\\$&")}", subj:"${subject}"`));
+}
+assert.doesNotMatch(html, /\{date:"2026-10-12", name:"Physics EYA"/);
+assert.doesNotMatch(html, /\{date:"2026-11-0[45]", name:"HCL O-Levels Written/);
+assert.match(html, /const examRevision = applyExamRevisionV12\(EXAMS\)/);
+
 const deployWorkflow = fs.readFileSync(new URL("../.github/workflows/deploy-pages.yml", import.meta.url), "utf8");
 assert.match(deployWorkflow, /cp index\.html _site\/404\.html/);
 
 const appScript = inlineScripts[0];
+const examRevisionStart = appScript.indexOf("const EXAM_REVISION_V12");
+const examRevisionEnd = appScript.indexOf("const DEFAULT_EXAMS", examRevisionStart);
+const examHelperStart = appScript.indexOf("function examRevisionNameKey");
+const examHelperEnd = appScript.indexOf("function checkedKey", examHelperStart);
+assert.ok(examRevisionStart >= 0 && examRevisionEnd > examRevisionStart, "Could not locate exam revision data");
+assert.ok(examHelperStart >= 0 && examHelperEnd > examHelperStart, "Could not locate exam revision helpers");
+const examContext = {};
+vm.runInNewContext(`${appScript.slice(examRevisionStart, examRevisionEnd)}
+  const slug = value => String(value).toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+  ${appScript.slice(examHelperStart, examHelperEnd)}
+  const first = applyExamRevisionV12([
+    {id:"physics",date:"2026-10-12",name:"Physics EYA",subj:"PHY"},
+    {id:"spanish2",date:"2026-10-14",name:"Spanish O-Levels Paper 2 (Main + LC)",subj:"SPA"},
+    {id:"hcl1",date:"2026-11-04",name:"HCL O-Levels Written (Day 1/2)",subj:"HCL"},
+    {id:"hcl2",date:"2026-11-05",name:"HCL O-Levels Written (Day 2/2)",subj:"HCL"},
+    {id:"custom",date:"2026-12-01",name:"Custom Exam",subj:"CUSTOM"}
+  ]);
+  const second = applyExamRevisionV12(first.exams);
+  globalThis.result = { first, second };
+`, examContext);
+assert.equal(examContext.result.first.changed, true);
+assert.equal(examContext.result.first.exams.length, revisedExams.length + 1);
+assert.equal(examContext.result.first.exams.find(exam => exam.name === "Physics EYA").date, "2026-10-13");
+assert.equal(examContext.result.first.exams.filter(exam => exam.subj === "HCL" && exam.name.includes("Written")).length, 1);
+assert.equal(examContext.result.first.exams.find(exam => exam.subj === "HCL" && exam.name.includes("Written")).date, "2026-11-03");
+assert.equal(examContext.result.first.exams.find(exam => exam.subj === "SPA" && exam.name.includes("Paper 2")).name, "Spanish O-Levels Paper 2 (Main + LC, 8am)");
+assert.ok(examContext.result.first.exams.some(exam => exam.id === "custom"), "Custom exams must be preserved");
+assert.equal(examContext.result.second.changed, false, "Canonical exam data should not trigger repeated saves");
+
 const todoStart = appScript.indexOf("function escapeHTML");
 const todoEnd = appScript.indexOf("function normalizeExams", todoStart);
 assert.ok(todoStart >= 0 && todoEnd > todoStart, "Could not locate to-do migration helpers");
