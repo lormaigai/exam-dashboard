@@ -9,7 +9,7 @@ const inlineScripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script
 
 assert.equal(inlineScripts.length, 1, "Expected one inline application script");
 new Function(inlineScripts[0]);
-assert.match(html, /2026-t3t4-curriculum-v12/);
+assert.match(html, /2026-t3t4-curriculum-v13/);
 
 assert.match(html, /options:\s*\{\s*emailRedirectTo:\s*APP_URL\s*\}/);
 assert.match(html, /resetPasswordForEmail\(email,\s*\{\s*redirectTo:\s*APP_URL\s*\}\)/);
@@ -96,6 +96,7 @@ assert.match(html, /\{date:"2026-08-04", name:"Geography CBA2", subj:"GEOG"\}/);
 assert.match(html, /exam\.name === "Geography CBA2" && exam\.date === "2026-08-03"/);
 
 const revisedExams = [
+  ["2026-08-13", "Math 2 CBA2", "MA2"],
   ["2026-09-01", "Spanish Prelim Writing", "SPA"],
   ["2026-09-02", "Spanish Prelim LC and Reading", "SPA"],
   ["2026-09-15", "Chemistry AA-PR", "CHEM"],
@@ -119,13 +120,14 @@ for (const [date, name, subject] of revisedExams) {
 }
 assert.doesNotMatch(html, /\{date:"2026-10-12", name:"Physics EYA"/);
 assert.doesNotMatch(html, /\{date:"2026-11-0[45]", name:"HCL O-Levels Written/);
-assert.match(html, /const examRevision = applyExamRevisionV12\(EXAMS\)/);
+assert.doesNotMatch(html, /\{date:"2026-08-11", name:"Math 2 CBA2"/);
+assert.match(html, /const examRevision = applyExamRevisionV13\(EXAMS\)/);
 
 const deployWorkflow = fs.readFileSync(new URL("../.github/workflows/deploy-pages.yml", import.meta.url), "utf8");
 assert.match(deployWorkflow, /cp index\.html _site\/404\.html/);
 
 const appScript = inlineScripts[0];
-const examRevisionStart = appScript.indexOf("const EXAM_REVISION_V12");
+const examRevisionStart = appScript.indexOf("const EXAM_REVISION_V13");
 const examRevisionEnd = appScript.indexOf("const DEFAULT_EXAMS", examRevisionStart);
 const examHelperStart = appScript.indexOf("function examRevisionNameKey");
 const examHelperEnd = appScript.indexOf("function checkedKey", examHelperStart);
@@ -135,18 +137,20 @@ const examContext = {};
 vm.runInNewContext(`${appScript.slice(examRevisionStart, examRevisionEnd)}
   const slug = value => String(value).toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
   ${appScript.slice(examHelperStart, examHelperEnd)}
-  const first = applyExamRevisionV12([
+  const first = applyExamRevisionV13([
+    {id:"math2",date:"2026-08-11",name:"Math 2 CBA2",subj:"MA2"},
     {id:"physics",date:"2026-10-12",name:"Physics EYA",subj:"PHY"},
     {id:"spanish2",date:"2026-10-14",name:"Spanish O-Levels Paper 2 (Main + LC)",subj:"SPA"},
     {id:"hcl1",date:"2026-11-04",name:"HCL O-Levels Written (Day 1/2)",subj:"HCL"},
     {id:"hcl2",date:"2026-11-05",name:"HCL O-Levels Written (Day 2/2)",subj:"HCL"},
     {id:"custom",date:"2026-12-01",name:"Custom Exam",subj:"CUSTOM"}
   ]);
-  const second = applyExamRevisionV12(first.exams);
+  const second = applyExamRevisionV13(first.exams);
   globalThis.result = { first, second };
 `, examContext);
 assert.equal(examContext.result.first.changed, true);
 assert.equal(examContext.result.first.exams.length, revisedExams.length + 1);
+assert.equal(examContext.result.first.exams.find(exam => exam.name === "Math 2 CBA2").date, "2026-08-13");
 assert.equal(examContext.result.first.exams.find(exam => exam.name === "Physics EYA").date, "2026-10-13");
 assert.equal(examContext.result.first.exams.filter(exam => exam.subj === "HCL" && exam.name.includes("Written")).length, 1);
 assert.equal(examContext.result.first.exams.find(exam => exam.subj === "HCL" && exam.name.includes("Written")).date, "2026-11-03");

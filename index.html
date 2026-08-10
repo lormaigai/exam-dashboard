@@ -783,7 +783,7 @@ function readAuthCallback(){
 }
 const AUTH_CALLBACK = readAuthCallback();
 
-const CONTENT_VERSION = "2026-t3t4-curriculum-v12";
+const CONTENT_VERSION = "2026-t3t4-curriculum-v13";
 const LS_KEY = "examcontrol-data";
 const LS_POMODORO = "examcontrol-pomodoro";
 const ORIGINAL_APPEARANCE = {custom:false, primary:"#F7F4ED", secondary:"#1A2332", text:"#1A2332", font:"original"};
@@ -808,7 +808,8 @@ const WIDGET_OPTIONS = {
 };
 const DEFAULT_WIDGETS = ["studyPattern"];
 
-const EXAM_REVISION_V12 = [
+const EXAM_REVISION_V13 = [
+  {date:"2026-08-13", name:"Math 2 CBA2", subj:"MA2", aliases:["math2cba2"]},
   {date:"2026-09-01", name:"Spanish Prelim Writing", subj:"SPA", aliases:["spanishprelimwriting"]},
   {date:"2026-09-02", name:"Spanish Prelim LC and Reading", subj:"SPA", aliases:["spanishprelimlcreading","spanishprelimlcandreading"]},
   {date:"2026-09-15", name:"Chemistry AA-PR", subj:"CHEM", aliases:["chemistryaapr","chemaapr"]},
@@ -841,8 +842,7 @@ const DEFAULT_EXAMS = [
   {date:"2026-08-04", name:"Geography CBA2", subj:"GEOG"},
   {date:"2026-08-03", name:"Spanish Oral O-Levels (Day 1/2)", subj:"SPA"},
   {date:"2026-08-04", name:"Spanish Oral O-Levels (Day 2/2)", subj:"SPA"},
-  {date:"2026-08-11", name:"Math 2 CBA2", subj:"MA2"},
-  ...EXAM_REVISION_V12,
+  ...EXAM_REVISION_V13,
 ];
 
 const DEFAULT_SUBJECTS = {
@@ -1759,9 +1759,9 @@ function normalizeExams(exams){
   }));
 }
 function examRevisionNameKey(value){ return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g,""); }
-function applyExamRevisionV12(exams){
+function applyExamRevisionV13(exams){
   const aliases = new Map();
-  EXAM_REVISION_V12.forEach((revision,index)=>{
+  EXAM_REVISION_V13.forEach((revision,index)=>{
     [...revision.aliases,examRevisionNameKey(revision.name)].forEach(alias=>aliases.set(`${revision.subj}|${alias}`,index));
   });
   const found = new Set();
@@ -1772,11 +1772,11 @@ function applyExamRevisionV12(exams){
     if(revisionIndex === undefined){ repaired.push(exam); return; }
     if(found.has(revisionIndex)){ changed = true; return; }
     found.add(revisionIndex);
-    const revision = EXAM_REVISION_V12[revisionIndex];
+    const revision = EXAM_REVISION_V13[revisionIndex];
     if(exam.date !== revision.date || exam.name !== revision.name) changed = true;
     repaired.push({...exam,date:revision.date,name:revision.name,subj:revision.subj});
   });
-  EXAM_REVISION_V12.forEach((revision,index)=>{
+  EXAM_REVISION_V13.forEach((revision,index)=>{
     if(found.has(index)) return;
     changed = true;
     repaired.push({id:`exam_${revision.date}_${slug(revision.name)}_${index}`,date:revision.date,name:revision.name,subj:revision.subj});
@@ -1875,7 +1875,7 @@ function applyData(data){
   const topics = Object.keys(fromLower).length ? fromLower : fromUpper;
   TOPICS = Object.keys(topics).length ? topics : JSON.parse(JSON.stringify(DEFAULT_TOPICS));
   dataWasSanitized = false;
-  const examRevision = applyExamRevisionV12(EXAMS);
+  const examRevision = applyExamRevisionV13(EXAMS);
   EXAMS = examRevision.exams;
   dataWasSanitized = examRevision.changed;
   EXAMS.forEach(exam=>{
