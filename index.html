@@ -343,6 +343,14 @@
   .toggle{font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:1px; border:2px solid var(--ink); padding:5px 12px; background:var(--paper);}
   .toggle.on{background:var(--theme-dark); border-color:var(--theme-dark); color:var(--on-dark);}
   .focus-stat{font-family:var(--font-display); font-weight:800; font-size:30px;}
+  .focus-stats{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .focus-stat-item+.focus-stat-item{border-left:1px solid var(--line); padding-left:14px;}
+  .study-bar-stack{height:60px; display:flex; flex-direction:column; justify-content:flex-end; align-items:center;}
+  .study-bar-fill.break-time{background:var(--amber);}
+  .study-legend{display:flex; gap:12px; margin-top:8px; font-family:var(--font-mono); font-size:8px; text-transform:uppercase; opacity:.65;}
+  .study-legend span{display:flex; align-items:center; gap:4px;}
+  .study-legend i{display:block; width:8px; height:8px; background:var(--red);}
+  .study-legend .break-key{background:var(--amber);}
 
   /* ===== Auth gate ===== */
   .auth-gate{
@@ -635,9 +643,18 @@
           </div>
         </div>
         <div class="goal-box">
-          <div class="mono" style="font-size:10px; text-transform:uppercase; letter-spacing:1px; opacity:.55;">Focused today</div>
-          <div class="focus-stat disp" id="focusToday">0 min</div>
-          <div class="mono" style="font-size:11px; opacity:.6; margin-top:2px;" id="focusBlocks">0 focus blocks completed</div>
+          <div class="focus-stats">
+            <div class="focus-stat-item">
+              <div class="mono" style="font-size:10px; text-transform:uppercase; letter-spacing:1px; opacity:.55;">Studied today</div>
+              <div class="focus-stat disp" id="focusToday">0 min</div>
+              <div class="mono" style="font-size:11px; opacity:.6; margin-top:2px;" id="focusBlocks">0 focus blocks</div>
+            </div>
+            <div class="focus-stat-item">
+              <div class="mono" style="font-size:10px; text-transform:uppercase; letter-spacing:1px; opacity:.55;">Break today</div>
+              <div class="focus-stat disp" id="breakToday">0 min</div>
+              <div class="mono" style="font-size:11px; opacity:.6; margin-top:2px;" id="breakBlocks">0 breaks</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -783,7 +800,7 @@ function readAuthCallback(){
 }
 const AUTH_CALLBACK = readAuthCallback();
 
-const CONTENT_VERSION = "2026-t3t4-curriculum-v13";
+const CONTENT_VERSION = "2026-t3t4-curriculum-v14";
 const LS_KEY = "examcontrol-data";
 const LS_POMODORO = "examcontrol-pomodoro";
 const ORIGINAL_APPEARANCE = {custom:false, primary:"#F7F4ED", secondary:"#1A2332", text:"#1A2332", font:"original"};
@@ -800,7 +817,7 @@ const FONT_OPTIONS = {
   italic:{body:"'Cormorant Garamond',serif", display:"'Cormorant Garamond',serif", mono:"'DM Mono',monospace", style:"italic", weight:"400", label:"Elegant Italic", note:"Expressive & classic"},
 };
 const WIDGET_OPTIONS = {
-  studyPattern:{name:"Study Pattern", note:"Focus minutes from the last 7 days"},
+  studyPattern:{name:"Study Pattern", note:"Study and break minutes from the last 7 days"},
   todoProgress:{name:"To-Do Progress", note:"Completed and remaining tasks"},
   weeklySchedule:{name:"Weekly Schedule", note:"Your next planned study blocks"},
   syllabusProgress:{name:"Syllabus Progress", note:"Overall topic checklist completion"},
@@ -1845,6 +1862,7 @@ function collectData(){
     todos: state.todos,
     weekPlan: state.weekPlan,
     focusHistory: pomo.completedFocus,
+    breakHistory: pomo.completedBreak,
     displayName: state.displayName,
     widgets: state.widgets,
     calYear: state.calYear,
@@ -1908,6 +1926,11 @@ function applyData(data){
     const sessions=[...pomo.completedFocus,...loadedRaw.focusHistory].filter(entry=>entry && entry.key && Number(entry.minutes)>0);
     const unique=new Map(sessions.map(entry=>[`${entry.ts || ''}_${entry.key}_${entry.minutes}`,{key:String(entry.key),ts:Number(entry.ts)||0,minutes:Number(entry.minutes)}]));
     pomo.completedFocus=[...unique.values()].sort((a,b)=>a.ts-b.ts);
+  }
+  if(Array.isArray(loadedRaw.breakHistory)){
+    const sessions=[...pomo.completedBreak,...loadedRaw.breakHistory].filter(entry=>entry && entry.key && Number(entry.minutes)>0);
+    const unique=new Map(sessions.map(entry=>[`${entry.ts || ''}_${entry.key}_${entry.minutes}_${entry.phase || ''}`,{key:String(entry.key),ts:Number(entry.ts)||0,minutes:Number(entry.minutes),phase:entry.phase==="long"?"long":"short"}]));
+    pomo.completedBreak=[...unique.values()].sort((a,b)=>a.ts-b.ts);
   }
   const savedActive = Array.isArray(loadedRaw.activeSubjects) ? loadedRaw.activeSubjects.filter(code=>SUBJECTS[code]) : savedSubjectCodes.filter(code=>SUBJECTS[code]);
   state.activeSubjects = [...new Set(savedActive)];
@@ -2175,13 +2198,15 @@ function recentStudyDays(){
   return Array.from({length:7},(_,index)=>{
     const date=new Date(); date.setHours(0,0,0,0); date.setDate(date.getDate()-(6-index));
     const minutes=pomo.completedFocus.filter(entry=>entry.key===focusKeyForDate(date)).reduce((sum,entry)=>sum+(Number(entry.minutes)||0),0);
-    return {label:date.toLocaleDateString('en-GB',{weekday:'short'}).slice(0,2),minutes};
+    const breakMinutes=pomo.completedBreak.filter(entry=>entry.key===focusKeyForDate(date)).reduce((sum,entry)=>sum+(Number(entry.minutes)||0),0);
+    return {label:date.toLocaleDateString('en-GB',{weekday:'short'}).slice(0,2),minutes,breakMinutes};
   });
 }
 function widgetBody(key){
   if(key==='studyPattern'){
-    const days=recentStudyDays(), max=Math.max(1,...days.map(day=>day.minutes)), total=days.reduce((sum,day)=>sum+day.minutes,0);
-    return `<div class="widget-subtitle">${total} minutes across the previous 7 days</div><div class="study-bars">${days.map(day=>`<div class="study-bar-col"><div class="study-bar-track"><div class="study-bar-fill" style="height:${Math.max(2,Math.round(day.minutes/max*60))}px"></div></div><div class="study-bar-value">${day.minutes}</div><div class="study-bar-label">${day.label}</div></div>`).join('')}</div>`;
+    const days=recentStudyDays(), max=Math.max(1,...days.map(day=>day.minutes+day.breakMinutes));
+    const focusTotal=days.reduce((sum,day)=>sum+day.minutes,0), breakTotal=days.reduce((sum,day)=>sum+day.breakMinutes,0);
+    return `<div class="widget-subtitle">${focusTotal} min studied · ${breakTotal} min on break</div><div class="study-bars">${days.map(day=>{const focusHeight=day.minutes?Math.max(2,Math.round(day.minutes/max*60)):0,breakHeight=day.breakMinutes?Math.max(2,Math.round(day.breakMinutes/max*60)):0;return `<div class="study-bar-col"><div class="study-bar-track"><div class="study-bar-stack"><div class="study-bar-fill break-time" style="height:${breakHeight}px"></div><div class="study-bar-fill" style="height:${focusHeight}px"></div></div></div><div class="study-bar-value">${day.minutes}/${day.breakMinutes}</div><div class="study-bar-label">${day.label}</div></div>`;}).join('')}</div><div class="study-legend"><span><i></i>Study</span><span><i class="break-key"></i>Break</span></div>`;
   }
   if(key==='todoProgress'){
     const done=state.todos.filter(todo=>todo.done).length, total=state.todos.length, pct=total?Math.round(done/total*100):0;
@@ -2718,6 +2743,7 @@ const pomo = {
   remainingMs: null,     // ms left when paused
   // logging
   completedFocus: [],    // {ts, minutes}
+  completedBreak: [],    // {ts, minutes, phase}
 };
 let pomoTick = null;
 let baseTitle = document.title;
@@ -2741,6 +2767,8 @@ function loadPomodoro(){
       const d = JSON.parse(raw);
       Object.assign(pomo, d);
       if(!PRESETS[pomo.presetId]) pomo.presetId = "classic";
+      if(!Array.isArray(pomo.completedFocus)) pomo.completedFocus = [];
+      if(!Array.isArray(pomo.completedBreak)) pomo.completedBreak = [];
     }
   }catch(e){}
   // prune completedFocus to today only for the stat
@@ -2791,6 +2819,14 @@ function focusMinutesToday(){
 function focusBlocksToday(){
   const key = todayKey();
   return pomo.completedFocus.filter(e=>e.key===key).length;
+}
+function breakMinutesToday(){
+  const key = todayKey();
+  return pomo.completedBreak.filter(e=>e.key===key).reduce((a,e)=>a+(Number(e.minutes)||0),0);
+}
+function breakBlocksToday(){
+  const key = todayKey();
+  return pomo.completedBreak.filter(e=>e.key===key).length;
 }
 
 function renderPomodoro(){
@@ -2848,7 +2884,9 @@ function renderPomodoro(){
 
   // stats
   document.getElementById('focusToday').textContent = focusMinutesToday() + " min";
-  document.getElementById('focusBlocks').textContent = focusBlocksToday() + " focus blocks completed";
+  document.getElementById('focusBlocks').textContent = focusBlocksToday() + " focus blocks";
+  document.getElementById('breakToday').textContent = breakMinutesToday() + " min";
+  document.getElementById('breakBlocks').textContent = breakBlocksToday() + " breaks";
 }
 
 function updateTitle(){
@@ -2872,17 +2910,18 @@ function startTick(){
   pomoTick = setInterval(tick, 500);
 }
 
-function completePhase(){
+function completePhase(recordTime=true){
   clearInterval(pomoTick);
   const finished = pomo.phase;
   beep();
   if(finished==="focus"){
     // log the focus block
-    pomo.completedFocus.push({ key: todayKey(), ts: Date.now(), minutes: phaseMinutes("focus") });
+    if(recordTime) pomo.completedFocus.push({ key: todayKey(), ts: Date.now(), minutes: phaseMinutes("focus") });
     pomo.cyclesDone++;
     const cfg = pomoCfg();
     pomo.phase = (pomo.cyclesDone % cfg.interval === 0) ? "long" : "short";
   } else {
+    if(recordTime) pomo.completedBreak.push({ key: todayKey(), ts: Date.now(), minutes: phaseMinutes(finished), phase:finished });
     if(finished==="long") pomo.cyclesDone = 0;
     pomo.phase = "focus";
   }
@@ -2932,7 +2971,7 @@ document.getElementById('timerReset').addEventListener('click', ()=> resetTimer(
 document.getElementById('timerSkip').addEventListener('click', ()=>{
   clearInterval(pomoTick);
   pomo.remainingMs = 0;
-  completePhase();
+  completePhase(false);
 });
 document.getElementById('autoToggle').addEventListener('click', ()=>{ pomo.autoStart = !pomo.autoStart; savePomodoro(); renderPomodoro(); });
 document.getElementById('soundToggle').addEventListener('click', ()=>{ pomo.sound = !pomo.sound; savePomodoro(); renderPomodoro(); if(pomo.sound) beep(); });
