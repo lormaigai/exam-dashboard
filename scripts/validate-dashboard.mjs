@@ -9,7 +9,7 @@ const inlineScripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script
 
 assert.equal(inlineScripts.length, 1, "Expected one inline application script");
 new Function(inlineScripts[0]);
-assert.match(html, /2026-t3t4-curriculum-v15/);
+assert.match(html, /2026-t3t4-curriculum-v16/);
 
 assert.match(html, /options:\s*\{\s*emailRedirectTo:\s*APP_URL\s*\}/);
 assert.match(html, /resetPasswordForEmail\(email,\s*\{\s*redirectTo:\s*APP_URL\s*\}\)/);
@@ -50,6 +50,9 @@ assert.match(html, /todos: state\.todos/);
 assert.match(html, /displayName: state\.displayName/);
 assert.match(html, /widgets: state\.widgets/);
 assert.match(html, /waterHistory: state\.waterHistory/);
+assert.match(html, /waterTrackerOnboarded: state\.waterTrackerOnboarded/);
+assert.match(html, /DEFAULT_WIDGETS = \["studyPattern","waterTracker"\]/);
+assert.match(html, /if\(!state\.waterTrackerOnboarded\)\{[\s\S]*?state\.widgets\.push\("waterTracker"\)[\s\S]*?dataWasSanitized = true/);
 assert.match(html, /focusHistory: pomo\.completedFocus/);
 assert.match(html, /breakHistory: pomo\.completedBreak/);
 assert.match(html, /id="breakToday"/);

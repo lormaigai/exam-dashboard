@@ -813,7 +813,7 @@ function readAuthCallback(){
 }
 const AUTH_CALLBACK = readAuthCallback();
 
-const CONTENT_VERSION = "2026-t3t4-curriculum-v15";
+const CONTENT_VERSION = "2026-t3t4-curriculum-v16";
 const LS_KEY = "examcontrol-data";
 const LS_POMODORO = "examcontrol-pomodoro";
 const ORIGINAL_APPEARANCE = {custom:false, primary:"#F7F4ED", secondary:"#1A2332", text:"#1A2332", font:"original"};
@@ -837,7 +837,7 @@ const WIDGET_OPTIONS = {
   upcomingExams:{name:"Upcoming Exams", note:"Your nearest exam dates"},
   waterTracker:{name:"Water Tracker", note:"Eight cups a day with recent history"},
 };
-const DEFAULT_WIDGETS = ["studyPattern"];
+const DEFAULT_WIDGETS = ["studyPattern","waterTracker"];
 
 const EXAM_REVISION_V13 = [
   {date:"2026-08-13", name:"Math 2 CBA2", subj:"MA2", aliases:["math2cba2"]},
@@ -1596,6 +1596,7 @@ const state = {
   displayName: "",
   widgets: [...DEFAULT_WIDGETS],
   waterHistory: {},
+  waterTrackerOnboarded: false,
   selectedSubject: "BIO",
   calYear: TODAY.getFullYear(),
   calMonth: TODAY.getMonth(),
@@ -1891,6 +1892,7 @@ function collectData(){
     displayName: state.displayName,
     widgets: state.widgets,
     waterHistory: state.waterHistory,
+    waterTrackerOnboarded: state.waterTrackerOnboarded,
     calYear: state.calYear,
     calMonth: state.calMonth,
     selectedSubject: state.selectedSubject,
@@ -1948,6 +1950,12 @@ function applyData(data){
   state.displayName = typeof loadedRaw.displayName === "string" ? loadedRaw.displayName.trim().slice(0,30) : "";
   state.widgets = Array.isArray(loadedRaw.widgets) ? [...new Set(loadedRaw.widgets.filter(key=>WIDGET_OPTIONS[key]))] : [...DEFAULT_WIDGETS];
   state.waterHistory = normalizeWaterHistory(loadedRaw.waterHistory);
+  state.waterTrackerOnboarded = loadedRaw.waterTrackerOnboarded === true;
+  if(!state.waterTrackerOnboarded){
+    if(!state.widgets.includes("waterTracker")) state.widgets.push("waterTracker");
+    state.waterTrackerOnboarded = true;
+    dataWasSanitized = true;
+  }
   if(Array.isArray(loadedRaw.goals) && !Array.isArray(loadedRaw.todos)) dataWasSanitized=true;
   if(Array.isArray(loadedRaw.focusHistory)){
     const sessions=[...pomo.completedFocus,...loadedRaw.focusHistory].filter(entry=>entry && entry.key && Number(entry.minutes)>0);
