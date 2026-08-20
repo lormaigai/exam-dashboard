@@ -9,7 +9,7 @@ const inlineScripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script
 
 assert.equal(inlineScripts.length, 1, "Expected one inline application script");
 new Function(inlineScripts[0]);
-assert.match(html, /2026-t3t4-curriculum-v14/);
+assert.match(html, /2026-t3t4-curriculum-v15/);
 
 assert.match(html, /options:\s*\{\s*emailRedirectTo:\s*APP_URL\s*\}/);
 assert.match(html, /resetPasswordForEmail\(email,\s*\{\s*redirectTo:\s*APP_URL\s*\}\)/);
@@ -49,6 +49,7 @@ assert.match(html, /appearance: state\.appearance/);
 assert.match(html, /todos: state\.todos/);
 assert.match(html, /displayName: state\.displayName/);
 assert.match(html, /widgets: state\.widgets/);
+assert.match(html, /waterHistory: state\.waterHistory/);
 assert.match(html, /focusHistory: pomo\.completedFocus/);
 assert.match(html, /breakHistory: pomo\.completedBreak/);
 assert.match(html, /id="breakToday"/);
@@ -73,9 +74,13 @@ assert.match(html, /const migratedFont=savedAppearance && FONT_OPTIONS\[savedApp
 assert.match(html, /id="addWidgetBtn"/);
 assert.match(html, /id="widgetMenu"/);
 assert.match(html, /id="dashboardWidgets"/);
-for (const widget of ["studyPattern", "todoProgress", "weeklySchedule", "syllabusProgress", "upcomingExams"]) {
+for (const widget of ["studyPattern", "todoProgress", "weeklySchedule", "syllabusProgress", "upcomingExams", "waterTracker"]) {
   assert.match(html, new RegExp(`${widget}:\\{name:`));
 }
+assert.match(html, /class="water-cups" role="group" aria-label="Water cups"/);
+assert.match(html, /data-water-cup="\$\{index\}"/);
+assert.match(html, /Water intake over the last 7 days/);
+assert.match(html, /const key=focusKeyForDate\(new Date\(\)\), next=toggledWaterCount/);
 assert.match(html, /id="todoInput"/);
 assert.match(html, /id="todoSubject"/);
 assert.match(html, /id="todoDueDate"/);
@@ -134,6 +139,21 @@ const deployWorkflow = fs.readFileSync(new URL("../.github/workflows/deploy-page
 assert.match(deployWorkflow, /cp index\.html _site\/404\.html/);
 
 const appScript = inlineScripts[0];
+const waterHelperStart = appScript.indexOf("function normalizeWaterHistory");
+const waterHelperEnd = appScript.indexOf("function activeSubjectCodes", waterHelperStart);
+assert.ok(waterHelperStart >= 0 && waterHelperEnd > waterHelperStart, "Could not locate water tracker helpers");
+const waterContext = {};
+vm.runInNewContext(`${appScript.slice(waterHelperStart, waterHelperEnd)}
+  globalThis.result = {
+    normalized: normalizeWaterHistory({"2026-7-1":3.4,"2026-7-2":12,"bad":5,"2026-7-3":-1}),
+    addFirst: toggledWaterCount(0,0),
+    fillThroughFourth: toggledWaterCount(3,1),
+    removeFourth: toggledWaterCount(3,4),
+    capped: toggledWaterCount(99,8)
+  };`, waterContext);
+assert.deepEqual({ ...waterContext.result.normalized }, {"2026-7-1":3,"2026-7-2":8});
+assert.deepEqual({ ...waterContext.result, normalized:undefined }, {normalized:undefined,addFirst:1,fillThroughFourth:4,removeFourth:3,capped:7});
+
 const examRevisionStart = appScript.indexOf("const EXAM_REVISION_V13");
 const examRevisionEnd = appScript.indexOf("const DEFAULT_EXAMS", examRevisionStart);
 const examHelperStart = appScript.indexOf("function examRevisionNameKey");

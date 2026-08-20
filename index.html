@@ -227,7 +227,7 @@
   .widget-head{display:flex; justify-content:space-between; align-items:center; gap:12px; margin:30px 0 12px; border-bottom:2px solid var(--ink); padding-bottom:8px;}
   .widget-add{display:inline-flex; align-items:center; gap:7px; border:1px solid var(--ink); background:var(--paper); color:var(--ink); font-family:var(--font-mono); font-size:10.5px; padding:7px 10px; text-transform:uppercase;}
   .widget-add:hover{background:var(--theme-dark); color:var(--on-dark);}
-  .widget-menu{border:1px solid var(--ink); background:var(--paper); padding:8px; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px; margin-bottom:10px;}
+  .widget-menu{border:1px solid var(--ink); background:var(--paper); padding:8px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin-bottom:10px;}
   .widget-menu[hidden]{display:none;}
   @media(max-width:820px){.widget-menu{grid-template-columns:repeat(2,minmax(0,1fr));}}
   @media(max-width:520px){.widget-menu{grid-template-columns:1fr;}}
@@ -252,6 +252,19 @@
   .widget-big{font-family:var(--font-display); font-size:32px; font-weight:800; margin-top:18px;}
   .widget-list{margin-top:10px; display:flex; flex-direction:column; gap:7px;}
   .widget-list-row{display:flex; justify-content:space-between; gap:10px; border-bottom:1px solid var(--line); padding-bottom:5px; font-size:11px;}
+  .water-cups{display:grid; grid-template-columns:repeat(8,minmax(24px,1fr)); gap:6px; margin-top:14px;}
+  .water-cup{height:36px; min-width:0; border:2px solid var(--ink); border-top-width:1px; border-radius:1px 1px 5px 5px; background:transparent; color:var(--ink); padding:0; position:relative; overflow:hidden;}
+  .water-cup::after{content:""; position:absolute; inset:auto 2px 2px; height:0; background:var(--theme-dark); transition:height .18s ease;}
+  .water-cup.filled::after{height:calc(100% - 4px);}
+  .water-cup:hover{background:var(--paper2);}
+  .water-cup:focus-visible{outline:2px solid var(--red); outline-offset:2px;}
+  .water-graph{display:grid; grid-template-columns:repeat(7,1fr); gap:7px; align-items:end; height:82px; margin-top:14px; padding-top:8px; border-top:1px solid var(--line);}
+  .water-day{display:grid; grid-template-rows:48px auto auto; text-align:center; min-width:0;}
+  .water-bar-track{height:48px; display:flex; align-items:end; justify-content:center;}
+  .water-bar{width:min(22px,72%); min-height:2px; background:var(--theme-dark);}
+  .water-bar.empty{min-height:0;}
+  .water-value,.water-label{font-family:var(--font-mono); font-size:8px; margin-top:2px;}
+  .water-label{opacity:.52; text-transform:uppercase;}
 
   footer{text-align:center; font-family:var(--font-mono); font-size:10px; opacity:0.4; margin-top:40px; padding:20px;}
 
@@ -800,7 +813,7 @@ function readAuthCallback(){
 }
 const AUTH_CALLBACK = readAuthCallback();
 
-const CONTENT_VERSION = "2026-t3t4-curriculum-v14";
+const CONTENT_VERSION = "2026-t3t4-curriculum-v15";
 const LS_KEY = "examcontrol-data";
 const LS_POMODORO = "examcontrol-pomodoro";
 const ORIGINAL_APPEARANCE = {custom:false, primary:"#F7F4ED", secondary:"#1A2332", text:"#1A2332", font:"original"};
@@ -822,6 +835,7 @@ const WIDGET_OPTIONS = {
   weeklySchedule:{name:"Weekly Schedule", note:"Your next planned study blocks"},
   syllabusProgress:{name:"Syllabus Progress", note:"Overall topic checklist completion"},
   upcomingExams:{name:"Upcoming Exams", note:"Your nearest exam dates"},
+  waterTracker:{name:"Water Tracker", note:"Eight cups a day with recent history"},
 };
 const DEFAULT_WIDGETS = ["studyPattern"];
 
@@ -1581,6 +1595,7 @@ const state = {
   weekPlan: {},
   displayName: "",
   widgets: [...DEFAULT_WIDGETS],
+  waterHistory: {},
   selectedSubject: "BIO",
   calYear: TODAY.getFullYear(),
   calMonth: TODAY.getMonth(),
@@ -1591,6 +1606,16 @@ const state = {
   editCoachSeen: false,
   contentVersion: CONTENT_VERSION,
 };
+
+function normalizeWaterHistory(history){
+  if(!history || typeof history!=="object" || Array.isArray(history)) return {};
+  return Object.fromEntries(Object.entries(history).filter(([key])=>/^\d{4}-\d{1,2}-\d{1,2}$/.test(key)).map(([key,value])=>[key,Math.max(0,Math.min(8,Math.round(Number(value)||0)))]).filter(([,value])=>value>0));
+}
+function toggledWaterCount(cupIndex,currentCount){
+  const index=Math.max(0,Math.min(7,Math.round(Number(cupIndex)||0)));
+  const current=Math.max(0,Math.min(8,Math.round(Number(currentCount)||0)));
+  return index<current ? index : index+1;
+}
 
 function activeSubjectCodes(){
   return state.activeSubjects.filter(code=>SUBJECTS[code]);
@@ -1865,6 +1890,7 @@ function collectData(){
     breakHistory: pomo.completedBreak,
     displayName: state.displayName,
     widgets: state.widgets,
+    waterHistory: state.waterHistory,
     calYear: state.calYear,
     calMonth: state.calMonth,
     selectedSubject: state.selectedSubject,
@@ -1921,6 +1947,7 @@ function applyData(data){
   state.weekPlan = normalizeWeekPlan(loadedRaw.weekPlan);
   state.displayName = typeof loadedRaw.displayName === "string" ? loadedRaw.displayName.trim().slice(0,30) : "";
   state.widgets = Array.isArray(loadedRaw.widgets) ? [...new Set(loadedRaw.widgets.filter(key=>WIDGET_OPTIONS[key]))] : [...DEFAULT_WIDGETS];
+  state.waterHistory = normalizeWaterHistory(loadedRaw.waterHistory);
   if(Array.isArray(loadedRaw.goals) && !Array.isArray(loadedRaw.todos)) dataWasSanitized=true;
   if(Array.isArray(loadedRaw.focusHistory)){
     const sessions=[...pomo.completedFocus,...loadedRaw.focusHistory].filter(entry=>entry && entry.key && Number(entry.minutes)>0);
@@ -2202,6 +2229,13 @@ function recentStudyDays(){
     return {label:date.toLocaleDateString('en-GB',{weekday:'short'}).slice(0,2),minutes,breakMinutes};
   });
 }
+function waterCountForDate(date){ return state.waterHistory[focusKeyForDate(date)] || 0; }
+function recentWaterDays(){
+  return Array.from({length:7},(_,index)=>{
+    const date=new Date(); date.setHours(0,0,0,0); date.setDate(date.getDate()-(6-index));
+    return {label:date.toLocaleDateString('en-GB',{weekday:'short'}).slice(0,2),count:waterCountForDate(date)};
+  });
+}
 function widgetBody(key){
   if(key==='studyPattern'){
     const days=recentStudyDays(), max=Math.max(1,...days.map(day=>day.minutes+day.breakMinutes));
@@ -2224,6 +2258,10 @@ function widgetBody(key){
   if(key==='upcomingExams'){
     const exams=getFutureExams().slice(0,4);
     return exams.length ? `<div class="widget-list">${exams.map(exam=>`<div class="widget-list-row"><span>${escapeHTML(exam.name)}</span><span class="mono">T-${daysBetween(TODAY,exam.dateObj)}</span></div>`).join('')}</div>` : '<div class="empty-state">No upcoming exams.</div>';
+  }
+  if(key==='waterTracker'){
+    const today=new Date(), current=waterCountForDate(today), days=recentWaterDays();
+    return `<div class="widget-subtitle">${current} of 8 cups today</div><div class="water-cups" role="group" aria-label="Water cups">${Array.from({length:8},(_,index)=>`<button class="water-cup${index<current?' filled':''}" type="button" data-water-cup="${index}" aria-label="${index<current?'Remove':'Add'} cup ${index+1}" aria-pressed="${index<current}"></button>`).join('')}</div><div class="water-graph" aria-label="Water intake over the last 7 days">${days.map(day=>`<div class="water-day"><div class="water-bar-track"><div class="water-bar${day.count?'':' empty'}" style="height:${Math.round(day.count/8*48)}px"></div></div><div class="water-value">${day.count}/8</div><div class="water-label">${day.label}</div></div>`).join('')}</div>`;
   }
   return '';
 }
@@ -2249,6 +2287,13 @@ document.getElementById('widgetMenu').addEventListener('click',event=>{
   renderWidgets(); saveAll();
 });
 document.getElementById('dashboardWidgets').addEventListener('click',event=>{
+  const cup=event.target.closest('[data-water-cup]');
+  if(cup){
+    const key=focusKeyForDate(new Date()), next=toggledWaterCount(cup.dataset.waterCup,state.waterHistory[key]);
+    if(next) state.waterHistory[key]=next; else delete state.waterHistory[key];
+    renderWidgets(); saveAll();
+    return;
+  }
   const button=event.target.closest('.widget-remove');
   if(!button) return;
   const key=button.closest('[data-widget]').dataset.widget;
