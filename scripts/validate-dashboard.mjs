@@ -55,8 +55,13 @@ assert.match(html, /DEFAULT_WIDGETS = \["studyPattern","waterTracker"\]/);
 assert.match(html, /if\(!state\.waterTrackerOnboarded\)\{[\s\S]*?state\.widgets\.push\("waterTracker"\)[\s\S]*?dataWasSanitized = true/);
 assert.match(html, /focusHistory: pomo\.completedFocus/);
 assert.match(html, /breakHistory: pomo\.completedBreak/);
+assert.match(html, /dayHistory: pomo\.dayHistory/);
 assert.match(html, /id="breakToday"/);
 assert.match(html, /id="breakBlocks"/);
+assert.match(html, /id="beginDayBtn"/);
+assert.match(html, /id="endDayBtn"/);
+assert.match(html, /id="dayStatus"/);
+assert.match(html, /Start studying/);
 assert.match(html, /completedBreak: \[\]/);
 assert.match(html, /pomo\.completedBreak\.push\(\{ key: todayKey\(\), ts: Date\.now\(\), minutes: phaseMinutes\(finished\), phase:finished \}\)/);
 assert.match(html, /completePhase\(false\)/);
@@ -152,10 +157,56 @@ vm.runInNewContext(`${appScript.slice(waterHelperStart, waterHelperEnd)}
     addFirst: toggledWaterCount(0,0),
     fillThroughFourth: toggledWaterCount(3,1),
     removeFourth: toggledWaterCount(3,4),
-    capped: toggledWaterCount(99,8)
+    capped: toggledWaterCount(99,8),
+    reconciled: reconcileDataCopies(
+      {lastSavedISO:"2026-08-22T02:00:00.000Z",displayName:"Local",focusHistory:[{key:"2026-7-22",ts:2,minutes:25}],waterHistory:{"2026-7-21":4},waterHistoryUpdatedAt:{"2026-7-21":200}},
+      {lastSavedISO:"2026-08-22T01:00:00.000Z",displayName:"Cloud",focusHistory:[{key:"2026-7-21",ts:1,minutes:50}],waterHistory:{"2026-7-21":7},waterHistoryUpdatedAt:{"2026-7-21":100}}
+    ),
+    staleTabSave: reconcileDataCopies(
+      {lastSavedISO:"2026-08-22T03:00:00.000Z",waterHistory:{"2026-7-21":2},waterHistoryUpdatedAt:{"2026-7-21":100}},
+      {lastSavedISO:"2026-08-22T02:00:00.000Z",waterHistory:{"2026-7-21":6},waterHistoryUpdatedAt:{"2026-7-21":200}},
+      {preferLocal:true}
+    ),
+    deletion: reconcileDataCopies(
+      {lastSavedISO:"2026-08-22T03:00:00.000Z",waterHistory:{},waterHistoryUpdatedAt:{"2026-7-21":300}},
+      {lastSavedISO:"2026-08-22T02:00:00.000Z",waterHistory:{"2026-7-21":6},waterHistoryUpdatedAt:{"2026-7-21":200}}
+    ),
+    dayConflict: mergeDayHistory(
+      {"2026-7-23":{startedAt:100,endedAt:null,studyIntervals:[{start:120,end:null}],updatedAt:150}},
+      {"2026-7-23":{startedAt:100,endedAt:300,studyIntervals:[{start:120,end:180}],updatedAt:300}}
+    )
   };`, waterContext);
 assert.deepEqual({ ...waterContext.result.normalized }, {"2026-7-1":3,"2026-7-2":8});
-assert.deepEqual({ ...waterContext.result, normalized:undefined }, {normalized:undefined,addFirst:1,fillThroughFourth:4,removeFourth:3,capped:7});
+assert.deepEqual({addFirst:waterContext.result.addFirst,fillThroughFourth:waterContext.result.fillThroughFourth,removeFourth:waterContext.result.removeFourth,capped:waterContext.result.capped}, {addFirst:1,fillThroughFourth:4,removeFourth:3,capped:7});
+const reconciled = JSON.parse(JSON.stringify(waterContext.result.reconciled));
+assert.equal(reconciled.displayName, "Local");
+assert.deepEqual(reconciled.focusHistory, [{key:"2026-7-21",ts:1,minutes:50},{key:"2026-7-22",ts:2,minutes:25}]);
+assert.deepEqual(reconciled.waterHistory, {"2026-7-21":4});
+assert.deepEqual(JSON.parse(JSON.stringify(waterContext.result.staleTabSave.waterHistory)), {"2026-7-21":6});
+assert.deepEqual(JSON.parse(JSON.stringify(waterContext.result.deletion.waterHistory)), {});
+assert.deepEqual(JSON.parse(JSON.stringify(waterContext.result.dayConflict["2026-7-23"])), {startedAt:100,endedAt:300,studyIntervals:[{start:120,end:180}],updatedAt:300});
+assert.match(html, /waterHistoryUpdatedAt: state\.waterHistoryUpdatedAt/);
+assert.match(html, /const data = reconcileDataCopies\(localData,cloudData\)/);
+assert.match(html, /if\(revision === saveRevision\)\{[\s\S]*?dirty = false/);
+
+const dayAccountingStart = appScript.indexOf("function dayRecordForDate");
+const dayAccountingEnd = appScript.indexOf("function focusMinutesToday", dayAccountingStart);
+assert.ok(dayAccountingStart >= 0 && dayAccountingEnd > dayAccountingStart, "Could not locate day accounting helpers");
+const dayContext = {};
+vm.runInNewContext(`
+  const focusKeyForDate = date => date.getFullYear()+"-"+date.getMonth()+"-"+date.getDate();
+  const pomo = {dayHistory:{}};
+  const start = new Date(2026,7,23,11,0,0,0).getTime();
+  pomo.dayHistory["2026-7-23"] = {startedAt:start,endedAt:start+120*60000,studyIntervals:[{start:start+30*60000,end:start+75*60000}],updatedAt:start};
+  ${appScript.slice(dayAccountingStart, dayAccountingEnd)}
+  const closed = dayMetricsForDate(new Date(2026,7,23,12,0,0,0), start+180*60000);
+  pomo.dayHistory["2026-7-23"] = {startedAt:start,endedAt:null,studyIntervals:[{start:start+30*60000,end:null}],updatedAt:start};
+  const active = dayMetricsForDate(new Date(2026,7,23,12,0,0,0), start+60*60000);
+  globalThis.result = {closed,active};
+`, dayContext);
+assert.deepEqual(JSON.parse(JSON.stringify(dayContext.result.closed)), {studyMinutes:45,breakMinutes:75,totalMinutes:120,startedAt:new Date(2026,7,23,11,0,0,0).getTime(),endedAt:new Date(2026,7,23,13,0,0,0).getTime()});
+assert.deepEqual(JSON.parse(JSON.stringify(dayContext.result.active)), {studyMinutes:30,breakMinutes:30,totalMinutes:60,startedAt:new Date(2026,7,23,11,0,0,0).getTime(),endedAt:null});
+assert.match(html, /const requestedStart=new Date\(2026,7,23,11,0,0,0\)\.getTime\(\)/);
 
 const examRevisionStart = appScript.indexOf("const EXAM_REVISION_V13");
 const examRevisionEnd = appScript.indexOf("const DEFAULT_EXAMS", examRevisionStart);

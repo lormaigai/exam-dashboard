@@ -16,9 +16,10 @@ of end-year assessments and O-Levels. The whole app is one self-contained file,
   topic updates each subject's coverage bar. Covers Biology, Chemistry, Physics,
   Geography, Math 1 & 2, English, Higher Chinese, and Inquiry & Advocacy,
   rebuilt from the 2026 Y4 curriculum maps and assessment frameworks.
-- **Focus Timer** — Pomodoro with presets (Classic 25/5, Deep Work 50/10, Quick
-  Sprint 15/3, Custom), long breaks, auto-advance, sound alerts, a refresh-safe
-  countdown, and a "focused today" tally.
+- **Focus Timer** — Begin Day / End Day tracking around Pomodoro presets
+  (Classic 25/5, Deep Work 50/10, Quick Sprint 15/3, Custom). Actual running
+  focus intervals count as study; every other minute inside the day window is
+  automatically counted as break/non-study time.
 - **Goals & Weekly Plan** — term goals and a click-to-edit weekly study grid.
 - **Edit Data** — add/remove exams and subjects and build custom checklists.
 
@@ -34,7 +35,8 @@ open `index.html` in a browser or serve the folder with any static file server.
   embedded in `index.html`; the publishable key is safe for client-side use).
 - Local copy lives in `localStorage` under `examcontrol-data`; the Focus timer's
   settings and state live under `examcontrol-pomodoro`.
-- On sign-in the cloud copy is loaded (falling back to local, then to the
-  built-in defaults). When the bundled 2026 curriculum is newer than a student's
+- On sign-in the cloud and local copies are reconciled, with study, break, and
+  water histories merged so a stale or interrupted cloud save cannot erase a
+  newer browser entry. When the bundled 2026 curriculum is newer than a student's
   saved copy, their syllabus checklists refresh to the new curriculum while
   their goals, weekly plan, and custom exams are preserved.

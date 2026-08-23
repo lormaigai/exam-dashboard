@@ -347,6 +347,15 @@
   .tctrl:hover{background:var(--paper); color:var(--ink);}
   .tctrl.primary{background:var(--ink); border-color:var(--ink);}
   .tctrl.primary:hover{background:var(--on-dark); color:var(--ink); border-color:var(--on-dark);}
+  .tctrl:disabled{opacity:.38; cursor:not-allowed;}
+  .day-controls{border:2px solid var(--ink); background:var(--paper); padding:14px 16px; margin-bottom:14px; text-align:left;}
+  .day-controls-head{display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap;}
+  .day-controls-label{font-family:var(--font-mono); font-size:9px; text-transform:uppercase; letter-spacing:1px; opacity:.62;}
+  .day-controls-status{font-family:var(--font-mono); font-size:11px; margin-top:4px; line-height:1.4;}
+  .day-controls-actions{display:flex; gap:7px; flex-wrap:wrap;}
+  .day-action{font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:.7px; padding:9px 12px; border:2px solid var(--ink); color:var(--ink);}
+  .day-action:hover:not(:disabled){background:var(--theme-dark); color:var(--on-dark);}
+  .day-action:disabled{opacity:.32; cursor:not-allowed;}
   .preset-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
   .preset-btn{font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:0.5px; padding:9px 13px; border:2px solid var(--ink); background:var(--paper); color:var(--ink);}
   .preset-btn.active{background:var(--theme-dark); color:var(--on-dark);}
@@ -616,7 +625,19 @@
   <div class="panel" id="panel-focus">
     <div class="sec-head">
       <div class="sec-title">Focus Timer</div>
-      <div class="sec-note">pomodoro-style focus blocks with breaks</div>
+      <div class="sec-note">begin your day, then every minute outside a study session counts as break</div>
+    </div>
+    <div class="day-controls">
+      <div class="day-controls-head">
+        <div>
+          <div class="day-controls-label">Daily time tracking</div>
+          <div class="day-controls-status" id="dayStatus">Day not started</div>
+        </div>
+        <div class="day-controls-actions">
+          <button class="day-action" id="beginDayBtn" type="button">Begin day</button>
+          <button class="day-action" id="endDayBtn" type="button">End day</button>
+        </div>
+      </div>
     </div>
     <div class="focus-wrap">
       <div class="timer-card">
@@ -625,7 +646,7 @@
         <div class="timer-cycle-dots" id="timerDots"></div>
         <div class="timer-cycle-lbl mono" id="timerCycleLbl">Focus block 1 of 4</div>
         <div class="timer-controls">
-          <button class="tctrl primary mono" id="timerStart">Start</button>
+          <button class="tctrl primary mono" id="timerStart">Start studying</button>
           <button class="tctrl mono" id="timerReset">Reset</button>
           <button class="tctrl mono" id="timerSkip">Skip</button>
         </div>
@@ -663,9 +684,9 @@
               <div class="mono" style="font-size:11px; opacity:.6; margin-top:2px;" id="focusBlocks">0 focus blocks</div>
             </div>
             <div class="focus-stat-item">
-              <div class="mono" style="font-size:10px; text-transform:uppercase; letter-spacing:1px; opacity:.55;">Break today</div>
+              <div class="mono" style="font-size:10px; text-transform:uppercase; letter-spacing:1px; opacity:.55;">Break / non-study today</div>
               <div class="focus-stat disp" id="breakToday">0 min</div>
-              <div class="mono" style="font-size:11px; opacity:.6; margin-top:2px;" id="breakBlocks">0 breaks</div>
+              <div class="mono" style="font-size:11px; opacity:.6; margin-top:2px;" id="breakBlocks">Everything else in your day</div>
             </div>
           </div>
         </div>
@@ -830,7 +851,7 @@ const FONT_OPTIONS = {
   italic:{body:"'Cormorant Garamond',serif", display:"'Cormorant Garamond',serif", mono:"'DM Mono',monospace", style:"italic", weight:"400", label:"Elegant Italic", note:"Expressive & classic"},
 };
 const WIDGET_OPTIONS = {
-  studyPattern:{name:"Study Pattern", note:"Study and break minutes from the last 7 days"},
+  studyPattern:{name:"Study Pattern", note:"Study versus all other tracked minutes from the last 7 days"},
   todoProgress:{name:"To-Do Progress", note:"Completed and remaining tasks"},
   weeklySchedule:{name:"Weekly Schedule", note:"Your next planned study blocks"},
   syllabusProgress:{name:"Syllabus Progress", note:"Overall topic checklist completion"},
@@ -1596,6 +1617,7 @@ const state = {
   displayName: "",
   widgets: [...DEFAULT_WIDGETS],
   waterHistory: {},
+  waterHistoryUpdatedAt: {},
   waterTrackerOnboarded: false,
   selectedSubject: "BIO",
   calYear: TODAY.getFullYear(),
@@ -1611,6 +1633,104 @@ const state = {
 function normalizeWaterHistory(history){
   if(!history || typeof history!=="object" || Array.isArray(history)) return {};
   return Object.fromEntries(Object.entries(history).filter(([key])=>/^\d{4}-\d{1,2}-\d{1,2}$/.test(key)).map(([key,value])=>[key,Math.max(0,Math.min(8,Math.round(Number(value)||0)))]).filter(([,value])=>value>0));
+}
+function normalizeWaterHistoryUpdatedAt(history){
+  if(!history || typeof history!=="object" || Array.isArray(history)) return {};
+  return Object.fromEntries(Object.entries(history).filter(([key,value])=>/^\d{4}-\d{1,2}-\d{1,2}$/.test(key) && Number(value)>0).map(([key,value])=>[key,Number(value)]));
+}
+function savedAtMs(data){
+  const value=data && typeof data.lastSavedISO==="string" ? Date.parse(data.lastSavedISO) : 0;
+  return Number.isFinite(value) ? value : 0;
+}
+function mergeSessionHistory(first,second,includePhase=false){
+  const sessions=[...(Array.isArray(first)?first:[]),...(Array.isArray(second)?second:[])]
+    .filter(entry=>entry && entry.key && Number(entry.minutes)>0)
+    .map(entry=>({key:String(entry.key),ts:Number(entry.ts)||0,minutes:Number(entry.minutes),...(includePhase?{phase:entry.phase==="long"?"long":"short"}:{})}));
+  const unique=new Map(sessions.map(entry=>[`${entry.ts}_${entry.key}_${entry.minutes}_${includePhase?entry.phase:""}`,entry]));
+  return [...unique.values()].sort((a,b)=>a.ts-b.ts);
+}
+function normalizeDayHistory(history){
+  if(!history || typeof history!=="object" || Array.isArray(history)) return {};
+  const normalized={};
+  Object.entries(history).forEach(([key,record])=>{
+    if(!/^\d{4}-\d{1,2}-\d{1,2}$/.test(key) || !record || typeof record!=="object") return;
+    const startedAt=Number(record.startedAt), endedAt=record.endedAt==null ? null : Number(record.endedAt);
+    if(!Number.isFinite(startedAt) || startedAt<=0) return;
+    const intervals=(Array.isArray(record.studyIntervals)?record.studyIntervals:[]).map(interval=>{
+      const start=Number(interval?.start), end=interval?.end==null ? null : Number(interval.end);
+      if(!Number.isFinite(start) || start<=0 || (end!==null && (!Number.isFinite(end) || end<start))) return null;
+      return {start,end};
+    }).filter(Boolean).sort((a,b)=>a.start-b.start);
+    normalized[key]={startedAt,endedAt:Number.isFinite(endedAt)&&endedAt>=startedAt?endedAt:null,studyIntervals:intervals,updatedAt:Number(record.updatedAt)||startedAt};
+  });
+  return normalized;
+}
+function mergeDayHistory(first,second){
+  const a=normalizeDayHistory(first), b=normalizeDayHistory(second), merged={};
+  new Set([...Object.keys(a),...Object.keys(b)]).forEach(key=>{
+    const firstRecord=a[key], secondRecord=b[key];
+    if(!firstRecord){ merged[key]=secondRecord; return; }
+    if(!secondRecord){ merged[key]=firstRecord; return; }
+    if(firstRecord.updatedAt!==secondRecord.updatedAt){
+      merged[key]=firstRecord.updatedAt>secondRecord.updatedAt?firstRecord:secondRecord;
+      return;
+    }
+    const intervals=new Map();
+    [...firstRecord.studyIntervals,...secondRecord.studyIntervals].forEach(interval=>{
+      const existing=intervals.get(interval.start);
+      if(!existing || (existing.end==null && interval.end!=null) || (interval.end!=null && interval.end>(existing.end||0))) intervals.set(interval.start,interval);
+    });
+    merged[key]={
+      startedAt:Math.min(firstRecord.startedAt,secondRecord.startedAt),
+      endedAt:firstRecord.endedAt==null||secondRecord.endedAt==null?null:Math.max(firstRecord.endedAt,secondRecord.endedAt),
+      studyIntervals:[...intervals.values()].sort((x,y)=>x.start-y.start),
+      updatedAt:firstRecord.updatedAt,
+    };
+  });
+  return merged;
+}
+function mergeWaterData(first,second){
+  const firstHistory=normalizeWaterHistory(first?.waterHistory), secondHistory=normalizeWaterHistory(second?.waterHistory);
+  const firstMeta=normalizeWaterHistoryUpdatedAt(first?.waterHistoryUpdatedAt), secondMeta=normalizeWaterHistoryUpdatedAt(second?.waterHistoryUpdatedAt);
+  const history={}, updatedAt={};
+  const keys=new Set([...Object.keys(firstHistory),...Object.keys(secondHistory),...Object.keys(firstMeta),...Object.keys(secondMeta)]);
+  keys.forEach(key=>{
+    const firstTime=firstMeta[key]||0, secondTime=secondMeta[key]||0;
+    let value;
+    if(firstTime>secondTime) value=firstHistory[key]||0;
+    else if(secondTime>firstTime) value=secondHistory[key]||0;
+    else if(Object.prototype.hasOwnProperty.call(firstHistory,key) && !Object.prototype.hasOwnProperty.call(secondHistory,key)) value=firstHistory[key];
+    else if(Object.prototype.hasOwnProperty.call(secondHistory,key) && !Object.prototype.hasOwnProperty.call(firstHistory,key)) value=secondHistory[key];
+    else value=Math.max(firstHistory[key]||0,secondHistory[key]||0);
+    if(value) history[key]=value;
+    if(firstTime || secondTime) updatedAt[key]=Math.max(firstTime,secondTime);
+  });
+  return {history,updatedAt};
+}
+function reconcileDataCopies(localData,cloudData,{preferLocal=false}={}){
+  const local=localData && typeof localData==="object" ? localData : null;
+  const cloud=cloudData && typeof cloudData==="object" ? cloudData : null;
+  if(!local && !cloud) return null;
+  const primary=preferLocal || savedAtMs(local)>=savedAtMs(cloud) ? (local||cloud) : (cloud||local);
+  const secondary=primary===local ? cloud : local;
+  const merged=Object.assign({},secondary||{},primary||{});
+  merged.focusHistory=mergeSessionHistory(local?.focusHistory,cloud?.focusHistory);
+  merged.breakHistory=mergeSessionHistory(local?.breakHistory,cloud?.breakHistory,true);
+  merged.dayHistory=mergeDayHistory(local?.dayHistory,cloud?.dayHistory);
+  const water=mergeWaterData(local,cloud);
+  merged.waterHistory=water.history;
+  merged.waterHistoryUpdatedAt=water.updatedAt;
+  return merged;
+}
+function historyFingerprint(data){
+  const normalized=reconcileDataCopies(null,data);
+  return JSON.stringify(normalized ? {
+    focusHistory:normalized.focusHistory,
+    breakHistory:normalized.breakHistory,
+    dayHistory:normalized.dayHistory,
+    waterHistory:normalized.waterHistory,
+    waterHistoryUpdatedAt:normalized.waterHistoryUpdatedAt,
+  } : null);
 }
 function toggledWaterCount(cupIndex,currentCount){
   const index=Math.max(0,Math.min(7,Math.round(Number(cupIndex)||0)));
@@ -1889,9 +2009,11 @@ function collectData(){
     weekPlan: state.weekPlan,
     focusHistory: pomo.completedFocus,
     breakHistory: pomo.completedBreak,
+    dayHistory: pomo.dayHistory,
     displayName: state.displayName,
     widgets: state.widgets,
     waterHistory: state.waterHistory,
+    waterHistoryUpdatedAt: state.waterHistoryUpdatedAt,
     waterTrackerOnboarded: state.waterTrackerOnboarded,
     calYear: state.calYear,
     calMonth: state.calMonth,
@@ -1950,6 +2072,7 @@ function applyData(data){
   state.displayName = typeof loadedRaw.displayName === "string" ? loadedRaw.displayName.trim().slice(0,30) : "";
   state.widgets = Array.isArray(loadedRaw.widgets) ? [...new Set(loadedRaw.widgets.filter(key=>WIDGET_OPTIONS[key]))] : [...DEFAULT_WIDGETS];
   state.waterHistory = normalizeWaterHistory(loadedRaw.waterHistory);
+  state.waterHistoryUpdatedAt = normalizeWaterHistoryUpdatedAt(loadedRaw.waterHistoryUpdatedAt);
   state.waterTrackerOnboarded = loadedRaw.waterTrackerOnboarded === true;
   if(!state.waterTrackerOnboarded){
     if(!state.widgets.includes("waterTracker")) state.widgets.push("waterTracker");
@@ -1958,15 +2081,12 @@ function applyData(data){
   }
   if(Array.isArray(loadedRaw.goals) && !Array.isArray(loadedRaw.todos)) dataWasSanitized=true;
   if(Array.isArray(loadedRaw.focusHistory)){
-    const sessions=[...pomo.completedFocus,...loadedRaw.focusHistory].filter(entry=>entry && entry.key && Number(entry.minutes)>0);
-    const unique=new Map(sessions.map(entry=>[`${entry.ts || ''}_${entry.key}_${entry.minutes}`,{key:String(entry.key),ts:Number(entry.ts)||0,minutes:Number(entry.minutes)}]));
-    pomo.completedFocus=[...unique.values()].sort((a,b)=>a.ts-b.ts);
+    pomo.completedFocus=mergeSessionHistory(pomo.completedFocus,loadedRaw.focusHistory);
   }
   if(Array.isArray(loadedRaw.breakHistory)){
-    const sessions=[...pomo.completedBreak,...loadedRaw.breakHistory].filter(entry=>entry && entry.key && Number(entry.minutes)>0);
-    const unique=new Map(sessions.map(entry=>[`${entry.ts || ''}_${entry.key}_${entry.minutes}_${entry.phase || ''}`,{key:String(entry.key),ts:Number(entry.ts)||0,minutes:Number(entry.minutes),phase:entry.phase==="long"?"long":"short"}]));
-    pomo.completedBreak=[...unique.values()].sort((a,b)=>a.ts-b.ts);
+    pomo.completedBreak=mergeSessionHistory(pomo.completedBreak,loadedRaw.breakHistory,true);
   }
+  pomo.dayHistory=mergeDayHistory(pomo.dayHistory,loadedRaw.dayHistory);
   const savedActive = Array.isArray(loadedRaw.activeSubjects) ? loadedRaw.activeSubjects.filter(code=>SUBJECTS[code]) : savedSubjectCodes.filter(code=>SUBJECTS[code]);
   state.activeSubjects = [...new Set(savedActive)];
   const savedAppearance=loadedRaw.appearance;
@@ -1996,9 +2116,11 @@ function applyData(data){
 
 let cloudTimer = null;
 let dirty = false;
+let saveRevision = 0;
 let dataWasSanitized = false;
 async function saveAll(){
   dirty = true;
+  saveRevision++;
   const payload = collectData();
   try{ localStorage.setItem(userStorageKey(), JSON.stringify(payload)); }catch(e){}
   flagSaved();
@@ -2009,34 +2131,56 @@ async function saveAll(){
 }
 async function flushCloud(){
   if(!currentUser) return;
+  const revision = saveRevision;
   try{
+    const localPayload = collectData();
+    let cloudPayload = null;
+    const { data:row, error:loadError } = await sb.from('user_progress').select('data').eq('user_id', currentUser.id).maybeSingle();
+    if(loadError) throw loadError;
+    if(row && row.data && typeof row.data === 'object') cloudPayload = row.data;
+    const payload = reconcileDataCopies(localPayload, cloudPayload, {preferLocal:true});
+    payload.lastSavedISO = localPayload.lastSavedISO;
     const { error } = await sb.from('user_progress').upsert({
       user_id: currentUser.id,
       email: currentUser.email,
-      data: collectData(),
+      data: payload,
       updated_at: new Date().toISOString(),
     });
     if(error) throw error;
-    dirty = false;
+    if(revision === saveRevision){
+      loadedRaw = payload;
+      state.waterHistory = normalizeWaterHistory(payload.waterHistory);
+      state.waterHistoryUpdatedAt = normalizeWaterHistoryUpdatedAt(payload.waterHistoryUpdatedAt);
+      pomo.completedFocus = mergeSessionHistory(pomo.completedFocus,payload.focusHistory);
+      pomo.completedBreak = mergeSessionHistory(pomo.completedBreak,payload.breakHistory,true);
+      pomo.dayHistory = mergeDayHistory(pomo.dayHistory,payload.dayHistory);
+      try{ localStorage.setItem(userStorageKey(), JSON.stringify(payload)); }catch(e){}
+      savePomodoro();
+      dirty = false;
+    }
   }catch(e){ console.error('Cloud save failed', e); }
 }
 
 async function loadAll(){
-  let data = null;
+  let cloudData = null;
+  let localData = null;
   if(currentUser){
     try{
       const { data:row, error } = await sb.from('user_progress').select('data').eq('user_id', currentUser.id).maybeSingle();
       if(error) throw error;
-      if(row && row.data && Object.keys(row.data).length) data = row.data;
+      if(row && row.data && Object.keys(row.data).length) cloudData = row.data;
     }catch(e){ console.error('Cloud load failed', e); }
   }
-  if(!data){
-    try{ const raw = localStorage.getItem(userStorageKey()); if(raw) data = JSON.parse(raw); }catch(e){}
-  }
+  try{ const raw = localStorage.getItem(userStorageKey()); if(raw) localData = JSON.parse(raw); }catch(e){}
+  const data = reconcileDataCopies(localData,cloudData);
+  const localIsNewer = !!(localData && savedAtMs(localData)>savedAtMs(cloudData));
   applyData(data || {});
-  // Write on a new account or after the narrow curriculum repair above. A
-  // normal load never rewrites an existing student's saved progress.
-  if(currentUser && state.onboardingComplete && (!data || dataWasSanitized)){ saveAll(); }
+  // Include the timer's separate local cache in the comparison: it may contain
+  // a completed session that did not reach the main cloud payload before exit.
+  const cloudNeedsHistoryRepair = !!(currentUser && historyFingerprint(cloudData) !== historyFingerprint(collectData()));
+  // Repair cloud history when the browser has newer or missing entries. A
+  // normal load with matching copies remains read-only.
+  if(currentUser && state.onboardingComplete && (!data || dataWasSanitized || localIsNewer || cloudNeedsHistoryRepair)){ saveAll(); }
 }
 
 /* ============================================================
@@ -2232,8 +2376,9 @@ function focusKeyForDate(date){ return date.getFullYear()+"-"+date.getMonth()+"-
 function recentStudyDays(){
   return Array.from({length:7},(_,index)=>{
     const date=new Date(); date.setHours(0,0,0,0); date.setDate(date.getDate()-(6-index));
-    const minutes=pomo.completedFocus.filter(entry=>entry.key===focusKeyForDate(date)).reduce((sum,entry)=>sum+(Number(entry.minutes)||0),0);
-    const breakMinutes=pomo.completedBreak.filter(entry=>entry.key===focusKeyForDate(date)).reduce((sum,entry)=>sum+(Number(entry.minutes)||0),0);
+    const dayMetrics=dayMetricsForDate(date);
+    const minutes=dayMetrics?.studyMinutes ?? pomo.completedFocus.filter(entry=>entry.key===focusKeyForDate(date)).reduce((sum,entry)=>sum+(Number(entry.minutes)||0),0);
+    const breakMinutes=dayMetrics?.breakMinutes ?? pomo.completedBreak.filter(entry=>entry.key===focusKeyForDate(date)).reduce((sum,entry)=>sum+(Number(entry.minutes)||0),0);
     return {label:date.toLocaleDateString('en-GB',{weekday:'short'}).slice(0,2),minutes,breakMinutes};
   });
 }
@@ -2299,6 +2444,7 @@ document.getElementById('dashboardWidgets').addEventListener('click',event=>{
   if(cup){
     const key=focusKeyForDate(new Date()), next=toggledWaterCount(cup.dataset.waterCup,state.waterHistory[key]);
     if(next) state.waterHistory[key]=next; else delete state.waterHistory[key];
+    state.waterHistoryUpdatedAt[key]=Date.now();
     renderWidgets(); saveAll();
     return;
   }
@@ -2797,8 +2943,10 @@ const pomo = {
   // logging
   completedFocus: [],    // {ts, minutes}
   completedBreak: [],    // {ts, minutes, phase}
+  dayHistory: {},        // date key -> {startedAt, endedAt, studyIntervals, updatedAt}
 };
 let pomoTick = null;
+let dayTick = null;
 let baseTitle = document.title;
 
 function pomoCfg(){
@@ -2822,9 +2970,9 @@ function loadPomodoro(){
       if(!PRESETS[pomo.presetId]) pomo.presetId = "classic";
       if(!Array.isArray(pomo.completedFocus)) pomo.completedFocus = [];
       if(!Array.isArray(pomo.completedBreak)) pomo.completedBreak = [];
+      pomo.dayHistory = normalizeDayHistory(pomo.dayHistory);
     }
   }catch(e){}
-  // prune completedFocus to today only for the stat
 }
 function savePomodoro(){
   const accountKey=currentUser ? `${LS_POMODORO}:${currentUser.id}` : LS_POMODORO;
@@ -2865,15 +3013,119 @@ function fmtClock(ms){
 }
 
 function todayKey(){ const d=new Date(); return d.getFullYear()+"-"+d.getMonth()+"-"+d.getDate(); }
+function dayRecordForDate(date){ return pomo.dayHistory[focusKeyForDate(date)] || null; }
+function activeDayRecord(){
+  const record=pomo.dayHistory[todayKey()];
+  return record && record.endedAt==null ? record : null;
+}
+function dayMetricsForDate(date,now=Date.now()){
+  const record=dayRecordForDate(date);
+  if(!record) return null;
+  const dayStart=new Date(date.getFullYear(),date.getMonth(),date.getDate()).getTime();
+  const dayEnd=new Date(date.getFullYear(),date.getMonth(),date.getDate()+1).getTime();
+  const start=Math.max(dayStart,record.startedAt);
+  const end=Math.max(start,Math.min(dayEnd,record.endedAt==null?now:record.endedAt,now));
+  const studyMs=record.studyIntervals.reduce((total,interval)=>{
+    const intervalStart=Math.max(start,interval.start);
+    const intervalEnd=Math.min(end,interval.end==null?now:interval.end);
+    return total+Math.max(0,intervalEnd-intervalStart);
+  },0);
+  const totalMinutes=Math.max(0,Math.floor((end-start)/60000));
+  const studyMinutes=Math.min(totalMinutes,Math.max(0,Math.floor(studyMs/60000)));
+  return {studyMinutes,breakMinutes:Math.max(0,totalMinutes-studyMinutes),totalMinutes,startedAt:record.startedAt,endedAt:record.endedAt};
+}
+function startStudyInterval(at=Date.now()){
+  const record=activeDayRecord();
+  if(!record || pomo.phase!=="focus") return;
+  const current=record.studyIntervals[record.studyIntervals.length-1];
+  if(current && current.end==null) return;
+  record.studyIntervals.push({start:Math.max(record.startedAt,at),end:null});
+  record.updatedAt=at;
+}
+function stopStudyInterval(at=Date.now()){
+  const record=pomo.dayHistory[todayKey()];
+  if(!record) return;
+  const current=record.studyIntervals[record.studyIntervals.length-1];
+  if(!current || current.end!=null) return;
+  current.end=Math.max(current.start,at);
+  record.updatedAt=at;
+}
+function beginDay(at=Date.now()){
+  const key=todayKey();
+  if(pomo.dayHistory[key]) return false;
+  clearInterval(pomoTick);
+  pomo.phase="focus"; pomo.cyclesDone=0; pomo.running=false; pomo.endsAt=null;
+  pomo.remainingMs=phaseMinutes("focus")*60000;
+  pomo.dayHistory[key]={startedAt:at,endedAt:null,studyIntervals:[],updatedAt:Date.now()};
+  savePomodoro(); saveAll(); startDayTick(); renderPomodoro(); renderWidgets();
+  return true;
+}
+function seedRequestedDayStart(){
+  const requestedKey="2026-7-23";
+  if(todayKey()!==requestedKey || pomo.dayHistory[requestedKey]) return false;
+  const requestedStart=new Date(2026,7,23,11,0,0,0).getTime();
+  const existingIntervals=pomo.completedFocus.filter(entry=>entry.key===requestedKey && Number(entry.ts)>requestedStart && Number(entry.minutes)>0).map(entry=>({
+    start:Math.max(requestedStart,Number(entry.ts)-Number(entry.minutes)*60000),
+    end:Number(entry.ts),
+  }));
+  pomo.dayHistory[requestedKey]={startedAt:requestedStart,endedAt:null,studyIntervals:existingIntervals,updatedAt:Date.now()};
+  savePomodoro(); saveAll(); startDayTick(); renderPomodoro(); renderWidgets();
+  return true;
+}
+function endDay(){
+  const record=activeDayRecord();
+  if(!record) return;
+  const at=Date.now();
+  if(pomo.running){
+    pomo.remainingMs=remainingMsNow();
+    pomo.running=false; pomo.endsAt=null; clearInterval(pomoTick); updateTitle();
+  }
+  stopStudyInterval(at);
+  record.endedAt=at; record.updatedAt=at;
+  clearInterval(dayTick);
+  savePomodoro(); saveAll(); renderPomodoro(); renderWidgets();
+}
+function formatDayTime(timestamp){
+  return new Date(timestamp).toLocaleTimeString('en-SG',{hour:'numeric',minute:'2-digit'});
+}
+function renderDayAccounting(){
+  const record=pomo.dayHistory[todayKey()] || null;
+  const metrics=dayMetricsForDate(new Date());
+  const status=document.getElementById('dayStatus');
+  if(status){
+    if(!record) status.textContent="Press Begin Day before studying";
+    else if(record.endedAt==null) status.textContent=`Began ${formatDayTime(record.startedAt)} · ${pomo.running&&pomo.phase==="focus"?"studying now":"break time"}`;
+    else status.textContent=`${formatDayTime(record.startedAt)}–${formatDayTime(record.endedAt)} · day ended`;
+  }
+  const begin=document.getElementById('beginDayBtn'), end=document.getElementById('endDayBtn');
+  if(begin) begin.disabled=!!record;
+  if(end) end.disabled=!record || record.endedAt!=null;
+  const start=document.getElementById('timerStart');
+  if(start) start.disabled=!activeDayRecord();
+  document.getElementById('focusToday').textContent = (metrics?.studyMinutes ?? focusMinutesToday()) + " min";
+  document.getElementById('breakToday').textContent = (metrics?.breakMinutes ?? breakMinutesToday()) + " min";
+  document.getElementById('focusBlocks').textContent = record ? `${record.studyIntervals.length} study session${record.studyIntervals.length===1?'':'s'}` : focusBlocksToday() + " focus blocks";
+  document.getElementById('breakBlocks').textContent = metrics ? `${metrics.totalMinutes} min tracked since Begin Day` : "Everything else in your day";
+}
+function startDayTick(){
+  clearInterval(dayTick);
+  if(activeDayRecord()) dayTick=setInterval(()=>{ renderDayAccounting(); renderWidgets(); },30000);
+}
 function focusMinutesToday(){
+  const metrics=dayMetricsForDate(new Date());
+  if(metrics) return metrics.studyMinutes;
   const key = todayKey();
   return pomo.completedFocus.filter(e=>e.key===key).reduce((a,e)=>a+e.minutes,0);
 }
 function focusBlocksToday(){
+  const record=pomo.dayHistory[todayKey()];
+  if(record) return record.studyIntervals.length;
   const key = todayKey();
   return pomo.completedFocus.filter(e=>e.key===key).length;
 }
 function breakMinutesToday(){
+  const metrics=dayMetricsForDate(new Date());
+  if(metrics) return metrics.breakMinutes;
   const key = todayKey();
   return pomo.completedBreak.filter(e=>e.key===key).reduce((a,e)=>a+(Number(e.minutes)||0),0);
 }
@@ -2921,7 +3173,9 @@ function renderPomodoro(){
   clock.textContent = fmtClock(remainingMsNow());
   clock.className = "timer-clock disp " + (pomo.phase==="focus" ? "focus" : "break");
   document.getElementById('timerPhase').textContent = phaseLabel(pomo.phase);
-  document.getElementById('timerStart').textContent = pomo.running ? "Pause" : "Start";
+  document.getElementById('timerStart').textContent = pomo.running
+    ? (pomo.phase==="focus" ? "Stop studying" : "Pause break")
+    : (pomo.phase==="focus" ? "Start studying" : "Start break");
 
   // cycle dots
   const cfg = pomoCfg();
@@ -2935,11 +3189,7 @@ function renderPomodoro(){
   document.getElementById('timerCycleLbl').textContent =
     pomo.phase==="focus" ? `Focus block ${Math.min(pomo.cyclesDone+1,cfg.interval)} of ${cfg.interval}` : "Break time";
 
-  // stats
-  document.getElementById('focusToday').textContent = focusMinutesToday() + " min";
-  document.getElementById('focusBlocks').textContent = focusBlocksToday() + " focus blocks";
-  document.getElementById('breakToday').textContent = breakMinutesToday() + " min";
-  document.getElementById('breakBlocks').textContent = breakBlocksToday() + " breaks";
+  renderDayAccounting();
 }
 
 function updateTitle(){
@@ -2966,6 +3216,8 @@ function startTick(){
 function completePhase(recordTime=true){
   clearInterval(pomoTick);
   const finished = pomo.phase;
+  const finishedAt=pomo.endsAt || Date.now();
+  if(finished==="focus") stopStudyInterval(finishedAt);
   beep();
   if(finished==="focus"){
     // log the focus block
@@ -2989,34 +3241,46 @@ function completePhase(recordTime=true){
 }
 
 function startTimer(){
+  if(!activeDayRecord()) return;
   const rem = pomo.remainingMs != null ? pomo.remainingMs : phaseMinutes(pomo.phase)*60000;
   pomo.endsAt = Date.now() + rem;
   pomo.remainingMs = null;
   pomo.running = true;
+  startStudyInterval();
   savePomodoro();
+  saveAll();
   startTick();
+  startDayTick();
   renderPomodoro();
 }
 function pauseTimer(){
   pomo.remainingMs = remainingMsNow();
+  stopStudyInterval();
   pomo.running = false;
   pomo.endsAt = null;
   clearInterval(pomoTick);
   savePomodoro();
+  saveAll();
   renderPomodoro();
+  renderWidgets();
   updateTitle();
 }
 function resetTimer(keepPhase){
   clearInterval(pomoTick);
+  stopStudyInterval();
   pomo.running = false;
   pomo.endsAt = null;
   if(!keepPhase){ pomo.phase = "focus"; pomo.cyclesDone = 0; }
   pomo.remainingMs = phaseMinutes(pomo.phase)*60000;
   savePomodoro();
+  saveAll();
   renderPomodoro();
+  renderWidgets();
   updateTitle();
 }
 
+document.getElementById('beginDayBtn').addEventListener('click',()=>beginDay());
+document.getElementById('endDayBtn').addEventListener('click',endDay);
 document.getElementById('timerStart').addEventListener('click', ()=>{
   if(pomo.running) pauseTimer(); else startTimer();
 });
@@ -3024,6 +3288,7 @@ document.getElementById('timerReset').addEventListener('click', ()=> resetTimer(
 document.getElementById('timerSkip').addEventListener('click', ()=>{
   clearInterval(pomoTick);
   pomo.remainingMs = 0;
+  pomo.endsAt = Date.now();
   completePhase(false);
 });
 document.getElementById('autoToggle').addEventListener('click', ()=>{ pomo.autoStart = !pomo.autoStart; savePomodoro(); renderPomodoro(); });
@@ -3151,6 +3416,7 @@ async function startApp(session){
       console.error('Data load failed; showing defaults without saving', e);
       try{ applyData({}); }catch(e2){ console.error(e2); }
     }
+    seedRequestedDayStart();
     renderSubjectAwareViews();
     renderTodos();
     renderPomodoro();
@@ -3158,8 +3424,9 @@ async function startApp(session){
     if(pomo.running){
       // resume a running timer after refresh; complete if it elapsed while away
       if(pomo.endsAt && pomo.endsAt <= Date.now()){ completePhase(); }
-      else if(pomo.endsAt){ startTick(); }
+      else if(pomo.endsAt){ startStudyInterval(); startTick(); }
     }
+    startDayTick();
   }
 }
 function showGate(){
