@@ -29,6 +29,18 @@ jobs:
           mkdir -p _site
           cp index.html _site/index.html
           cp index.html _site/404.html
+          python3 - <<'PY'
+          from pathlib import Path
+          script = '<script src="scripts/focus-day-timeline.js"></script>'
+          for filename in ('_site/index.html', '_site/404.html'):
+              path = Path(filename)
+              html = path.read_text()
+              if script not in html:
+                  html = html.replace('</body>', f'  {script}\n</body>')
+              path.write_text(html)
+          PY
+          mkdir -p _site/scripts
+          cp scripts/focus-day-timeline.js _site/scripts/focus-day-timeline.js
           touch _site/.nojekyll
 
       - name: Upload Pages artifact
