@@ -12,6 +12,7 @@
   const SLOT_MINUTES = 30;
   const SLOT_COUNT = ((END_HOUR - START_HOUR) * 60) / SLOT_MINUTES;
   const timelineRefresh = 10000;
+  const BRAIN_DUMP_KEY = 'examcontrol-brain-dump';
   let refreshTimer = null;
 
   function pad(value){ return String(value).padStart(2, '0'); }
@@ -64,11 +65,19 @@
       .focus-day-legend span{display:flex;align-items:center;gap:5px;}
       .focus-day-legend i{width:10px;height:8px;display:block;background:var(--red);}
       .focus-day-legend .tracked{background:var(--paper2);border:1px solid var(--line);}
+      .brain-dump{border:2px solid var(--ink);background:var(--paper);padding:18px;margin-top:14px;}
+      .brain-dump-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px;}
+      .brain-dump-title{font-family:var(--font-display);font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.4px;}
+      .brain-dump-note{font-family:var(--font-mono);font-size:9px;opacity:.55;text-transform:uppercase;letter-spacing:.6px;}
+      .brain-dump-input{display:block;width:100%;min-height:110px;resize:none;overflow:hidden;border:1px solid var(--ink);background:var(--paper);color:var(--ink);padding:12px;font-family:var(--font-body);font-size:13.5px;line-height:1.55;outline:none;}
+      .brain-dump-input:focus{border:2px solid var(--ink);padding:11px;}
+      .brain-dump-input::placeholder{color:var(--ink);opacity:.38;}
       @media(max-width:600px){
         .focus-day-timeline{padding:12px;}
         .focus-day-timeline-grid{grid-template-columns:42px minmax(0,1fr);}
         .focus-day-timeline-hour{padding-right:5px;font-size:7px;}
         .focus-day-marker{left:-42px;}
+        .brain-dump{padding:12px;}
       }
     `;
     document.head.appendChild(style);
@@ -88,6 +97,36 @@
     return container;
   }
 
+  function ensureBrainDump(){
+    const todoList = document.getElementById('todoList');
+    if(!todoList) return;
+    let dump = document.getElementById('todoBrainDump');
+    if(!dump){
+      dump = document.createElement('section');
+      dump.id = 'todoBrainDump';
+      dump.className = 'brain-dump';
+      dump.innerHTML = `
+        <div class="brain-dump-head">
+          <div class="brain-dump-title">Brain Dump</div>
+          <div class="brain-dump-note">Ideas, thoughts, reminders · not everything needs to become a task</div>
+        </div>
+        <textarea class="brain-dump-input" id="brainDumpInput" rows="4" aria-label="Brain dump" placeholder="Write anything here... ideas, things to remember, random thoughts, questions, plans..."></textarea>
+      `;
+      todoList.insertAdjacentElement('afterend', dump);
+      const input = dump.querySelector('#brainDumpInput');
+      input.value = localStorage.getItem(BRAIN_DUMP_KEY) || '';
+      const resize = ()=>{
+        input.style.height = 'auto';
+        input.style.height = Math.max(110, input.scrollHeight) + 'px';
+      };
+      input.addEventListener('input', ()=>{
+        localStorage.setItem(BRAIN_DUMP_KEY, input.value);
+        resize();
+      });
+      resize();
+    }
+  }
+
   function intervalEnd(interval, now){
     return interval.end == null ? now : interval.end;
   }
@@ -99,6 +138,7 @@
   }
 
   function render(){
+    ensureBrainDump();
     const container = ensureContainer();
     if(!container) return;
 
