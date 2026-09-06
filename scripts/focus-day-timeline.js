@@ -15,7 +15,6 @@
   const BRAIN_DUMP_KEY = 'examcontrol-brain-dump';
   let refreshTimer = null;
 
-  function pad(value){ return String(value).padStart(2, '0'); }
   function localKey(date){ return date.getFullYear() + '-' + date.getMonth() + '-' + date.getDate(); }
   function todayRecord(){
     if(typeof pomo === 'undefined' || !pomo.dayHistory) return null;
@@ -64,32 +63,43 @@
       .brain-dump-note{font-family:var(--font-mono);font-size:9px;opacity:.55;text-transform:uppercase;letter-spacing:.6px;}
       .brain-dump-input{display:block;width:100%;min-height:110px;resize:none;overflow:hidden;border:1px solid var(--ink);background:var(--paper);color:var(--ink);padding:12px;font-family:var(--font-body);font-size:13.5px;line-height:1.55;outline:none;}
       .brain-dump-input:focus{border:2px solid var(--ink);padding:11px;}.brain-dump-input::placeholder{color:var(--ink);opacity:.38;}
-      .study-pattern-widget{border:2px solid var(--ink);background:var(--paper);padding:16px;margin-top:20px;cursor:pointer;}
-      .study-pattern-widget:hover{background:var(--paper2);}.study-pattern-head{display:flex;justify-content:space-between;gap:12px;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:8px;}
-      .study-pattern-title{font-family:var(--font-display);font-size:15px;font-weight:800;text-transform:uppercase;}.study-pattern-hint,.study-pattern-total{font-family:var(--font-mono);font-size:9px;text-transform:uppercase;opacity:.6;}
-      .study-pattern-bars{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;height:110px;align-items:end;margin-top:14px;}
-      .study-pattern-day{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;}.study-pattern-bar-wrap{height:76px;width:100%;display:flex;align-items:flex-end;justify-content:center;}
-      .study-pattern-bar{width:min(30px,65%);min-height:2px;background:var(--red);border:1px solid var(--ink);}.study-pattern-value,.study-pattern-label{font-family:var(--font-mono);font-size:8px;white-space:nowrap;}.study-pattern-value{margin-top:4px;}.study-pattern-label{margin-top:5px;opacity:.55;}
-      .study-history-overlay{position:fixed;inset:0;background:#1A233288;z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;}.study-history-modal{width:min(760px,100%);max-height:90vh;overflow:auto;background:var(--paper);border:2px solid var(--ink);}
-      .study-history-head{position:sticky;top:0;background:var(--paper);padding:18px;border-bottom:2px solid var(--ink);display:flex;justify-content:space-between;gap:12px;align-items:flex-start;}.study-history-title{font-family:var(--font-display);font-size:18px;font-weight:800;text-transform:uppercase;}.study-history-close{border:2px solid var(--ink);padding:5px 10px;font-family:var(--font-mono);font-size:10px;background:var(--paper);cursor:pointer;}
-      .study-history-list{padding:8px 18px 18px;}.study-history-row{display:grid;grid-template-columns:120px 1fr 80px;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);}.study-history-date,.study-history-hours{font-family:var(--font-mono);font-size:10px;}.study-history-bar{height:14px;background:var(--paper2);border:1px solid var(--line);}.study-history-fill{height:100%;background:var(--red);}.study-history-hours{text-align:right;}.study-history-empty{padding:20px;font-family:var(--font-mono);font-size:11px;opacity:.55;}
-      @media(max-width:600px){.focus-day-timeline{padding:12px}.focus-day-timeline-grid{grid-template-columns:42px minmax(0,1fr)}.focus-day-timeline-hour{padding-right:5px;font-size:7px}.focus-day-marker{left:-42px}.brain-dump{padding:12px}.study-history-row{grid-template-columns:90px 1fr 65px;gap:8px}}
+      .study-history-dropdown{border:2px solid var(--ink);background:var(--paper);margin-top:20px;}
+      .study-history-dropdown summary{list-style:none;cursor:pointer;padding:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;font-family:var(--font-display);font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;}
+      .study-history-dropdown summary::-webkit-details-marker{display:none;}
+      .study-history-dropdown summary:after{content:'+';font-family:var(--font-mono);font-size:18px;font-weight:400;}
+      .study-history-dropdown[open] summary:after{content:'−';}
+      .study-history-meta{font-family:var(--font-mono);font-size:9px;font-weight:400;opacity:.55;letter-spacing:.5px;}
+      .study-history-content{border-top:1px solid var(--line);padding:16px;overflow-x:auto;}
+      .study-history-chart{min-width:620px;}
+      .study-history-chart-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;}
+      .study-history-chart-title{font-family:var(--font-display);font-size:12px;font-weight:700;text-transform:uppercase;}
+      .study-history-chart-total{font-family:var(--font-mono);font-size:9px;opacity:.55;text-transform:uppercase;}
+      .study-history-bars{display:flex;align-items:flex-end;gap:7px;height:210px;border-bottom:1px solid var(--ink);padding:0 4px;}
+      .study-history-day{flex:1;min-width:22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;}
+      .study-history-value{font-family:var(--font-mono);font-size:8px;white-space:nowrap;}
+      .study-history-bar-wrap{width:100%;height:160px;display:flex;align-items:flex-end;justify-content:center;}
+      .study-history-bar{width:min(30px,75%);min-height:2px;background:var(--red);border:1px solid var(--ink);}
+      .study-history-date{font-family:var(--font-mono);font-size:8px;white-space:nowrap;opacity:.6;}
+      .study-history-empty{padding:16px 0;font-family:var(--font-mono);font-size:10px;opacity:.55;}
+      @media(max-width:600px){
+        .focus-day-timeline{padding:12px}.focus-day-timeline-grid{grid-template-columns:42px minmax(0,1fr)}.focus-day-timeline-hour{padding-right:5px;font-size:7px}.focus-day-marker{left:-42px}.brain-dump{padding:12px}.study-history-dropdown summary{padding:12px}.study-history-content{padding:12px}.study-history-chart{min-width:520px}
+      }
     `;
     document.head.appendChild(style);
   }
 
   function ensureContainer(){
-    const panel = document.getElementById('panel-focus');
-    const anchor = panel && panel.querySelector('.focus-wrap');
-    if(!anchor) return null;
-    let container = document.getElementById('focusDayTimeline');
-    if(!container){ container=document.createElement('section');container.id='focusDayTimeline';container.className='focus-day-timeline';anchor.insertAdjacentElement('afterend',container); }
+    const panel=document.getElementById('panel-focus');
+    const anchor=panel&&panel.querySelector('.focus-wrap');
+    if(!anchor)return null;
+    let container=document.getElementById('focusDayTimeline');
+    if(!container){container=document.createElement('section');container.id='focusDayTimeline';container.className='focus-day-timeline';anchor.insertAdjacentElement('afterend',container);}
     return container;
   }
 
   function ensureBrainDump(){
-    const todoList=document.getElementById('todoList'); if(!todoList)return;
-    let dump=document.getElementById('todoBrainDump'); if(dump)return;
+    const todoList=document.getElementById('todoList');if(!todoList)return;
+    let dump=document.getElementById('todoBrainDump');if(dump)return;
     dump=document.createElement('section');dump.id='todoBrainDump';dump.className='brain-dump';
     dump.innerHTML=`<div class="brain-dump-head"><div class="brain-dump-title">Brain Dump</div><div class="brain-dump-note">Ideas, thoughts, reminders · not everything needs to become a task</div></div><textarea class="brain-dump-input" id="brainDumpInput" rows="4" aria-label="Brain dump" placeholder="Write anything here... ideas, things to remember, random thoughts, questions, plans..."></textarea>`;
     todoList.insertAdjacentElement('afterend',dump);
@@ -128,28 +138,43 @@
 
   function studyLegacyMinutes(date){
     if(typeof pomo==='undefined'||!Array.isArray(pomo.completedFocus))return 0;const k=localKey(date);
-    return pomo.completedFocus.reduce((sum,e)=>{const ts=Number(e.ts||e.timestamp||0);return (e.key===k||ts&&localKey(new Date(ts))===k)?sum+(Number(e.minutes)||0):sum;},0);
+    return pomo.completedFocus.reduce((sum,e)=>{const ts=Number(e.ts||e.timestamp||0);return(e.key===k||ts&&localKey(new Date(ts))===k)?sum+(Number(e.minutes)||0):sum;},0);
   }
-  function studyMinutesForDate(date){const r=typeof pomo!=='undefined'&&pomo.dayHistory?pomo.dayHistory[localKey(date)]:null;if(!r)return studyLegacyMinutes(date);const now=Date.now(),start=Math.max(new Date(date.getFullYear(),date.getMonth(),date.getDate()).getTime(),Number(r.startedAt)||0),end=Math.min(new Date(date.getFullYear(),date.getMonth(),date.getDate()+1).getTime(),r.endedAt==null?now:Number(r.endedAt));return Math.max(0,Math.floor((r.studyIntervals||[]).reduce((sum,i)=>sum+Math.max(0,(Math.min(end,intervalEnd(i,now))-Math.max(start,Number(i.start)||0))/60000),0)));}
-  function getLast7(){const a=[];for(let i=6;i>=0;i--){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-i);a.push({date:d,minutes:studyMinutesForDate(d)});}return a;}
+  function studyMinutesForDate(date){
+    const r=typeof pomo!=='undefined'&&pomo.dayHistory?pomo.dayHistory[localKey(date)]:null;
+    if(!r)return studyLegacyMinutes(date);
+    const now=Date.now(),start=Math.max(new Date(date.getFullYear(),date.getMonth(),date.getDate()).getTime(),Number(r.startedAt)||0),end=Math.min(new Date(date.getFullYear(),date.getMonth(),date.getDate()+1).getTime(),r.endedAt==null?now:Number(r.endedAt));
+    return Math.max(0,Math.floor((r.studyIntervals||[]).reduce((sum,i)=>sum+Math.max(0,(Math.min(end,intervalEnd(i,now))-Math.max(start,Number(i.start)||0))/60000),0)));
+  }
   function getAllHistory(){
     const map=new Map();
     if(typeof pomo!=='undefined'&&pomo.dayHistory)Object.keys(pomo.dayHistory).forEach(k=>{const p=k.split('-').map(Number);if(p.length===3)map.set(k,new Date(p[0],p[1],p[2]));});
     if(typeof pomo!=='undefined'&&Array.isArray(pomo.completedFocus))pomo.completedFocus.forEach(e=>{const ts=Number(e.ts||e.timestamp||0);if(ts){const d=new Date(ts),k=localKey(d);if(!map.has(k))map.set(k,new Date(d.getFullYear(),d.getMonth(),d.getDate()));}});
     return [...map.values()].sort((a,b)=>a-b).map(date=>({date,minutes:studyMinutesForDate(date)}));
   }
-  function openStudyHistory(){
-    if(document.getElementById('studyHistoryOverlay'))return;const days=getAllHistory(),max=Math.max(1,...days.map(d=>d.minutes));
-    const overlay=document.createElement('div');overlay.id='studyHistoryOverlay';overlay.className='study-history-overlay';
-    overlay.innerHTML=`<div class="study-history-modal" role="dialog" aria-modal="true"><div class="study-history-head"><div><div class="study-history-title">Full Study History</div><div class="study-pattern-hint">Every recorded day</div></div><button class="study-history-close" type="button">Close</button></div><div class="study-history-list">${days.length?days.map(d=>`<div class="study-history-row"><div class="study-history-date">${d.date.toLocaleDateString('en-SG',{day:'2-digit',month:'short',year:'numeric'})}</div><div class="study-history-bar"><div class="study-history-fill" style="width:${Math.max(0,Math.round(d.minutes/max*100))}%"></div></div><div class="study-history-hours">${formatDuration(d.minutes)}</div></div>`).join(''):'<div class="study-history-empty">No study sessions have been recorded yet.</div>'}</div></div>`;
-    document.body.appendChild(overlay);overlay.querySelector('.study-history-close').onclick=()=>overlay.remove();overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
+  function ensureStudyHistory(){
+    const anchor=document.getElementById('focusDayTimeline');
+    if(!anchor)return;
+    let dropdown=document.getElementById('studyHistoryDropdown');
+    if(!dropdown){
+      dropdown=document.createElement('details');
+      dropdown.id='studyHistoryDropdown';
+      dropdown.className='study-history-dropdown';
+      anchor.insertAdjacentElement('afterend',dropdown);
+    }
+    const days=getAllHistory();
+    const total=days.reduce((sum,d)=>sum+d.minutes,0);
+    const max=Math.max(1,...days.map(d=>d.minutes));
+    const barData=days.map(d=>{const height=d.minutes?Math.max(3,Math.round(d.minutes/max*160)):2;return `<div class="study-history-day"><div class="study-history-value">${formatDuration(d.minutes)}</div><div class="study-history-bar-wrap"><div class="study-history-bar" style="height:${height}px" title="${d.minutes} minutes studied"></div></div><div class="study-history-date">${d.date.toLocaleDateString('en-SG',{day:'2-digit',month:'short'})}</div></div>`;}).join('');
+    dropdown.innerHTML=`<summary><span>Study History</span><span class="study-history-meta">${days.length} recorded day${days.length===1?'':'s'} · ${formatDuration(total)} total</span></summary><div class="study-history-content"><div class="study-history-chart"><div class="study-history-chart-head"><div class="study-history-chart-title">Study time by day</div><div class="study-history-chart-total">Each bar = one day</div></div>${days.length?`<div class="study-history-bars">${barData}</div>`:'<div class="study-history-empty">No study sessions have been recorded yet. Your history will appear here automatically as you study.</div>'}</div></div>`;
   }
-  function ensureStudyPattern(){
-    const anchor=document.querySelector('.stats');if(!anchor)return;let widget=document.getElementById('studyPatternWidget');
-    if(!widget){widget=document.createElement('section');widget.id='studyPatternWidget';widget.className='study-pattern-widget';widget.setAttribute('role','button');widget.setAttribute('tabindex','0');anchor.insertAdjacentElement('afterend',widget);widget.addEventListener('click',openStudyHistory);widget.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openStudyHistory();}});}
-    const days=getLast7(),max=Math.max(1,...days.map(d=>d.minutes)),total=days.reduce((s,d)=>s+d.minutes,0);
-    widget.innerHTML=`<div class="study-pattern-head"><div class="study-pattern-title">Study Pattern</div><div class="study-pattern-hint">Click for full history</div></div><div class="study-pattern-total">Previous 7 days · ${formatDuration(total)} studied</div><div class="study-pattern-bars">${days.map(d=>{const h=d.minutes?Math.max(3,Math.round(d.minutes/max*76)):2;return `<div class="study-pattern-day"><div class="study-pattern-bar-wrap"><div class="study-pattern-bar" style="height:${h}px" title="${d.minutes} minutes"></div></div><div class="study-pattern-value">${formatDuration(d.minutes)}</div><div class="study-pattern-label">${d.date.toLocaleDateString('en-SG',{weekday:'short'}).slice(0,2)}</div></div>`;}).join('')}</div>`;
+
+  function boot(){
+    ensureStyles();
+    render();
+    ensureStudyHistory();
+    clearInterval(refreshTimer);
+    refreshTimer=setInterval(()=>{render();ensureStudyHistory();},10000);
   }
-  function boot(){ensureStyles();render();ensureStudyPattern();clearInterval(refreshTimer);refreshTimer=setInterval(()=>{render();ensureStudyPattern();},10000);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
