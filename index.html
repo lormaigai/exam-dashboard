@@ -5,14 +5,25 @@
   try{
     const r=await fetch(source,{cache:'no-store'});
     if(!r.ok) throw new Error('HTTP '+r.status);
-    let html=await r.text();
-    const addon='<script src="scripts/focus-day-timeline.js"><\\/script>';
-    if(!html.includes('scripts/focus-day-timeline.js')) html=html.replace('</body>',addon+'</body>');
-    document.open();
-    document.write(html);
-    document.close();
+    const parsed=new DOMParser().parseFromString(await r.text(),'text/html');
+    const scripts=[...parsed.querySelectorAll('script')];
+    document.head.innerHTML=parsed.head.innerHTML;
+    document.body.innerHTML=parsed.body.innerHTML;
+    for(const oldScript of scripts){
+      const script=document.createElement('script');
+      for(const attr of oldScript.attributes) script.setAttribute(attr.name,attr.value);
+      if(oldScript.src){
+        await new Promise((resolve,reject)=>{script.onload=resolve;script.onerror=()=>reject(new Error('Failed to load '+oldScript.src));document.body.appendChild(script);});
+      }else{
+        script.textContent=oldScript.textContent;
+        document.body.appendChild(script);
+      }
+    }
+    const addon=document.createElement('script');
+    addon.src='scripts/focus-day-timeline.js';
+    document.body.appendChild(addon);
   }catch(e){
-    document.body.innerHTML='<main style="font-family:system-ui;padding:32px"><h1>Exam Control</h1><p>Dashboard failed to load. Please refresh.</p><pre>'+String(e).replace(/[&<>]/g,'')+'</pre></main>';
+    document.body.innerHTML='<main style="font-family:system-ui;padding:32px"><h1>Exam Control</h1><p>Dashboard failed to load.</p><pre>'+String(e).replace(/[&<>]/g,'')+'</pre></main>';
   }
 })();
 </script></body></html>
