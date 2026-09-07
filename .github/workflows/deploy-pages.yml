@@ -41,6 +41,9 @@ jobs:
           PY
           mkdir -p _site/scripts
           cp scripts/focus-day-timeline.js _site/scripts/focus-day-timeline.js
+          cp scripts/focus-day-timeline-core.js _site/scripts/focus-day-timeline-core.js
+          cp scripts/study-history-monthly.js _site/scripts/study-history-monthly.js
+          cp scripts/study-history-monthly.css _site/scripts/study-history-monthly.css
           touch _site/.nojekyll
 
       - name: Upload Pages artifact
