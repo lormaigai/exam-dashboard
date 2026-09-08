@@ -34,14 +34,23 @@ jobs:
           script = '<script src="scripts/focus-day-timeline.js"></script>'
           for filename in ('_site/index.html', '_site/404.html'):
               path = Path(filename)
-              html = path.read_text()
-              if script not in html:
-                  html = html.replace('</body>', f'  {script}\n</body>')
-              path.write_text(html)
+              if script not in path.read_text():
+                  path.write_text(path.read_text().replace('</body>', f'  {script}\n</body>'))
           PY
           mkdir -p _site/scripts
-          cp scripts/focus-day-timeline.js _site/scripts/focus-day-timeline.js
+          cp scripts/focus-day-timeline.js \
+             scripts/focus-day-timeline-core.js \
+             scripts/study-history-monthly.js \
+             scripts/study-history-monthly.css \
+             _site/scripts/
           touch _site/.nojekyll
+
+      - name: Verify focus tracking assets
+        run: |
+          test -s _site/scripts/focus-day-timeline.js
+          test -s _site/scripts/focus-day-timeline-core.js
+          test -s _site/scripts/study-history-monthly.js
+          test -s _site/scripts/study-history-monthly.css
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
