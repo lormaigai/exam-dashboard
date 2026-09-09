@@ -2207,6 +2207,9 @@ function collectData(){
 
 function applyData(data){
   loadedRaw = (data && typeof data === 'object') ? data : {};
+  // Custom / imported-template setups are fully self-contained: no RGS sample
+  // subjects, topic backfill or exam-timetable repair is applied to them.
+  const isCustom = loadedRaw.customContent === true;
   const rawExams = Array.isArray(loadedRaw.exams) ? loadedRaw.exams : loadedRaw.EXAMS;
   const exams = normalizeExams(Array.isArray(rawExams) ? rawExams : []);
   // A student who built their own setup can legitimately have zero exams saved;
@@ -2219,29 +2222,38 @@ function applyData(data){
   const topics = Object.keys(fromLower).length ? fromLower : fromUpper;
   TOPICS = Object.keys(topics).length ? topics : JSON.parse(JSON.stringify(DEFAULT_TOPICS));
   dataWasSanitized = false;
-  const examRevision = applyExamRevisionV13(EXAMS);
-  EXAMS = examRevision.exams;
-  dataWasSanitized = examRevision.changed;
-  EXAMS.forEach(exam=>{
-    if(exam.subj === "GEOG" && exam.name === "Geography CBA2" && exam.date === "2026-08-03"){
-      exam.date = "2026-08-04";
-      dataWasSanitized = true;
-    }
-  });
-  Object.keys(DEFAULT_TOPICS).forEach(code=>{
-    if(!hasCurriculum(code, TOPICS)){
-      TOPICS[code] = JSON.parse(JSON.stringify(DEFAULT_TOPICS[code]));
-      dataWasSanitized = true;
-    }
-  });
+  if(isCustom){
+    // Repair accounts poisoned by the first release of this feature: strip any
+    // RGS revision exams that were injected into a custom setup's saved list.
+    const rgsKeys = new Set();
+    EXAM_REVISION_V13.forEach(r=>{ [...r.aliases,examRevisionNameKey(r.name)].forEach(a=>rgsKeys.add(`${r.subj}|${a}`)); });
+    const stripped = EXAMS.filter(e=>!rgsKeys.has(`${e.subj}|${examRevisionNameKey(e.name)}`));
+    if(stripped.length !== EXAMS.length){ EXAMS = stripped; dataWasSanitized = true; }
+  } else {
+    const examRevision = applyExamRevisionV13(EXAMS);
+    EXAMS = examRevision.exams;
+    dataWasSanitized = examRevision.changed;
+    EXAMS.forEach(exam=>{
+      if(exam.subj === "GEOG" && exam.name === "Geography CBA2" && exam.date === "2026-08-03"){
+        exam.date = "2026-08-04";
+        dataWasSanitized = true;
+      }
+    });
+    Object.keys(DEFAULT_TOPICS).forEach(code=>{
+      if(!hasCurriculum(code, TOPICS)){
+        TOPICS[code] = JSON.parse(JSON.stringify(DEFAULT_TOPICS[code]));
+        dataWasSanitized = true;
+      }
+    });
+  }
   const subjects = loadedRaw.subjects || loadedRaw.SUBJECTS;
   const savedSubjectCodes = (subjects && typeof subjects==='object' && !Array.isArray(subjects)) ? Object.keys(subjects) : [];
-  SUBJECTS = Object.assign({}, DEFAULT_SUBJECTS, (subjects && typeof subjects==='object' && !Array.isArray(subjects)) ? subjects : {});
+  SUBJECTS = Object.assign({}, isCustom ? {} : DEFAULT_SUBJECTS, (subjects && typeof subjects==='object' && !Array.isArray(subjects)) ? subjects : {});
   Object.keys(SUBJECTS).forEach(code=>{
     if(!SUBJECTS[code] || typeof SUBJECTS[code] !== 'object' || !SUBJECTS[code].name) SUBJECTS[code] = { name: String(code), color:"#5B7A6B" };
   });
   Object.keys(TOPICS).forEach(code=>{ if(!SUBJECTS[code]) SUBJECTS[code] = { name: code, color:"#5B7A6B" }; });
-  dataWasSanitized = removeEmptySubjectDuplicates(SUBJECTS, TOPICS) || dataWasSanitized;
+  if(!isCustom) dataWasSanitized = removeEmptySubjectDuplicates(SUBJECTS, TOPICS) || dataWasSanitized;
   state.checkedTopics = (loadedRaw.checkedTopics && typeof loadedRaw.checkedTopics==='object') ? loadedRaw.checkedTopics : {};
   state.todos = normalizeTodos(Array.isArray(loadedRaw.todos) ? loadedRaw.todos : loadedRaw.goals);
   state.weekPlan = normalizeWeekPlan(loadedRaw.weekPlan);
@@ -2265,6 +2277,18 @@ function applyData(data){
   pomo.dayHistory=mergeDayHistory(pomo.dayHistory,loadedRaw.dayHistory);
   const savedActive = Array.isArray(loadedRaw.activeSubjects) ? loadedRaw.activeSubjects.filter(code=>SUBJECTS[code]) : savedSubjectCodes.filter(code=>SUBJECTS[code]);
   state.activeSubjects = [...new Set(savedActive)];
+  if(isCustom){
+    // Same poison repair as above: drop RGS sample subjects (and their
+    // checklists) that got merged into a custom setup before the fix. One the
+    // student actually selected stays.
+    Object.keys(SUBJECTS).forEach(code=>{
+      if(DEFAULT_SUBJECTS[code] && !state.activeSubjects.includes(code)){
+        delete SUBJECTS[code];
+        delete TOPICS[code];
+        dataWasSanitized = true;
+      }
+    });
+  }
   const savedAppearance=loadedRaw.appearance;
   const migratedFont=savedAppearance && FONT_OPTIONS[savedAppearance.font] ? savedAppearance.font : "original";
   if(savedAppearance && savedAppearance.custom===true && isHexColour(savedAppearance.primary) && isHexColour(savedAppearance.secondary)){
@@ -3600,8 +3624,8 @@ function importTemplateFromText(text){
 // Merges the template's subjects/topics into the app and replaces the exam
 // list. Progress checkmarks reset — a new setup means a fresh checklist.
 function applyTemplateData(data){
-  SUBJECTS = Object.assign({}, SUBJECTS, JSON.parse(JSON.stringify(data.subjects||{})));
-  TOPICS = Object.assign({}, TOPICS, JSON.parse(JSON.stringify(data.topics||{})));
+  SUBJECTS = JSON.parse(JSON.stringify(data.subjects||{}));
+  TOPICS = JSON.parse(JSON.stringify(data.topics||{}));
   EXAMS = normalizeExams(JSON.parse(JSON.stringify(data.exams||[])));
   state.activeSubjects = (data.activeSubjects||[]).filter(code=>SUBJECTS[code]);
   if(!state.activeSubjects.length) state.activeSubjects = Object.keys(data.subjects||{});
@@ -3751,7 +3775,7 @@ document.getElementById('builderAddSubjBtn').addEventListener('click', ()=>{
   const code = codeInput.value.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6);
   const name = nameInput.value.trim().slice(0,60);
   if(!code || !name){ errorEl.textContent = "Give the subject a short code and a full name."; errorEl.style.display = "inline"; return; }
-  if(builder.subjects[code] || SUBJECTS[code]){ errorEl.textContent = "That code is taken — try another one."; errorEl.style.display = "inline"; return; }
+  if(builder.subjects[code]){ errorEl.textContent = "That code is already in your list."; errorEl.style.display = "inline"; return; }
   errorEl.style.display = "none";
   builder.subjects[code] = { name, color: BUILDER_PALETTE[Object.keys(builder.subjects).length % BUILDER_PALETTE.length] };
   codeInput.value = ""; nameInput.value = "";
@@ -3811,7 +3835,11 @@ document.getElementById('builderExamList').addEventListener('click', (e)=>{
   renderBuilderExams();
 });
 function commitBuilder(){
+  // A custom setup replaces the sample content wholesale — no RGS subjects,
+  // topics or exam dates bleed into someone else's dashboard.
+  SUBJECTS = {};
   Object.entries(builder.subjects).forEach(([code,s])=>{ SUBJECTS[code] = s; });
+  TOPICS = {};
   Object.entries(builder.topicSections).forEach(([code,sections])=>{
     if(sections.length) TOPICS[code] = buildTopics(code, sections);
   });
