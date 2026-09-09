@@ -1,15 +1,25 @@
-# Exam Control — Y4 2026
+# Exam Dashboard
 
-A single-page exam-prep dashboard for a Sec 4 (Year 4) student's T3/T4 2026 run
-of end-year assessments and O-Levels. The whole app is one self-contained file,
-`index.html` — editorial "control desk" styling, no build step.
+A single-page exam-prep dashboard for Singapore students: exam countdowns,
+syllabus checklists, a focus timer and a weekly plan. The whole app is one
+self-contained file, `index.html` — editorial "control desk" styling, no build
+step. Ships with the RGS Year 4 · 2026 preset (T3/T4 exam dates + full syllabus
+checklists); any student can also build their own setup or import a template a
+friend shared.
 
 ## Features
 
-- **Account gate first.** The first screen is email + password sign-in / create
-  account (Supabase). Each student's progress is saved to their own row in the
-  `user_progress` table (row-level-security scoped per user) and syncs across
-  devices; it also mirrors to `localStorage` so the app keeps working offline.
+- **Live demo first.** Logged-out visitors can click through the whole app
+  with sample data; scrolling deeper or interacting beyond the tabs opens the
+  create-account gate. Accounts are email + password (Supabase). Each student's
+  progress is saved to their own row in the `user_progress` table
+  (row-level-security scoped per user) and syncs across devices; it also
+  mirrors to `localStorage` so the app keeps working offline.
+- **Two ways to set up.** New accounts pick a template (built-in RGS Year 4 ·
+  2026 preset, or one shared by a friend) or a guided builder (subjects →
+  syllabus units → exam dates).
+- **Shareable templates.** Edit Data → Templates exports your setup as a JSON
+  file to send to friends; they import it during sign-up or in Edit Data.
 - **Overview** — next-paper countdown, "up next" timetable, and coverage stats.
 - **Calendar** — month grid of exam days plus the full timetable in order.
 - **Study Tracker** — per-skill syllabus checklists for every subject; ticking a
