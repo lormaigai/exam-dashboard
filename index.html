@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Y4 Exam Control — T3/T4 2026</title>
+<title>Exam Dashboard</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo+Expanded:wght@600;700;800&family=Caveat:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600;1,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Gaegu:wght@400;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Libre+Franklin:wght@400;500;600;700&family=Lora:wght@600;700&family=Manrope:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Syne:wght@600;700;800&display=swap');
 
@@ -428,15 +428,56 @@
   .edit-coach::before{content:""; position:absolute; top:-12px; right:28px; width:18px; height:18px; background:var(--amber); border-left:2px solid var(--ink); border-top:2px solid var(--ink); transform:rotate(45deg);}
   .tab.coach-target{opacity:1; background:var(--amber); color:var(--ink); border-top-color:var(--ink); animation:coachPulse 1.2s ease-in-out 2;}
   @keyframes coachPulse{50%{transform:translateY(-4px);}}
+
+  /* ===== Preview mode (logged-out live demo) ===== */
+  .preview-banner{display:none; max-width:1180px; margin:12px auto 0; padding:12px 16px; border:2px solid var(--ink); background:var(--amber); color:var(--ink); align-items:center; gap:14px; flex-wrap:wrap;}
+  body.preview-mode .preview-banner{display:flex;}
+  .preview-banner-text{font-family:var(--font-mono); font-size:11px; letter-spacing:.4px; text-transform:uppercase; flex:1; min-width:200px; line-height:1.5;}
+  .preview-banner-actions{display:flex; gap:8px;}
+  .preview-btn{font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:1px; padding:8px 14px; border:2px solid var(--ink); background:var(--theme-dark); color:var(--on-dark); cursor:pointer;}
+  .preview-btn.ghost{background:transparent; color:var(--ink);}
+  body.preview-mode .masthead-right, body.preview-mode .save-indicator{display:none;}
+  .preview-gate{position:fixed; inset:0; z-index:950; display:none; align-items:center; justify-content:center; padding:24px; background:rgba(20,20,20,.38);}
+  .preview-gate.show{display:flex;}
+  .preview-gate-card{width:min(430px,100%); background:var(--paper); border:2px solid var(--ink); box-shadow:6px 6px 0 var(--ink); padding:24px;}
+  .preview-gate-title{font-family:var(--font-display); font-weight:800; font-size:22px; line-height:1.15;}
+  .preview-gate-copy{font-size:13.5px; line-height:1.55; opacity:.75; margin:10px 0 18px;}
+  .preview-gate-actions{display:flex; flex-direction:column; gap:8px;}
+  .preview-gate-btn{font-family:var(--font-mono); font-size:12px; text-transform:uppercase; letter-spacing:1px; padding:12px; border:2px solid var(--ink); background:var(--theme-dark); color:var(--on-dark); cursor:pointer; text-align:center;}
+  .preview-gate-btn.secondary{background:var(--paper); color:var(--ink);}
+  .preview-gate-dismiss{display:block; margin:12px auto 0; background:none; border:none; font-family:var(--font-mono); font-size:10.5px; opacity:.55; cursor:pointer; text-decoration:underline;}
+
+  /* ===== Onboarding: path choice / templates / guided builder ===== */
+  .path-cards{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:24px 0;}
+  @media(max-width:650px){.path-cards{grid-template-columns:1fr;}}
+  .path-card{border:2px solid var(--ink); background:var(--paper); padding:20px; cursor:pointer; text-align:left;}
+  .path-card:hover{background:var(--sage-dim); border-color:var(--sage);}
+  .path-card-title{font-family:var(--font-display); font-size:18px; margin-bottom:6px;}
+  .path-card-copy{font-size:13px; line-height:1.5; opacity:.7;}
+  .template-list{display:grid; gap:10px; margin:20px 0;}
+  .template-card{display:flex; align-items:center; gap:14px; border:2px solid var(--ink); background:var(--paper); padding:14px 16px; cursor:pointer; text-align:left;}
+  .template-card:hover{border-color:var(--sage); background:var(--sage-dim);}
+  .template-card-main{flex:1;}
+  .template-card-name{font-family:var(--font-display); font-size:15px;}
+  .template-card-meta{font-family:var(--font-mono); font-size:10px; opacity:.6; text-transform:uppercase; letter-spacing:.5px; margin-top:3px;}
+  .template-tag{font-family:var(--font-mono); font-size:9px; text-transform:uppercase; letter-spacing:1px; border:1px solid var(--ink); padding:3px 6px; white-space:nowrap;}
+  .builder-list{display:grid; gap:6px; margin:14px 0 6px;}
+  .builder-row{display:flex; align-items:center; gap:10px; border:1px solid var(--line); background:var(--paper); padding:8px 12px; font-size:13px;}
+  .builder-row-main{flex:1; line-height:1.4;}
+  .builder-row-meta{font-family:var(--font-mono); font-size:10px; opacity:.55;}
+  .builder-remove{border:none; background:none; cursor:pointer; font-family:var(--font-mono); font-size:11px; color:var(--red); text-decoration:underline; white-space:nowrap;}
+  .builder-empty{font-family:var(--font-mono); font-size:11px; opacity:.5; padding:10px 0;}
+  .builder-textarea{width:100%; font-family:var(--font-body); font-size:13px; padding:10px 12px; border:1px solid var(--ink); background:var(--paper);}
+  .onboarding-hint{font-family:var(--font-mono); font-size:10.5px; line-height:1.6; opacity:.55; margin-top:16px;}
 </style>
 </head>
 <body>
 
 <!-- ============ AUTH GATE (first screen) ============ -->
-<div class="auth-gate" id="authGate">
+<div class="auth-gate hidden" id="authGate">
   <div class="auth-card-wrap">
     <div class="auth-brand">
-      <div class="auth-brand-title disp">EXAM CONTROL — Y4 2026</div>
+      <div class="auth-brand-title disp">EXAM DASHBOARD</div>
       <div class="auth-brand-sub mono">Sign in to track your exam prep</div>
     </div>
     <div class="auth-card">
@@ -458,6 +499,7 @@
       </form>
       <div class="auth-forgot mono" id="authForgot">Forgot password?</div>
       <div class="auth-foot mono">Your progress is saved to your account and synced across devices.</div>
+      <div class="auth-forgot mono" id="authBackToDemo" role="button" style="margin-top:12px;">← Back to the live demo</div>
     </div>
   </div>
 </div>
@@ -465,10 +507,104 @@
 <!-- ============ SUBJECT ONBOARDING ============ -->
 <div class="onboarding" id="subjectOnboarding" aria-hidden="true">
   <div class="onboarding-inner">
+    <div class="onboarding-step" id="pathOnboardingStep" hidden>
+      <div class="onboarding-kicker">Welcome</div>
+      <h1 class="onboarding-title">How do you want to start?</h1>
+      <p class="onboarding-copy">Exam Dashboard tracks your exams, syllabus checklists and study time. Start from a ready-made template, or build your own setup step by step.</p>
+      <div class="path-cards">
+        <button class="path-card" id="pathTemplateBtn" type="button">
+          <div class="path-card-title">Use a template</div>
+          <div class="path-card-copy">Pick a ready-made setup — subjects, exam dates and syllabus checklists included. You can also import one a friend shared with you.</div>
+        </button>
+        <button class="path-card" id="pathCustomBtn" type="button">
+          <div class="path-card-title">Create my own</div>
+          <div class="path-card-copy">A short guided setup: your subjects, your syllabus units, your exam dates. Takes about two minutes.</div>
+        </button>
+      </div>
+    </div>
+    <div class="onboarding-step" id="templateOnboardingStep" hidden>
+      <div class="onboarding-kicker">Templates</div>
+      <h1 class="onboarding-title">Pick a template.</h1>
+      <p class="onboarding-copy">Everything in the template becomes yours to edit afterwards — dates, subjects, checklists, all of it.</p>
+      <div class="template-list" id="templateList"></div>
+      <div class="goal-box" style="max-width:560px;">
+        <div class="mono" style="font-size:10px; text-transform:uppercase; letter-spacing:1px; opacity:.55; margin-bottom:10px;">Import a template a friend shared</div>
+        <div class="todo-field"><label for="templateImportFile">Template file (.json)</label><input type="file" id="templateImportFile" accept="application/json,.json"></div>
+        <div class="todo-field" style="margin-top:10px;"><label for="templateImportText">…or paste the template text</label><textarea id="templateImportText" class="builder-textarea" rows="3"></textarea></div>
+        <button class="btn btn-outline btn-small" id="templateImportBtn" type="button" style="margin-top:10px;">Add template</button>
+        <span class="onboarding-error" id="templateImportError">That doesn't look like an Exam Dashboard template.</span>
+      </div>
+      <div class="onboarding-hint">Made a setup your friends would want? Once you're in, open Edit Data → Templates to save yours as a file you can share.</div>
+      <div class="onboarding-actions" style="margin-top:20px;">
+        <button class="btn btn-outline" id="backToPathFromTemplates" type="button">Back</button>
+      </div>
+    </div>
+    <div class="onboarding-step" id="builderSubjectsStep" hidden>
+      <div class="onboarding-kicker">Create your own · Step 1 of 3</div>
+      <h1 class="onboarding-title">Your subjects.</h1>
+      <p class="onboarding-copy">Add every subject you want to track. The short code is just a label (e.g. EMATH, BIO, HCL) — you'll see it next to exam dates.</p>
+      <div class="todo-field" style="max-width:420px;margin:18px 0 6px;">
+        <label for="builderDisplayName">What should we call you?</label>
+        <input type="text" id="builderDisplayName" maxlength="30" autocomplete="name" placeholder="Your display name">
+      </div>
+      <div class="goal-box" style="max-width:560px; margin-top:14px;">
+        <div class="field-row">
+          <div class="field"><label>Subject code (short)</label><input type="text" id="builderSubjCode" placeholder="e.g. EMATH" maxlength="6"></div>
+          <div class="field" style="flex:2"><label>Full name</label><input type="text" id="builderSubjName" placeholder="e.g. Elementary Math"></div>
+        </div>
+        <button class="btn" id="builderAddSubjBtn" type="button">+ Add subject</button>
+        <div class="builder-list" id="builderSubjList"></div>
+      </div>
+      <div class="onboarding-actions" style="margin-top:20px;">
+        <button class="btn btn-outline" id="backToPathFromBuilder" type="button">Back</button>
+        <button class="btn" id="builderToUnitsBtn" type="button">Continue</button>
+        <span class="onboarding-error" id="builderSubjError">Enter your name and add at least one subject.</span>
+      </div>
+    </div>
+    <div class="onboarding-step" id="builderUnitsStep" hidden>
+      <div class="onboarding-kicker">Create your own · Step 2 of 3</div>
+      <h1 class="onboarding-title">Syllabus units.</h1>
+      <p class="onboarding-copy">For each subject, add the units on your exam and the topics inside them — one topic per line. These become your checklists. You can add or fix anything later in Edit Data.</p>
+      <div class="goal-box" style="max-width:640px; margin-top:18px;">
+        <div class="field-row">
+          <div class="field"><label>Subject</label><select id="builderUnitSubj"></select></div>
+          <div class="field" style="flex:2"><label>Unit name</label><input type="text" id="builderUnitName" placeholder="e.g. Vectors"></div>
+          <div class="field"><label>Assessed in (optional)</label><input type="text" id="builderUnitWeight" placeholder="e.g. WA2 · EOY"></div>
+        </div>
+        <div class="todo-field" style="margin-top:10px;"><label for="builderUnitTopics">Topics — one per line</label><textarea id="builderUnitTopics" class="builder-textarea" rows="4" placeholder="Vector notation and magnitude&#10;Scalar product and its properties"></textarea></div>
+        <button class="btn" id="builderAddUnitBtn" type="button">+ Add unit</button>
+        <span class="onboarding-error" id="builderUnitError">Pick a subject and give the unit a name.</span>
+        <div class="builder-list" id="builderUnitList"></div>
+      </div>
+      <div class="onboarding-actions" style="margin-top:20px;">
+        <button class="btn btn-outline" id="backToBuilderSubjects" type="button">Back</button>
+        <button class="btn" id="builderToExamsBtn" type="button">Continue</button>
+      </div>
+    </div>
+    <div class="onboarding-step" id="builderExamsStep" hidden>
+      <div class="onboarding-kicker">Create your own · Step 3 of 3</div>
+      <h1 class="onboarding-title">Exam dates.</h1>
+      <p class="onboarding-copy">Add the assessments you want the countdown and calendar to track. You can add or change dates anytime in Edit Data.</p>
+      <div class="goal-box" style="max-width:640px; margin-top:18px;">
+        <div class="field-row">
+          <div class="field"><label>Date</label><input type="date" id="builderExamDate"></div>
+          <div class="field" style="flex:2"><label>Exam name</label><input type="text" id="builderExamName" placeholder="e.g. E-Math Prelim Paper 2"></div>
+          <div class="field"><label>Subject</label><select id="builderExamSubj"></select></div>
+        </div>
+        <button class="btn" id="builderAddExamBtn" type="button">+ Add exam</button>
+        <span class="onboarding-error" id="builderExamError">Pick a date, name the exam and choose a subject.</span>
+        <div class="builder-list" id="builderExamList"></div>
+      </div>
+      <div class="onboarding-actions" style="margin-top:20px;">
+        <button class="btn btn-outline" id="backToBuilderUnits" type="button">Back</button>
+        <button class="btn" id="builderToAppearanceBtn" type="button">Continue</button>
+      </div>
+    </div>
+
     <div class="onboarding-step" id="subjectOnboardingStep">
-      <div class="onboarding-kicker">Step 1 of 2 · Set up your dashboard</div>
-      <h1 class="onboarding-title">Which subjects do you take?</h1>
-      <p class="onboarding-copy">Choose every subject you want Exam Control to track. Your dashboard, calendar and syllabus checklists will only show these subjects.</p>
+      <div class="onboarding-kicker" id="subjectStepKicker">Set up your dashboard</div>
+      <h1 class="onboarding-title" id="subjectStepTitle">Which subjects do you take?</h1>
+      <p class="onboarding-copy">Choose every subject you want Exam Dashboard to track. Your dashboard, calendar and syllabus checklists will only show these subjects.</p>
       <div class="todo-field" style="max-width:420px;margin:18px 0 20px;">
         <label for="onboardingDisplayName">What should we call you?</label>
         <input type="text" id="onboardingDisplayName" maxlength="30" autocomplete="name" placeholder="Your display name">
@@ -481,7 +617,7 @@
       </div>
     </div>
     <div class="onboarding-step" id="appearanceOnboardingStep" hidden>
-        <div class="onboarding-kicker">Step 2 of 2 · Personalise</div>
+        <div class="onboarding-kicker">Final step · Personalise</div>
         <h1 class="onboarding-title">Make it yours.</h1>
         <p class="onboarding-copy">Choose the colours and typography that feel like you. Every shade and font can be changed again later.</p>
         <div class="onboarding-theme-wrap">
@@ -521,6 +657,13 @@
 
 <!-- ============ APP (hidden until signed in) ============ -->
 <div id="appShell" style="display:none;">
+<div class="preview-banner" id="previewBanner">
+  <div class="preview-banner-text">Live demo · sample data (RGS Y4) — click around the tabs</div>
+  <div class="preview-banner-actions">
+    <button class="preview-btn ghost" id="previewSignInBtn" type="button">Sign in</button>
+    <button class="preview-btn" id="previewSignUpBtn" type="button">Create free account</button>
+  </div>
+</div>
 
 <div class="app-notice" id="appNotice" role="status"></div>
 
@@ -528,7 +671,7 @@
   <div class="masthead-row">
     <div>
       <div class="masthead-welcome" id="welcomeMessage">Welcome back</div>
-      <div class="masthead-title">EXAM CONTROL — Y4 2026</div>
+      <div class="masthead-title">EXAM DASHBOARD</div>
       <div class="masthead-sub" id="mastheadSubjects">Your selected subjects</div>
     </div>
     <div class="masthead-right">
@@ -759,6 +902,23 @@
     <button class="btn btn-outline btn-small" id="editRestoreOriginal" type="button">Restore original</button>
 
     <div class="sec-head">
+      <div class="sec-title">Templates</div>
+      <div class="sec-note">save your setup as a file to share with friends · import one shared with you</div>
+    </div>
+    <div class="goal-box" style="max-width:640px;">
+      <div class="todo-field"><label for="templateExportName">Template name</label><input type="text" id="templateExportName" maxlength="40" placeholder="e.g. NYG Sec 4 · 2026"></div>
+      <button class="btn" id="templateExportBtn" type="button" style="margin-top:10px;">Download my setup as a template</button>
+      <div class="onboarding-hint">Only your selected subjects, their checklists and their exam dates go into the file. Send it to a friend — they can import it here or when they sign up.</div>
+    </div>
+    <div class="goal-box" style="max-width:640px;">
+      <div class="todo-field"><label for="editTemplateImportFile">Import template file (.json)</label><input type="file" id="editTemplateImportFile" accept="application/json,.json"></div>
+      <div class="todo-field" style="margin-top:10px;"><label for="editTemplateImportText">…or paste the template text</label><textarea id="editTemplateImportText" class="builder-textarea" rows="3"></textarea></div>
+      <button class="btn btn-outline btn-small" id="editTemplateImportBtn" type="button" style="margin-top:10px;">Add template</button>
+      <span class="onboarding-error" id="editTemplateImportError">That doesn't look like an Exam Dashboard template.</span>
+    </div>
+    <div class="builder-list" id="editTemplateList" style="max-width:640px;"></div>
+
+    <div class="sec-head">
       <div class="sec-title">Subjects in Your Dashboard</div>
       <div class="sec-note">change this whenever your subject combination changes</div>
     </div>
@@ -800,11 +960,23 @@
   </div>
 </div>
 
-<footer>Y4 Exam Control · progress synced to your account</footer>
+<footer>Exam Dashboard · progress synced to your account</footer>
 
 </div><!-- /appShell -->
 
   <div class="edit-coach" id="editCoach" role="status">You can change your colours, font, exam dates and subject topics here.</div>
+
+<div class="preview-gate" id="previewGate" role="dialog" aria-modal="true">
+  <div class="preview-gate-card">
+    <div class="preview-gate-title">Like what you see?</div>
+    <div class="preview-gate-copy">Create a free account to build your own dashboard — your subjects, your syllabus, your exam dates. Saved to your account and synced across devices.</div>
+    <div class="preview-gate-actions">
+      <button class="preview-gate-btn" id="gateSignUpBtn" type="button">Create free account</button>
+      <button class="preview-gate-btn secondary" id="gateSignInBtn" type="button">I already have an account</button>
+    </div>
+    <button class="preview-gate-dismiss" id="gateDismissBtn" type="button">keep exploring the demo</button>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -1626,6 +1798,7 @@ const state = {
   activeSubjects: [],
   appearance: {...ORIGINAL_APPEARANCE},
   onboardingComplete: false,
+  customContent: false,
   editCoachSeen: false,
   contentVersion: CONTENT_VERSION,
 };
@@ -2021,6 +2194,7 @@ function collectData(){
     activeSubjects: state.activeSubjects,
     appearance: state.appearance,
     onboardingComplete: state.onboardingComplete,
+    customContent: state.customContent === true,
     editCoachSeen: state.editCoachSeen,
     contentVersion: state.contentVersion || CONTENT_VERSION,
     lastSavedISO: new Date().toISOString(),
@@ -2035,7 +2209,9 @@ function applyData(data){
   loadedRaw = (data && typeof data === 'object') ? data : {};
   const rawExams = Array.isArray(loadedRaw.exams) ? loadedRaw.exams : loadedRaw.EXAMS;
   const exams = normalizeExams(Array.isArray(rawExams) ? rawExams : []);
-  EXAMS = exams.length ? exams : buildDefaultExams();
+  // A student who built their own setup can legitimately have zero exams saved;
+  // only fall back to the sample timetable when no list was ever saved.
+  EXAMS = (exams.length || (loadedRaw.customContent === true && Array.isArray(rawExams))) ? exams : buildDefaultExams();
   // Prefer whichever topics map actually contains valid checklists — old app
   // versions polluted one of the two keys with foreign data.
   const fromLower = normalizeTopics(loadedRaw.topics);
@@ -2104,6 +2280,7 @@ function applyData(data){
   state.onboardingComplete = Object.prototype.hasOwnProperty.call(loadedRaw,"onboardingComplete")
     ? loadedRaw.onboardingComplete === true
     : savedSubjectCodes.length > 0;
+  state.customContent = loadedRaw.customContent === true;
   state.editCoachSeen = loadedRaw.editCoachSeen === true;
   const firstActive = activeSubjectCodes()[0];
   state.selectedSubject = (loadedRaw.selectedSubject && isSubjectActive(loadedRaw.selectedSubject) && TOPICS[loadedRaw.selectedSubject])
@@ -2119,6 +2296,7 @@ let dirty = false;
 let saveRevision = 0;
 let dataWasSanitized = false;
 async function saveAll(){
+  if(previewMode) return;
   dirty = true;
   saveRevision++;
   const payload = collectData();
@@ -2190,14 +2368,22 @@ let onboardingOpenedForEdit = false;
 function renderOnboardingChoices(){
   const selected = new Set(activeSubjectCodes());
   const wrap = document.getElementById('onboardingSubjectGroups');
-  wrap.innerHTML = SUBJECT_GROUPS.map(group=>`
+  // Group whatever subjects are currently available — the built-in groups cover
+  // the RGS preset; anything else (custom or imported subjects) lands in its own group.
+  const groups = SUBJECT_GROUPS
+    .map(group=>({name:group.name, codes:group.codes.filter(code=>SUBJECTS[code])}))
+    .filter(group=>group.codes.length);
+  const grouped = new Set(groups.flatMap(group=>group.codes));
+  const extras = Object.keys(SUBJECTS).filter(code=>!grouped.has(code));
+  if(extras.length) groups.push({name:"More subjects", codes:extras});
+  wrap.innerHTML = groups.map(group=>`
     <section class="subject-group">
       <h2 class="subject-group-title">${group.name}</h2>
       <div class="subject-options">
         ${group.codes.map(code=>`
           <label class="subject-option">
             <input type="checkbox" value="${code}" ${selected.has(code)?'checked':''}>
-            <span>${DEFAULT_SUBJECTS[code].name}</span>
+            <span>${SUBJECTS[code].name}</span>
             <span class="subject-option-code">${code}</span>
           </label>
         `).join('')}
@@ -2210,11 +2396,20 @@ function openSubjectOnboarding(forEdit=false){
   renderOnboardingChoices();
   syncAppearanceControls();
   document.getElementById('onboardingDisplayName').value = state.displayName;
-  document.getElementById('subjectOnboardingStep').hidden = false;
-  document.getElementById('appearanceOnboardingStep').hidden = true;
   document.getElementById('onboardingError').style.display = "none";
-  document.getElementById('saveSubjectSelection').textContent = forEdit ? "Update my subjects" : "Continue";
-  document.getElementById('cancelSubjectSelection').style.display = forEdit ? "inline-flex" : "none";
+  if(forEdit){
+    onboardingPath = 'edit';
+    document.getElementById('subjectStepKicker').textContent = "Your subjects";
+    document.getElementById('subjectStepTitle').textContent = "Which subjects do you take?";
+    document.getElementById('saveSubjectSelection').textContent = "Update my subjects";
+    document.getElementById('cancelSubjectSelection').style.display = "inline-flex";
+    showOnboardingStep('subjectOnboardingStep');
+  } else {
+    // New accounts choose how to set up: template or guided custom builder.
+    onboardingPath = null;
+    resetBuilder();
+    showOnboardingStep('pathOnboardingStep');
+  }
   const overlay = document.getElementById('subjectOnboarding');
   overlay.classList.add('show');
   overlay.setAttribute('aria-hidden','false');
@@ -2235,6 +2430,7 @@ function renderSubjectAwareViews(){
   renderSubjEditList();
   renderTopicEditor();
   populateTodoSubjectDropdown();
+  renderEditTemplateList();
   syncAppearanceControls();
 }
 function renderProfile(){
@@ -2278,15 +2474,12 @@ document.getElementById('saveSubjectSelection').addEventListener('click', ()=>{
     saveAll();
     return;
   }
-  document.getElementById('subjectOnboardingStep').hidden = true;
-  document.getElementById('appearanceOnboardingStep').hidden = false;
-  document.getElementById('subjectOnboarding').scrollTop = 0;
+  showOnboardingStep('appearanceOnboardingStep');
   saveAll();
 });
 document.getElementById('backToSubjects').addEventListener('click',()=>{
-  document.getElementById('appearanceOnboardingStep').hidden = true;
-  document.getElementById('subjectOnboardingStep').hidden = false;
-  document.getElementById('subjectOnboarding').scrollTop = 0;
+  if(onboardingPath==='custom') showOnboardingStep('builderExamsStep');
+  else showOnboardingStep('subjectOnboardingStep');
 });
 document.getElementById('finishOnboarding').addEventListener('click',()=>{
   state.onboardingComplete = true;
@@ -3194,7 +3387,7 @@ function renderPomodoro(){
 
 function updateTitle(){
   if(pomo.running){
-    document.title = fmtClock(remainingMsNow()) + " · " + phaseLabel(pomo.phase) + " · Exam Control";
+    document.title = fmtClock(remainingMsNow()) + " · " + phaseLabel(pomo.phase) + " · Exam Dashboard";
   } else {
     document.title = baseTitle;
   }
@@ -3307,6 +3500,394 @@ document.getElementById('soundToggle').addEventListener('click', ()=>{ pomo.soun
   });
 });
 
+
+/* ============================================================
+   ONBOARDING PATHS — template picker + guided custom builder
+   ============================================================ */
+let onboardingPath = null; // null | 'template' | 'custom' | 'edit'
+function showOnboardingStep(stepId){
+  document.querySelectorAll('#subjectOnboarding .onboarding-step').forEach(step=>{ step.hidden = (step.id !== stepId); });
+  document.getElementById('subjectOnboarding').scrollTop = 0;
+}
+
+/* ============================================================
+   TEMPLATES — built-in RGS preset + shareable JSON templates.
+   Shared templates live in localStorage (not per-account), so an
+   imported template is waiting for you even before you sign up.
+   ============================================================ */
+const TEMPLATES_LS_KEY = "examDashboardTemplates:v1";
+function buildRGSTemplate(){
+  return {
+    id: "rgs-y4-2026",
+    builtin: true,
+    name: "RGS Year 4 · 2026",
+    blurb: "The original preset — Y4 subjects, 2026 T3/T4 exam dates and the full syllabus checklists.",
+    data: {
+      subjects: JSON.parse(JSON.stringify(DEFAULT_SUBJECTS)),
+      topics: JSON.parse(JSON.stringify(DEFAULT_TOPICS)),
+      exams: buildDefaultExams(),
+      activeSubjects: Object.keys(DEFAULT_SUBJECTS),
+    }
+  };
+}
+function loadSharedTemplates(){
+  try{
+    const raw = localStorage.getItem(TEMPLATES_LS_KEY);
+    const list = raw ? JSON.parse(raw) : [];
+    return Array.isArray(list) ? list.filter(t=>t && t.data && t.data.subjects) : [];
+  }catch(e){ return []; }
+}
+function saveSharedTemplates(list){
+  try{ localStorage.setItem(TEMPLATES_LS_KEY, JSON.stringify(list)); }catch(e){}
+}
+function allTemplates(){
+  return [buildRGSTemplate(), ...loadSharedTemplates()];
+}
+function templateCounts(tpl){
+  const subjects = Object.keys(tpl.data.subjects||{}).length;
+  const exams = (tpl.data.exams||[]).length;
+  const topics = Object.values(tpl.data.topics||{}).reduce((n,secs)=>n+(Array.isArray(secs)?secs.reduce((m,s)=>m+(s.items?s.items.length:0),0):0),0);
+  return {subjects, exams, topics};
+}
+// Accepts a parsed object or JSON string; returns {name, data} or null.
+function parseTemplatePayload(raw){
+  let payload = raw;
+  if(typeof raw === "string"){ try{ payload = JSON.parse(raw); }catch(e){ return null; } }
+  if(!payload || typeof payload !== "object" || Array.isArray(payload)) return null;
+  const subjects = payload.subjects;
+  if(!subjects || typeof subjects !== "object" || Array.isArray(subjects)) return null;
+  const cleanSubjects = {};
+  Object.keys(subjects).forEach(code=>{
+    const s = subjects[code];
+    const key = String(code).toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6);
+    if(!key) return;
+    if(s && typeof s === "object" && s.name){
+      cleanSubjects[key] = { name:String(s.name).slice(0,60), color:isHexColour(s.color) ? s.color.toUpperCase() : "#5B7A6B" };
+    }
+  });
+  if(!Object.keys(cleanSubjects).length) return null;
+  const rawTopics = normalizeTopics(payload.topics);
+  const cleanTopics = {};
+  Object.keys(rawTopics).forEach(code=>{
+    const key = code.toUpperCase();
+    if(cleanSubjects[key]) cleanTopics[key] = rawTopics[code];
+  });
+  const cleanExams = normalizeExams(Array.isArray(payload.exams) ? payload.exams : [])
+    .map(e=>({...e, subj:String(e.subj||"").toUpperCase()}))
+    .filter(e=>cleanSubjects[e.subj]);
+  const active = Array.isArray(payload.activeSubjects)
+    ? payload.activeSubjects.map(c=>String(c).toUpperCase()).filter(c=>cleanSubjects[c])
+    : [];
+  return {
+    name: String(payload.name || "Shared template").slice(0,40),
+    data: {
+      subjects: cleanSubjects,
+      topics: cleanTopics,
+      exams: cleanExams,
+      activeSubjects: active.length ? active : Object.keys(cleanSubjects),
+    }
+  };
+}
+function importTemplateFromText(text){
+  const parsed = parseTemplatePayload(text);
+  if(!parsed) return null;
+  const list = loadSharedTemplates();
+  const tpl = { id:"tpl_"+Date.now().toString(36), name:parsed.name, data:parsed.data };
+  list.push(tpl);
+  saveSharedTemplates(list);
+  return tpl;
+}
+// Merges the template's subjects/topics into the app and replaces the exam
+// list. Progress checkmarks reset — a new setup means a fresh checklist.
+function applyTemplateData(data){
+  SUBJECTS = Object.assign({}, SUBJECTS, JSON.parse(JSON.stringify(data.subjects||{})));
+  TOPICS = Object.assign({}, TOPICS, JSON.parse(JSON.stringify(data.topics||{})));
+  EXAMS = normalizeExams(JSON.parse(JSON.stringify(data.exams||[])));
+  state.activeSubjects = (data.activeSubjects||[]).filter(code=>SUBJECTS[code]);
+  if(!state.activeSubjects.length) state.activeSubjects = Object.keys(data.subjects||{});
+  state.checkedTopics = {};
+  state.customContent = true;
+  state.selectedSubject = state.activeSubjects[0] || null;
+  renderSubjectAwareViews();
+}
+function exportCurrentSetupAsTemplate(name){
+  const codes = state.activeSubjects.length ? state.activeSubjects : Object.keys(SUBJECTS);
+  const subjects = {}, topics = {};
+  codes.forEach(code=>{
+    if(SUBJECTS[code]) subjects[code] = SUBJECTS[code];
+    if(TOPICS[code]) topics[code] = TOPICS[code];
+  });
+  const exams = EXAMS.filter(e=>subjects[e.subj]);
+  const payload = {
+    examDashboardTemplate: 1,
+    name: (name||"").trim() || `${state.displayName || "My"} template`,
+    exportedAt: new Date().toISOString(),
+    subjects, topics, exams,
+    activeSubjects: codes.filter(code=>subjects[code]),
+  };
+  const blob = new Blob([JSON.stringify(payload,null,2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `exam-dashboard-template-${slug(payload.name)||"setup"}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+}
+function handleTemplateImport(fileInputId, textInputId, errorId, onDone){
+  const fileInput = document.getElementById(fileInputId);
+  const textInput = document.getElementById(textInputId);
+  const errorEl = document.getElementById(errorId);
+  errorEl.style.display = "none";
+  const tryText = (content)=>{
+    const tpl = importTemplateFromText(content);
+    if(!tpl){ errorEl.style.display = "inline"; return; }
+    fileInput.value = "";
+    textInput.value = "";
+    onDone(tpl);
+  };
+  if(fileInput.files && fileInput.files[0]){
+    const reader = new FileReader();
+    reader.onload = ()=>tryText(String(reader.result||""));
+    reader.onerror = ()=>{ errorEl.style.display = "inline"; };
+    reader.readAsText(fileInput.files[0]);
+  } else if(textInput.value.trim()){
+    tryText(textInput.value.trim());
+  } else {
+    errorEl.style.display = "inline";
+  }
+}
+
+/* ---------- onboarding: template picker ---------- */
+function renderTemplatePicker(){
+  const wrap = document.getElementById('templateList');
+  wrap.innerHTML = allTemplates().map((tpl,idx)=>{
+    const c = templateCounts(tpl);
+    return `
+    <button class="template-card" data-template-idx="${idx}" type="button">
+      <div class="template-card-main">
+        <div class="template-card-name">${escapeHTML(tpl.name)}</div>
+        <div class="template-card-meta">${c.subjects} subjects · ${c.exams} exam dates · ${c.topics} checklist topics</div>
+        ${tpl.blurb?`<div class="template-card-meta" style="text-transform:none; letter-spacing:0; opacity:.55;">${escapeHTML(tpl.blurb)}</div>`:''}
+      </div>
+      ${tpl.builtin?'<span class="template-tag">Built-in</span>':''}
+    </button>`;
+  }).join('');
+}
+function openTemplateSubjectConfirm(){
+  onboardingPath = 'template';
+  renderOnboardingChoices();
+  document.getElementById('subjectStepKicker').textContent = "Make it yours";
+  document.getElementById('subjectStepTitle').textContent = "Confirm your subjects.";
+  document.getElementById('onboardingDisplayName').value = state.displayName;
+  document.getElementById('saveSubjectSelection').textContent = "Continue";
+  document.getElementById('cancelSubjectSelection').style.display = "none";
+  showOnboardingStep('subjectOnboardingStep');
+}
+document.getElementById('pathTemplateBtn').addEventListener('click', ()=>{
+  renderTemplatePicker();
+  showOnboardingStep('templateOnboardingStep');
+});
+document.getElementById('templateList').addEventListener('click', (e)=>{
+  const card = e.target.closest('[data-template-idx]');
+  if(!card) return;
+  const tpl = allTemplates()[Number(card.dataset.templateIdx)];
+  if(!tpl) return;
+  applyTemplateData(tpl.data);
+  openTemplateSubjectConfirm();
+});
+document.getElementById('templateImportBtn').addEventListener('click', ()=>{
+  handleTemplateImport('templateImportFile','templateImportText','templateImportError', renderTemplatePicker);
+});
+document.getElementById('backToPathFromTemplates').addEventListener('click', ()=>showOnboardingStep('pathOnboardingStep'));
+
+/* ---------- onboarding: guided custom builder ---------- */
+const BUILDER_PALETTE = ["#5B7A6B","#C1432E","#D9A441","#1A2332","#7A4E3A","#8B6F2A"];
+let builder = { subjects:{}, topicSections:{}, exams:[] };
+function resetBuilder(){
+  builder = { subjects:{}, topicSections:{}, exams:[] };
+  renderBuilderSubjects();
+  renderBuilderUnits();
+  renderBuilderExams();
+}
+function renderBuilderSubjects(){
+  const codes = Object.keys(builder.subjects);
+  document.getElementById('builderSubjList').innerHTML = codes.length ? codes.map(code=>`
+    <div class="builder-row">
+      <span class="builder-row-main">${escapeHTML(builder.subjects[code].name)}</span>
+      <span class="builder-row-meta">${code}</span>
+      <button class="builder-remove" data-remove-subj="${code}" type="button">remove</button>
+    </div>`).join('') : '<div class="builder-empty">No subjects yet — add your first one above.</div>';
+  const opts = codes.map(code=>`<option value="${code}">${code} — ${escapeHTML(builder.subjects[code].name)}</option>`).join('');
+  document.getElementById('builderUnitSubj').innerHTML = opts;
+  document.getElementById('builderExamSubj').innerHTML = opts;
+}
+function renderBuilderUnits(){
+  const rows = [];
+  Object.keys(builder.topicSections).forEach(code=>{
+    builder.topicSections[code].forEach((sec,idx)=>{
+      const subjName = builder.subjects[code] ? builder.subjects[code].name : code;
+      rows.push(`
+      <div class="builder-row">
+        <span class="builder-row-main">${escapeHTML(sec.sec)} <span class="builder-row-meta">${escapeHTML(subjName)} · ${sec.items.length} topic${sec.items.length===1?'':'s'}${sec.weight?` · ${escapeHTML(sec.weight)}`:''}</span></span>
+        <button class="builder-remove" data-remove-unit="${code}:${idx}" type="button">remove</button>
+      </div>`);
+    });
+  });
+  document.getElementById('builderUnitList').innerHTML = rows.length ? rows.join('') : '<div class="builder-empty">No units yet — you can also add them later in Edit Data.</div>';
+}
+function renderBuilderExams(){
+  const sorted = builder.exams.map((e,idx)=>({...e,idx})).sort((a,b)=>a.date<b.date?-1:1);
+  document.getElementById('builderExamList').innerHTML = sorted.length ? sorted.map(e=>`
+    <div class="builder-row">
+      <span class="builder-row-main">${escapeHTML(e.name)} <span class="builder-row-meta">${e.date} · ${escapeHTML(e.subj)}</span></span>
+      <button class="builder-remove" data-remove-exam="${e.idx}" type="button">remove</button>
+    </div>`).join('') : '<div class="builder-empty">No exam dates yet — you can add them later in Edit Data.</div>';
+}
+document.getElementById('builderAddSubjBtn').addEventListener('click', ()=>{
+  const codeInput = document.getElementById('builderSubjCode');
+  const nameInput = document.getElementById('builderSubjName');
+  const errorEl = document.getElementById('builderSubjError');
+  const code = codeInput.value.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6);
+  const name = nameInput.value.trim().slice(0,60);
+  if(!code || !name){ errorEl.textContent = "Give the subject a short code and a full name."; errorEl.style.display = "inline"; return; }
+  if(builder.subjects[code] || SUBJECTS[code]){ errorEl.textContent = "That code is taken — try another one."; errorEl.style.display = "inline"; return; }
+  errorEl.style.display = "none";
+  builder.subjects[code] = { name, color: BUILDER_PALETTE[Object.keys(builder.subjects).length % BUILDER_PALETTE.length] };
+  codeInput.value = ""; nameInput.value = "";
+  renderBuilderSubjects();
+});
+document.getElementById('builderSubjList').addEventListener('click', (e)=>{
+  const btn = e.target.closest('[data-remove-subj]');
+  if(!btn) return;
+  const code = btn.dataset.removeSubj;
+  delete builder.subjects[code];
+  delete builder.topicSections[code];
+  builder.exams = builder.exams.filter(ex=>ex.subj!==code);
+  renderBuilderSubjects();
+  renderBuilderUnits();
+  renderBuilderExams();
+});
+document.getElementById('builderAddUnitBtn').addEventListener('click', ()=>{
+  const subj = document.getElementById('builderUnitSubj').value;
+  const name = document.getElementById('builderUnitName').value.trim().slice(0,80);
+  const weight = document.getElementById('builderUnitWeight').value.trim().slice(0,40);
+  const topics = document.getElementById('builderUnitTopics').value.split('\n').map(l=>l.trim()).filter(Boolean).slice(0,120);
+  const errorEl = document.getElementById('builderUnitError');
+  if(!subj || !name){ errorEl.style.display = "inline"; return; }
+  errorEl.style.display = "none";
+  if(!builder.topicSections[subj]) builder.topicSections[subj] = [];
+  builder.topicSections[subj].push({ sec:name, weight, items: topics.map(t=>[t,"core"]) });
+  document.getElementById('builderUnitName').value = "";
+  document.getElementById('builderUnitWeight').value = "";
+  document.getElementById('builderUnitTopics').value = "";
+  renderBuilderUnits();
+});
+document.getElementById('builderUnitList').addEventListener('click', (e)=>{
+  const btn = e.target.closest('[data-remove-unit]');
+  if(!btn) return;
+  const [code, idx] = btn.dataset.removeUnit.split(':');
+  if(builder.topicSections[code]){
+    builder.topicSections[code].splice(Number(idx),1);
+    if(!builder.topicSections[code].length) delete builder.topicSections[code];
+  }
+  renderBuilderUnits();
+});
+document.getElementById('builderAddExamBtn').addEventListener('click', ()=>{
+  const date = document.getElementById('builderExamDate').value;
+  const name = document.getElementById('builderExamName').value.trim().slice(0,80);
+  const subj = document.getElementById('builderExamSubj').value;
+  const errorEl = document.getElementById('builderExamError');
+  if(!date || !name || !subj){ errorEl.style.display = "inline"; return; }
+  errorEl.style.display = "none";
+  builder.exams.push({ date, name, subj });
+  document.getElementById('builderExamName').value = "";
+  renderBuilderExams();
+});
+document.getElementById('builderExamList').addEventListener('click', (e)=>{
+  const btn = e.target.closest('[data-remove-exam]');
+  if(!btn) return;
+  builder.exams.splice(Number(btn.dataset.removeExam),1);
+  renderBuilderExams();
+});
+function commitBuilder(){
+  Object.entries(builder.subjects).forEach(([code,s])=>{ SUBJECTS[code] = s; });
+  Object.entries(builder.topicSections).forEach(([code,sections])=>{
+    if(sections.length) TOPICS[code] = buildTopics(code, sections);
+  });
+  EXAMS = builder.exams.map((e,idx)=>({ id:`exam_${e.date}_${slug(e.name)}_${idx}`, date:e.date, name:e.name, subj:e.subj }));
+  state.activeSubjects = Object.keys(builder.subjects);
+  state.selectedSubject = state.activeSubjects[0] || null;
+  state.checkedTopics = {};
+  state.customContent = true;
+  renderSubjectAwareViews();
+}
+document.getElementById('pathCustomBtn').addEventListener('click', ()=>{
+  onboardingPath = 'custom';
+  resetBuilder();
+  document.getElementById('builderDisplayName').value = state.displayName;
+  showOnboardingStep('builderSubjectsStep');
+});
+document.getElementById('backToPathFromBuilder').addEventListener('click', ()=>showOnboardingStep('pathOnboardingStep'));
+document.getElementById('backToBuilderSubjects').addEventListener('click', ()=>showOnboardingStep('builderSubjectsStep'));
+document.getElementById('backToBuilderUnits').addEventListener('click', ()=>showOnboardingStep('builderUnitsStep'));
+document.getElementById('builderToUnitsBtn').addEventListener('click', ()=>{
+  const name = document.getElementById('builderDisplayName').value.trim().slice(0,30);
+  const errorEl = document.getElementById('builderSubjError');
+  if(!name || !Object.keys(builder.subjects).length){
+    errorEl.textContent = "Enter your name and add at least one subject.";
+    errorEl.style.display = "inline";
+    return;
+  }
+  errorEl.style.display = "none";
+  state.displayName = name;
+  renderProfile();
+  showOnboardingStep('builderUnitsStep');
+});
+document.getElementById('builderToExamsBtn').addEventListener('click', ()=>showOnboardingStep('builderExamsStep'));
+document.getElementById('builderToAppearanceBtn').addEventListener('click', ()=>{
+  commitBuilder();
+  showOnboardingStep('appearanceOnboardingStep');
+});
+
+/* ---------- Edit Data: template export / import / apply ---------- */
+function renderEditTemplateList(){
+  const wrap = document.getElementById('editTemplateList');
+  if(!wrap) return;
+  wrap.innerHTML = allTemplates().map((tpl,idx)=>{
+    const c = templateCounts(tpl);
+    return `
+    <div class="builder-row">
+      <span class="builder-row-main">${escapeHTML(tpl.name)}${tpl.builtin?' <span class="builder-row-meta">built-in</span>':''}</span>
+      <span class="builder-row-meta">${c.subjects} subjects · ${c.exams} exams</span>
+      <button class="builder-remove" data-apply-template="${idx}" type="button" style="color:var(--ink);">apply</button>
+      ${tpl.builtin?'':`<button class="builder-remove" data-remove-template="${tpl.id}" type="button">remove</button>`}
+    </div>`;
+  }).join('');
+}
+document.getElementById('templateExportBtn').addEventListener('click', ()=>{
+  exportCurrentSetupAsTemplate(document.getElementById('templateExportName').value);
+});
+document.getElementById('editTemplateImportBtn').addEventListener('click', ()=>{
+  handleTemplateImport('editTemplateImportFile','editTemplateImportText','editTemplateImportError', renderEditTemplateList);
+});
+document.getElementById('editTemplateList').addEventListener('click', (e)=>{
+  const applyBtn = e.target.closest('[data-apply-template]');
+  if(applyBtn){
+    const tpl = allTemplates()[Number(applyBtn.dataset.applyTemplate)];
+    if(!tpl) return;
+    if(!confirm(`Apply template "${tpl.name}"? This replaces the subjects, exam dates and checklists on your dashboard, and resets your topic checkmarks.`)) return;
+    applyTemplateData(tpl.data);
+    saveAll();
+    return;
+  }
+  const removeBtn = e.target.closest('[data-remove-template]');
+  if(removeBtn){
+    saveSharedTemplates(loadSharedTemplates().filter(t=>t.id !== removeBtn.dataset.removeTemplate));
+    renderEditTemplateList();
+  }
+});
+
 /* ============================================================
    AUTH
    ============================================================ */
@@ -3398,6 +3979,10 @@ document.getElementById('signOutBtn').addEventListener('click', async ()=>{
 let appStarted = false;
 let startedUserId = null;
 async function startApp(session){
+  previewMode = false;
+  previewScrollGateShown = false;
+  document.body.classList.remove('preview-mode');
+  document.getElementById('previewGate').classList.remove('show');
   currentUser = session.user;
   document.getElementById('acctEmail').textContent = currentUser.email || "";
   authGate.classList.add('hidden');
@@ -3435,8 +4020,7 @@ function showGate(){
   startedUserId = null;
   closeSubjectOnboarding();
   dismissEditCoach(false);
-  appShell.style.display = "none";
-  authGate.classList.remove('hidden');
+  enterPreviewMode();
 }
 
 async function initAuth(){
@@ -3468,7 +4052,73 @@ async function initAuth(){
     else { showGate(); }
   });
 }
-initAuth();
+/* ============================================================
+   PREVIEW MODE — logged-out visitors get a clickable demo with
+   the sample data; scrolling deeper or interacting beyond tab
+   switching opens the create-account gate.
+   ============================================================ */
+let previewMode = false;
+let previewScrollGateShown = false;
+function enterPreviewMode(){
+  previewMode = true;
+  document.body.classList.add('preview-mode');
+  authGate.classList.add('hidden');
+  appShell.style.display = "block";
+  try{ applyData({}); }catch(e){ console.error('Preview data failed', e); }
+  state.displayName = "";
+  state.activeSubjects = Object.keys(DEFAULT_SUBJECTS);
+  state.selectedSubject = "BIO";
+  try{
+    renderSubjectAwareViews();
+    renderTodos();
+    renderPomodoro();
+  }catch(e){ console.error('Preview render failed', e); }
+  document.getElementById('welcomeMessage').textContent = "Live demo — sample data";
+  window.scrollTo(0,0);
+}
+function exitPreviewToAuth(mode){
+  previewMode = false;
+  document.body.classList.remove('preview-mode');
+  document.getElementById('previewGate').classList.remove('show');
+  appShell.style.display = "none";
+  authGate.classList.remove('hidden');
+  setAuthMode(mode);
+  window.scrollTo(0,0);
+}
+function showPreviewGate(){
+  document.getElementById('previewGate').classList.add('show');
+}
+document.getElementById('previewSignUpBtn').addEventListener('click', ()=>exitPreviewToAuth("signup"));
+document.getElementById('previewSignInBtn').addEventListener('click', ()=>exitPreviewToAuth("signin"));
+document.getElementById('gateSignUpBtn').addEventListener('click', ()=>exitPreviewToAuth("signup"));
+document.getElementById('gateSignInBtn').addEventListener('click', ()=>exitPreviewToAuth("signin"));
+document.getElementById('gateDismissBtn').addEventListener('click', ()=>document.getElementById('previewGate').classList.remove('show'));
+document.getElementById('authBackToDemo').addEventListener('click', enterPreviewMode);
+// Tab switching stays free; every other interaction inside the app is a
+// prompt to create an account.
+document.addEventListener('click', (e)=>{
+  if(!previewMode || !(e.target instanceof Element)) return;
+  if(e.target.closest('#previewBanner') || e.target.closest('#previewGate') || e.target.closest('.tabs')) return;
+  if(e.target.closest('#appShell')){
+    e.preventDefault();
+    e.stopPropagation();
+    showPreviewGate();
+  }
+}, true);
+window.addEventListener('scroll', ()=>{
+  if(previewMode && !previewScrollGateShown && window.scrollY > 240){
+    previewScrollGateShown = true;
+    showPreviewGate();
+  }
+}, {passive:true});
+
+initAuth().catch(err=>{
+  console.error('Auth init failed', err);
+  previewMode = false;
+  document.body.classList.remove('preview-mode');
+  appShell.style.display = "none";
+  authGate.classList.remove('hidden');
+});
 
 // flush a pending edit when leaving the tab — only if there is an unsaved edit,
 // so simply viewing the app never rewrites the stored data.
