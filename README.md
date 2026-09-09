@@ -1,5 +1,6 @@
 # Exam Dashboard
 
+![Exam Dashboard](og.png)
 A single-page exam-prep dashboard for Singapore students: exam countdowns,
 syllabus checklists, a focus timer and a weekly plan. The whole app is one
 self-contained file, `index.html` — editorial "control desk" styling, no build
