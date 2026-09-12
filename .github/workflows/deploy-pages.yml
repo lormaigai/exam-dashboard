@@ -29,6 +29,7 @@ jobs:
           mkdir -p _site
           cp index.html _site/index.html
           cp index.html _site/404.html
+          cp og.png _site/og.png
           python3 - <<'PY'
           from pathlib import Path
           script = '<script src="scripts/focus-day-timeline.js"></script>'
