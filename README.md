@@ -2,6 +2,10 @@
 **TRY IT HERE:**
 https://lormaigai.github.io/exam-dashboard/ 
 ![Exam Dashboard](og.png)
+
+![Demo walkthrough](demo.gif)
+
+*35-second walkthrough of the live demo - [watch the full-quality video](demo.mp4).*
 A single-page exam-prep dashboard for Singapore students: exam countdowns,
 syllabus checklists, a focus timer and a weekly plan. The whole app is one
 self-contained file, `index.html` — editorial "control desk" styling, no build
