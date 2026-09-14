@@ -16,5 +16,5 @@ jobs:
         shell: bash
         run: |
           body="$(curl --fail --silent --show-error --location https://lormaigai.github.io/exam-dashboard/)"
-          [[ "$body" == *"EXAM CONTROL"* ]]
+          [[ "$body" == *"Exam Dashboard"* ]]
           [[ "$body" == *"CONTENT_VERSION"* ]]
