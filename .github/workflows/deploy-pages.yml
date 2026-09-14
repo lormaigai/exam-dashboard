@@ -1,4 +1,4 @@
-name: Deploy Exam Control to GitHub Pages
+name: Deploy Exam Dashboard to GitHub Pages
 
 on:
   push:
@@ -78,7 +78,7 @@ jobs:
           site_url="${{ steps.deployment.outputs.page_url }}"
           for attempt in {1..20}; do
             body="$(curl --fail --silent --show-error --location "${site_url}?deploy=${GITHUB_SHA}" || true)"
-            if [[ "$body" == *"EXAM CONTROL"* && "$body" == *"CONTENT_VERSION"* ]]; then
+            if [[ "$body" == *"Exam Dashboard"* && "$body" == *"CONTENT_VERSION"* ]]; then
               echo "Dashboard is live at $site_url"
               exit 0
             fi
