@@ -36,7 +36,11 @@ jobs:
           for filename in ('_site/index.html', '_site/404.html'):
               path = Path(filename)
               if script not in path.read_text():
-                  path.write_text(path.read_text().replace('</body>', f'  {script}\n</body>'))
+                  text = path.read_text()
+                  idx = text.rfind('</body>')
+                  if idx == -1:
+                      raise SystemExit(f'no closing body tag in {filename}')
+                  path.write_text(text[:idx] + f'  {script}\n' + text[idx:])
           PY
           mkdir -p _site/scripts
           cp scripts/focus-day-timeline.js \
