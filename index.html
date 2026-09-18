@@ -348,6 +348,10 @@
   .focus-wrap{display:grid; grid-template-columns:1.2fr 1fr; gap:20px; align-items:start;}
   @media(max-width:820px){.focus-wrap{grid-template-columns:1fr;}}
   .timer-card{border:2px solid var(--ink); background:var(--theme-dark); color:var(--on-dark); padding:34px 26px; text-align:center;}
+  .timer-card{position:relative; overflow:visible;}
+  .timer-card .confetti-piece{position:absolute; top:38%; left:50%; width:6px; height:9px; pointer-events:none; z-index:6; animation:mainConfetti .9s cubic-bezier(.17,.67,.35,1) forwards;}
+  @keyframes mainConfetti{0%{transform:translate(0,0) rotate(0); opacity:1}100%{transform:translate(var(--dx),var(--dy)) rotate(var(--rot)); opacity:0}}
+  @media (prefers-reduced-motion: reduce){ .timer-card .confetti-piece{display:none;} }
   .timer-phase{font-family:var(--font-mono); font-size:12px; text-transform:uppercase; letter-spacing:2px; opacity:0.7;}
   .timer-clock{font-family:var(--font-display); font-weight:800; font-size:82px; line-height:1; margin:14px 0 6px; letter-spacing:1px; font-variant-numeric:tabular-nums;}
   .timer-clock.break,.timer-clock.focus{color:var(--on-dark);}
@@ -3434,20 +3438,56 @@ let floatingTimerWindow = null;
 let floatingTimerMode = null;
 
 function floatingTimerMarkup(){
-  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cat focus timer</title><style>
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Focus timer</title><style>
     :root{color-scheme:light;--cream:#FAF5EF;--brown:#4A3F35;--tan:#C9A87C;--blush:#E8CFC7;--sage:#A8B09A}
-    *{box-sizing:border-box} body{margin:0;min-width:260px;min-height:250px;background:var(--cream);color:var(--brown);font-family:Inter,system-ui,sans-serif;display:grid;place-items:center;overflow:hidden}
-    .card{width:100%;min-height:250px;padding:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;background:radial-gradient(circle at 12% 5%,#fff 0 4px,transparent 5px),var(--cream)}
-    .cat{width:76px;height:54px;position:relative;margin-bottom:7px;animation:breathe 2.6s ease-in-out infinite;transform-origin:50% 100%}.head{position:absolute;inset:11px 7px 0;border:3px solid var(--brown);border-radius:46% 46% 42% 42%;background:var(--blush)}.ear{position:absolute;top:3px;width:25px;height:26px;background:var(--blush);border:3px solid var(--brown);transform:rotate(45deg);border-radius:4px 2px 7px}.ear.left{left:10px}.ear.right{right:10px}.face{position:absolute;z-index:2;inset:28px 20px auto;display:flex;justify-content:space-between}.eye{width:5px;height:7px;border-radius:50%;background:var(--brown)}.mouth{position:absolute;z-index:2;top:38px;left:35px;width:7px;height:4px;border:solid var(--brown);border-width:0 0 2px 2px;transform:rotate(-45deg)}
-    .phase{font:700 10px/1.2 ui-monospace,monospace;text-transform:uppercase;letter-spacing:2px;color:#75675d}.clock{font:800 clamp(46px,20vw,68px)/1 ui-monospace,monospace;font-variant-numeric:tabular-nums;letter-spacing:-4px;margin:5px 0}.cycle{font:600 10px/1.3 ui-monospace,monospace;color:#786b62}.controls{display:flex;gap:8px;margin-top:15px}.controls button{border:2px solid var(--brown);border-radius:999px;background:transparent;color:var(--brown);padding:8px 13px;font:700 10px ui-monospace,monospace;text-transform:uppercase;cursor:pointer}.controls .primary{background:var(--brown);color:var(--cream)}.controls button:hover{transform:translateY(-1px);box-shadow:0 3px 0 var(--tan)}.status-dot{position:absolute;right:14px;top:14px;width:9px;height:9px;border-radius:50%;background:var(--sage);box-shadow:0 0 0 4px #a8b09a30}.status-dot.running{animation:pulse 1.3s ease-in-out infinite}.hint{font:9px ui-monospace,monospace;opacity:.55;margin-top:10px}
-    @keyframes breathe{50%{transform:translateY(-2px) scale(1.02)}}@keyframes pulse{50%{transform:scale(.65);opacity:.5}}@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-  </style></head><body><main class="card"><span class="status-dot" id="floatStatus"></span><div class="cat" aria-hidden="true"><i class="ear left"></i><i class="ear right"></i><i class="head"></i><span class="face"><i class="eye"></i><i class="eye"></i></span><i class="mouth"></i></div><div class="phase" id="floatPhase">Focus</div><div class="clock" id="floatClock">25:00</div><div class="cycle" id="floatCycle">Focus block 1 of 4</div><div class="controls"><button class="primary" id="floatStart">Start</button><button id="floatReset">Reset</button><button id="floatSkip">Skip</button></div><div class="hint">your tiny study sidekick</div></main><\/body><\/html>`;
+    *{box-sizing:border-box} body{margin:0;min-width:170px;min-height:110px;background:var(--cream);color:var(--brown);font-family:Inter,system-ui,sans-serif;display:grid;place-items:center;overflow:hidden}
+    .card{width:100%;min-height:110px;padding:10px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;background:var(--cream);border:2px solid var(--brown)}
+    .phase{font:700 8px/1 ui-monospace,monospace;text-transform:uppercase;letter-spacing:1.6px;color:#75675d}
+    .clock{font:800 clamp(30px,14vw,40px)/1 ui-monospace,monospace;font-variant-numeric:tabular-nums;letter-spacing:-2px;margin:4px 0 2px}
+    .controls{display:flex;gap:5px;margin-top:6px}
+    .controls button{border:1.5px solid var(--brown);border-radius:999px;background:transparent;color:var(--brown);padding:3px 8px;font:700 8px ui-monospace,monospace;text-transform:uppercase;cursor:pointer}
+    .controls .primary{background:var(--brown);color:var(--cream)}
+    .status-dot{position:absolute;right:8px;top:8px;width:7px;height:7px;border-radius:50%;background:var(--sage)}
+    .status-dot.running{animation:pulse 1.3s ease-in-out infinite}
+    .confetti-piece{position:absolute;top:38%;left:50%;width:5px;height:8px;pointer-events:none;z-index:5;animation:floatConfetti .85s cubic-bezier(.17,.67,.35,1) forwards}
+    @keyframes floatConfetti{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(var(--dx),var(--dy)) rotate(var(--rot));opacity:0}}
+    @keyframes pulse{50%{transform:scale(.65);opacity:.5}}
+    @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.confetti-piece{display:none}}
+  </style></head><body><main class="card"><span class="status-dot" id="floatStatus"></span><div class="phase" id="floatPhase">Focus</div><div class="clock" id="floatClock">25:00</div><div class="controls"><button class="primary" id="floatStart">Start</button><button id="floatReset">Reset</button><button id="floatSkip">Skip</button></div></main><\/body><\/html>`;
 }
 
 function bindFloatingTimerControls(doc){
   doc.getElementById('floatStart').addEventListener('click',()=>{ if(pomo.running) pauseTimer(); else startTimer(); });
   doc.getElementById('floatReset').addEventListener('click',()=>resetTimer(false));
   doc.getElementById('floatSkip').addEventListener('click',()=>{ clearInterval(pomoTick); pomo.remainingMs=0; pomo.endsAt=Date.now(); completePhase(false); });
+}
+
+const CONFETTI_COLORS = ['#C9A87C','#A8B09A','#D98E73','#B5C0D0','#E8CFC7','#C97B5A'];
+function popConfetti(doc, host){
+  if(!doc || !host) return;
+  if(doc.defaultView && doc.defaultView.matchMedia && doc.defaultView.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  for(let i=0;i<28;i++){
+    const piece = doc.createElement('span');
+    piece.className = 'confetti-piece';
+    const ang = Math.random()*Math.PI - Math.PI;   // upward half-circle burst
+    const dist = 26 + Math.random()*44;
+    piece.style.setProperty('--dx', (Math.cos(ang)*dist)+'px');
+    piece.style.setProperty('--dy', (Math.sin(ang)*dist - 14)+'px');
+    piece.style.setProperty('--rot', ((Math.random()*2-1)*260)+'deg');
+    piece.style.background = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+    host.appendChild(piece);
+    setTimeout(()=>piece.remove(), 1000);
+  }
+}
+function celebrateBlockComplete(){
+  // normal timer: burst from the timer card
+  const card = document.querySelector('.timer-card');
+  if(card) popConfetti(document, card);
+  // floating timer: burst inside the float window
+  if(floatingTimerWindow && !floatingTimerWindow.closed){
+    const fdoc = floatingTimerWindow.document;
+    popConfetti(fdoc, fdoc.querySelector('.card'));
+  }
 }
 
 function renderFloatingTimer(){
@@ -3458,7 +3498,7 @@ function renderFloatingTimer(){
   const cfg=pomoCfg();
   phase.textContent=phaseLabel(pomo.phase);
   doc.getElementById('floatClock').textContent=fmtClock(remainingMsNow());
-  doc.getElementById('floatCycle').textContent=pomo.phase==='focus' ? `Focus block ${Math.min(pomo.cyclesDone+1,cfg.interval)} of ${cfg.interval}` : 'Break time';
+
   const start=doc.getElementById('floatStart');
   start.textContent=pomo.running ? 'Pause' : (pomo.phase==='focus' ? 'Start' : 'Start break');
   start.disabled=!activeDayRecord();
@@ -3469,10 +3509,10 @@ async function openFloatingTimer(){
   if(floatingTimerWindow && !floatingTimerWindow.closed){ floatingTimerWindow.focus(); return; }
   try{
     if('documentPictureInPicture' in window){
-      floatingTimerWindow=await window.documentPictureInPicture.requestWindow({width:320,height:340});
+      floatingTimerWindow=await window.documentPictureInPicture.requestWindow({width:210,height:130});
       floatingTimerMode='pip';
     }else{
-      floatingTimerWindow=window.open('','examDashboardCatTimer','popup,width=320,height=340,resizable=yes');
+      floatingTimerWindow=window.open('','examDashboardTimer','popup,width=210,height=130,resizable=yes');
       floatingTimerMode='popup';
       if(!floatingTimerWindow) throw new Error('Popup blocked');
     }
@@ -3482,10 +3522,10 @@ async function openFloatingTimer(){
     floatingTimerWindow.addEventListener('pagehide',()=>{ floatingTimerWindow=null; floatingTimerMode=null; });
     renderFloatingTimer();
     const note=document.getElementById('floatTimerNote');
-    note.textContent=floatingTimerMode==='pip' ? 'Cat timer is floating above your windows.' : 'Opened as a popup. Pinning above every app needs Chrome or Edge desktop.';
+    note.textContent=floatingTimerMode==='pip' ? 'Timer is floating above your windows.' : 'Opened as a popup. Pinning above every app needs Chrome or Edge desktop.';
   }catch(err){
     const note=document.getElementById('floatTimerNote');
-    note.textContent='Could not open the cat timer. Allow popups, then try again.';
+    note.textContent='Could not open the floating timer. Allow popups, then try again.';
   }
 }
 
@@ -3521,7 +3561,7 @@ function completePhase(recordTime=true){
   beep();
   if(finished==="focus"){
     // log the focus block
-    if(recordTime) pomo.completedFocus.push({ key: todayKey(), ts: Date.now(), minutes: phaseMinutes("focus") });
+    if(recordTime){ pomo.completedFocus.push({ key: todayKey(), ts: Date.now(), minutes: phaseMinutes("focus") }); celebrateBlockComplete(); }
     pomo.cyclesDone++;
     const cfg = pomoCfg();
     pomo.phase = (pomo.cyclesDone % cfg.interval === 0) ? "long" : "short";
