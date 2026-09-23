@@ -4,18 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Exam Dashboard</title>
-<meta name="description" content="Free exam countdowns, syllabus checklists and study tracking for students. Plan your exam season in one calm place - try the live demo, no signup needed.">
+<meta name="description" content="Free exam countdowns, syllabus checklists and study tracking for students. Create a free account to plan your exam season in one calm place.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Exam Dashboard">
 <meta property="og:title" content="Exam Dashboard">
-<meta property="og:description" content="Free exam countdowns, syllabus checklists and study tracking for students - try the live demo, no signup needed.">
+<meta property="og:description" content="Free exam countdowns, syllabus checklists and study tracking for students. Create a free account to plan your exam season.">
 <meta property="og:url" content="https://lormaigai.github.io/exam-dashboard/">
 <meta property="og:image" content="https://lormaigai.github.io/exam-dashboard/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Exam Dashboard">
-<meta name="twitter:description" content="Free exam countdowns, syllabus checklists and study tracking for students - try the live demo, no signup needed.">
+<meta name="twitter:description" content="Free exam countdowns, syllabus checklists and study tracking for students. Create a free account to plan your exam season.">
 <meta name="twitter:image" content="https://lormaigai.github.io/exam-dashboard/og.png">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo+Expanded:wght@600;700;800&family=Caveat:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600;1,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Gaegu:wght@400;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Libre+Franklin:wght@400;500;600;700&family=Lora:wght@600;700&family=Manrope:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Syne:wght@600;700;800&display=swap');
@@ -62,7 +62,8 @@
   }
   .masthead-row{display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:10px; max-width:1180px; margin:0 auto;}
   .masthead-title{font-family:var(--font-display); font-weight:800; font-size:26px; letter-spacing:0.5px;}
-  .masthead-welcome{font-family:var(--font-mono); font-size:11px; letter-spacing:1px; text-transform:uppercase; opacity:.72; margin-bottom:5px;}
+  .masthead-welcome{font-family:var(--font-mono); font-size:13px; font-weight:600; letter-spacing:1.2px; text-transform:uppercase; opacity:1; margin-bottom:9px; color:var(--on-dark); min-height:1.5em; transition:opacity .25s ease, transform .25s ease;}
+  .masthead-welcome.changing{opacity:0; transform:translateY(-5px);}
   .masthead-sub{font-family:var(--font-mono); font-size:11px; opacity:0.65; letter-spacing:1.5px; text-transform:uppercase; margin-top:4px;}
   .masthead-right{display:flex; align-items:center; gap:12px; flex-wrap:wrap; justify-content:flex-end;}
   .masthead-stamp{
@@ -397,11 +398,11 @@
 
   /* ===== Auth gate ===== */
   .auth-gate{
-    position:fixed; inset:0; z-index:1000; background:var(--paper);
-    display:flex; align-items:center; justify-content:center; padding:24px;
+    position:fixed; inset:0; z-index:1000; background:rgba(20,26,31,.58); backdrop-filter:blur(3px);
+    display:flex; align-items:center; justify-content:center; padding:24px; overflow-y:auto;
   }
   .auth-gate.hidden{display:none;}
-  .auth-card-wrap{width:100%; max-width:420px;}
+  .auth-card-wrap{width:100%; max-width:420px; box-shadow:8px 10px 0 rgba(0,0,0,.26);}
   .auth-brand{background:var(--theme-dark); color:var(--on-dark); padding:22px 24px; border:2px solid var(--ink); border-bottom:4px solid var(--red);}
   .auth-brand-title{font-family:var(--font-display); font-weight:800; font-size:22px; letter-spacing:0.5px;}
   .auth-brand-sub{font-family:var(--font-mono); font-size:10.5px; opacity:0.65; letter-spacing:1.5px; text-transform:uppercase; margin-top:6px;}
@@ -450,24 +451,15 @@
   .tab.coach-target{opacity:1; background:var(--amber); color:var(--ink); border-top-color:var(--ink); animation:coachPulse 1.2s ease-in-out 2;}
   @keyframes coachPulse{50%{transform:translateY(-4px);}}
 
-  /* ===== Preview mode (logged-out live demo) ===== */
-  .preview-banner{display:none; max-width:1180px; margin:12px auto 0; padding:12px 16px; border:2px solid var(--ink); background:var(--amber); color:var(--ink); align-items:center; gap:14px; flex-wrap:wrap;}
-  body.preview-mode .preview-banner{display:flex;}
-  .preview-banner-text{font-family:var(--font-mono); font-size:11px; letter-spacing:.4px; text-transform:uppercase; flex:1; min-width:200px; line-height:1.5;}
-  .preview-banner-actions{display:flex; gap:8px;}
-  .preview-btn{font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:1px; padding:8px 14px; border:2px solid var(--ink); background:var(--theme-dark); color:var(--on-dark); cursor:pointer;}
-  .preview-btn.ghost{background:transparent; color:var(--ink);}
+  /* ===== Motion and completion feedback ===== */
+  .reveal-pending{opacity:0; transform:translateY(18px);}
+  .reveal-visible{animation:revealUp .55s cubic-bezier(.2,.7,.2,1) both; animation-delay:var(--reveal-delay,0ms);}
+  @keyframes revealUp{from{opacity:0; transform:translateY(18px);}to{opacity:1; transform:translateY(0);}}
+  .block-cheer{min-height:1.5em; margin-top:12px; color:var(--amber); font-family:var(--font-mono); font-weight:600; font-size:12px; letter-spacing:.4px;}
+  .block-cheer:not(:empty){animation:revealUp .45s ease-out both;}
+  @media(prefers-reduced-motion:reduce){.reveal-pending{opacity:1; transform:none;}.reveal-visible,.block-cheer:not(:empty){animation:none;}.masthead-welcome{transition:none;}}
+  /* ===== Preview sample behind sign-up ===== */
   body.preview-mode .masthead-right, body.preview-mode .save-indicator{display:none;}
-  .preview-gate{position:fixed; inset:0; z-index:950; display:none; align-items:center; justify-content:center; padding:24px; background:rgba(20,20,20,.38);}
-  .preview-gate.show{display:flex;}
-  .preview-gate-card{width:min(430px,100%); background:var(--paper); border:2px solid var(--ink); box-shadow:6px 6px 0 var(--ink); padding:24px;}
-  .preview-gate-title{font-family:var(--font-display); font-weight:800; font-size:22px; line-height:1.15;}
-  .preview-gate-copy{font-size:13.5px; line-height:1.55; opacity:.75; margin:10px 0 18px;}
-  .preview-gate-actions{display:flex; flex-direction:column; gap:8px;}
-  .preview-gate-btn{font-family:var(--font-mono); font-size:12px; text-transform:uppercase; letter-spacing:1px; padding:12px; border:2px solid var(--ink); background:var(--theme-dark); color:var(--on-dark); cursor:pointer; text-align:center;}
-  .preview-gate-btn.secondary{background:var(--paper); color:var(--ink);}
-  .preview-gate-dismiss{display:block; margin:12px auto 0; background:none; border:none; font-family:var(--font-mono); font-size:10.5px; opacity:.55; cursor:pointer; text-decoration:underline;}
-
   /* ===== Onboarding: path choice / templates / guided builder ===== */
   .path-cards{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:24px 0;}
   @media(max-width:650px){.path-cards{grid-template-columns:1fr;}}
@@ -495,11 +487,11 @@
 <body>
 
 <!-- ============ AUTH GATE (first screen) ============ -->
-<div class="auth-gate hidden" id="authGate">
+<div class="auth-gate hidden" id="authGate" role="dialog" aria-modal="true" aria-label="Create an account or sign in">
   <div class="auth-card-wrap">
     <div class="auth-brand">
       <div class="auth-brand-title disp">EXAM DASHBOARD</div>
-      <div class="auth-brand-sub mono">Sign in to track your exam prep</div>
+      <div class="auth-brand-sub mono">Make this dashboard yours. Create a free account.</div>
     </div>
     <div class="auth-card">
       <div class="auth-tabs">
@@ -520,7 +512,6 @@
       </form>
       <div class="auth-forgot mono" id="authForgot">Forgot password?</div>
       <div class="auth-foot mono">Your progress is saved to your account and synced across devices.</div>
-      <div class="auth-forgot mono" id="authBackToDemo" role="button" style="margin-top:12px;">← Back to the live demo</div>
     </div>
   </div>
 </div>
@@ -678,13 +669,6 @@
 
 <!-- ============ APP (hidden until signed in) ============ -->
 <div id="appShell" style="display:none;">
-<div class="preview-banner" id="previewBanner">
-  <div class="preview-banner-text">Live demo · sample data (RGS Y4) — click around the tabs</div>
-  <div class="preview-banner-actions">
-    <button class="preview-btn ghost" id="previewSignInBtn" type="button">Sign in</button>
-    <button class="preview-btn" id="previewSignUpBtn" type="button">Create free account</button>
-  </div>
-</div>
 
 <div class="app-notice" id="appNotice" role="status"></div>
 
@@ -809,6 +793,7 @@
         <div class="timer-clock focus disp" id="timerClock">25:00</div>
         <div class="timer-cycle-dots" id="timerDots"></div>
         <div class="timer-cycle-lbl mono" id="timerCycleLbl">Focus block 1 of 4</div>
+        <div class="block-cheer" id="blockCheer" role="status" aria-live="polite"></div>
         <div class="timer-controls">
           <button class="tctrl primary mono" id="timerStart">Start studying</button>
           <button class="tctrl mono" id="timerReset">Reset</button>
@@ -988,18 +973,6 @@
 </div><!-- /appShell -->
 
   <div class="edit-coach" id="editCoach" role="status">You can change your colours, font, exam dates and subject topics here.</div>
-
-<div class="preview-gate" id="previewGate" role="dialog" aria-modal="true">
-  <div class="preview-gate-card">
-    <div class="preview-gate-title">Like what you see?</div>
-    <div class="preview-gate-copy">Create a free account to build your own dashboard — your subjects, your syllabus, your exam dates. Saved to your account and synced across devices.</div>
-    <div class="preview-gate-actions">
-      <button class="preview-gate-btn" id="gateSignUpBtn" type="button">Create free account</button>
-      <button class="preview-gate-btn secondary" id="gateSignInBtn" type="button">I already have an account</button>
-    </div>
-    <button class="preview-gate-dismiss" id="gateDismissBtn" type="button">keep exploring the demo</button>
-  </div>
-</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -2485,6 +2458,35 @@ function renderProfile(){
   document.getElementById('welcomeMessage').textContent=name ? `Welcome back, ${name}` : "Welcome back";
   document.getElementById('editDisplayName').value=name;
 }
+let headerCycleTimer = null;
+let headerSwapTimer = null;
+function stopHeaderCycle(){
+  clearTimeout(headerCycleTimer);
+  clearTimeout(headerSwapTimer);
+  headerCycleTimer = headerSwapTimer = null;
+  document.getElementById('welcomeMessage').classList.remove('changing');
+}
+function startHeaderCycle(){
+  stopHeaderCycle();
+  const el = document.getElementById('welcomeMessage');
+  const welcome = () => state.displayName.trim() ? `Welcome back, ${state.displayName.trim()}` : 'Welcome back';
+  const messages = [welcome, ()=>'FOCUS. ONE BLOCK AT A TIME.', ()=>'MAKE TODAY COUNT.'];
+  let index = 0;
+  el.textContent = welcome();
+  const step = () => {
+    if(!currentUser) return;
+    if(document.hidden){ headerCycleTimer = setTimeout(step, 4500); return; }
+    index = (index + 1) % messages.length;
+    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      el.textContent = messages[index]();
+    } else {
+      el.classList.add('changing');
+      headerSwapTimer = setTimeout(()=>{ el.textContent = messages[index](); el.classList.remove('changing'); }, 260);
+    }
+    headerCycleTimer = setTimeout(step, 5000);
+  };
+  headerCycleTimer = setTimeout(step, 4200);
+}
 function positionEditCoach(){
   const target = document.getElementById('editDataTab');
   const coach = document.getElementById('editCoach');
@@ -2556,9 +2558,31 @@ document.querySelectorAll('.tab').forEach(tab=>{
     tab.classList.add('active');
     document.getElementById('panel-'+tab.dataset.tab).classList.add('active');
     if(tab.dataset.tab === 'editdata') dismissEditCoach();
+    requestAnimationFrame(scanScrollReveals);
   });
 });
 
+/* Motion only starts after JavaScript has selected visible sections. */
+const revealSeen = new WeakSet();
+const revealObserver = 'IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  ? new IntersectionObserver(entries=>{
+      entries.forEach(entry=>{
+        if(!entry.isIntersecting) return;
+        entry.target.classList.remove('reveal-pending');
+        entry.target.classList.add('reveal-visible');
+        revealObserver.unobserve(entry.target);
+      });
+    }, {threshold:.08, rootMargin:'0px 0px 40px 0px'}) : null;
+function scanScrollReveals(){
+  if(!revealObserver || previewMode) return;
+  document.querySelectorAll('.panel.active > *, .panel.active .widget-grid > *').forEach((el,index)=>{
+    if(revealSeen.has(el) || el.hidden || getComputedStyle(el).display==='none') return;
+    revealSeen.add(el);
+    el.style.setProperty('--reveal-delay', `${Math.min(index % 4,3)*65}ms`);
+    el.classList.add('reveal-pending');
+    revealObserver.observe(el);
+  });
+}
 /* ============================================================
    OVERVIEW RENDER
    ============================================================ */
@@ -3483,6 +3507,10 @@ function celebrateBlockComplete(){
   // normal timer: burst from the timer card
   const card = document.querySelector('.timer-card');
   if(card) popConfetti(document, card);
+  const cheer = document.getElementById('blockCheer');
+  cheer.textContent = 'Block complete. Nice work!';
+  clearTimeout(celebrateBlockComplete.cheerTimer);
+  celebrateBlockComplete.cheerTimer = setTimeout(()=>{ cheer.textContent = ''; }, 5500);
   // floating timer: burst inside the float window
   if(floatingTimerWindow && !floatingTimerWindow.closed){
     const fdoc = floatingTimerWindow.document;
@@ -4131,9 +4159,10 @@ let appStarted = false;
 let startedUserId = null;
 async function startApp(session){
   previewMode = false;
-  previewScrollGateShown = false;
   document.body.classList.remove('preview-mode');
-  document.getElementById('previewGate').classList.remove('show');
+  document.body.style.overflow = '';
+  appShell.inert = false;
+  appShell.removeAttribute('aria-hidden');
   currentUser = session.user;
   document.getElementById('acctEmail').textContent = currentUser.email || "";
   authGate.classList.add('hidden');
@@ -4156,6 +4185,8 @@ async function startApp(session){
     renderSubjectAwareViews();
     renderTodos();
     renderPomodoro();
+    startHeaderCycle();
+    requestAnimationFrame(scanScrollReveals);
     if(!state.onboardingComplete) openSubjectOnboarding(false);
     if(pomo.running){
       // resume a running timer after refresh; complete if it elapsed while away
@@ -4169,9 +4200,12 @@ function showGate(){
   currentUser = null;
   appStarted = false;
   startedUserId = null;
+  stopHeaderCycle();
   closeSubjectOnboarding();
   dismissEditCoach(false);
   enterPreviewMode();
+  setAuthMode('signup');
+  authGate.classList.remove('hidden');
 }
 
 async function initAuth(){
@@ -4203,71 +4237,37 @@ async function initAuth(){
     else { showGate(); }
   });
 }
-/* ============================================================
-   PREVIEW MODE — logged-out visitors get a clickable demo with
-   the sample data; scrolling deeper or interacting beyond tab
-   switching opens the create-account gate.
-   ============================================================ */
+/* Show sample data behind the account form on first visit. The sample is inert. */
 let previewMode = false;
-let previewScrollGateShown = false;
 function enterPreviewMode(){
   previewMode = true;
   document.body.classList.add('preview-mode');
-  authGate.classList.add('hidden');
-  appShell.style.display = "block";
+  appShell.style.display = 'block';
   try{ applyData({}); }catch(e){ console.error('Preview data failed', e); }
-  state.displayName = "";
+  state.displayName = '';
   state.activeSubjects = Object.keys(DEFAULT_SUBJECTS);
-  state.selectedSubject = "BIO";
+  state.selectedSubject = 'BIO';
   try{
     renderSubjectAwareViews();
     renderTodos();
     renderPomodoro();
   }catch(e){ console.error('Preview render failed', e); }
-  document.getElementById('welcomeMessage').textContent = "Live demo — sample data";
+  document.getElementById('welcomeMessage').textContent = 'A glimpse of your dashboard';
+  appShell.inert = true;
+  appShell.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = 'hidden';
   window.scrollTo(0,0);
 }
-function exitPreviewToAuth(mode){
-  previewMode = false;
-  document.body.classList.remove('preview-mode');
-  document.getElementById('previewGate').classList.remove('show');
-  appShell.style.display = "none";
-  authGate.classList.remove('hidden');
-  setAuthMode(mode);
-  window.scrollTo(0,0);
-}
-function showPreviewGate(){
-  document.getElementById('previewGate').classList.add('show');
-}
-document.getElementById('previewSignUpBtn').addEventListener('click', ()=>exitPreviewToAuth("signup"));
-document.getElementById('previewSignInBtn').addEventListener('click', ()=>exitPreviewToAuth("signin"));
-document.getElementById('gateSignUpBtn').addEventListener('click', ()=>exitPreviewToAuth("signup"));
-document.getElementById('gateSignInBtn').addEventListener('click', ()=>exitPreviewToAuth("signin"));
-document.getElementById('gateDismissBtn').addEventListener('click', ()=>document.getElementById('previewGate').classList.remove('show'));
-document.getElementById('authBackToDemo').addEventListener('click', enterPreviewMode);
-// Tab switching stays free; every other interaction inside the app is a
-// prompt to create an account.
-document.addEventListener('click', (e)=>{
-  if(!previewMode || !(e.target instanceof Element)) return;
-  if(e.target.closest('#previewBanner') || e.target.closest('#previewGate') || e.target.closest('.tabs')) return;
-  if(e.target.closest('#appShell')){
-    e.preventDefault();
-    e.stopPropagation();
-    showPreviewGate();
-  }
-}, true);
-window.addEventListener('scroll', ()=>{
-  if(previewMode && !previewScrollGateShown && window.scrollY > 240){
-    previewScrollGateShown = true;
-    showPreviewGate();
-  }
-}, {passive:true});
 
 initAuth().catch(err=>{
   console.error('Auth init failed', err);
   previewMode = false;
   document.body.classList.remove('preview-mode');
   appShell.style.display = "none";
+  appShell.inert = false;
+  appShell.removeAttribute('aria-hidden');
+  document.body.style.overflow = '';
+  setAuthMode('signup');
   authGate.classList.remove('hidden');
 });
 

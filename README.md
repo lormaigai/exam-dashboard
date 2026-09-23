@@ -15,9 +15,10 @@ friend shared.
 
 ## Features
 
-- **Live demo first.** Logged-out visitors can click through the whole app
-  with sample data; scrolling deeper or interacting beyond the tabs opens the
-  create-account gate. Accounts are email + password (Supabase). Each student's
+- **Account first.** Logged-out visitors see the sample dashboard behind the
+  sign-up form, with sign-in available for returning users. The sample cannot
+  be interacted with until an account is created. Accounts are email + password
+  (Supabase). Each student's
   progress is saved to their own row in the `user_progress` table
   (row-level-security scoped per user) and syncs across devices; it also
   mirrors to `localStorage` so the app keeps working offline.
@@ -26,13 +27,14 @@ friend shared.
   syllabus units → exam dates).
 - **Shareable templates.** Edit Data → Templates exports your setup as a JSON
   file to send to friends; they import it during sign-up or in Edit Data.
+- **Interface motion** — a rotating personalised welcome in the masthead and gentle section reveals as you scroll, with reduced-motion support.
 - **Overview** — next-paper countdown, "up next" timetable, and coverage stats.
 - **Calendar** — month grid of exam days plus the full timetable in order.
 - **Study Tracker** — per-skill syllabus checklists for every subject; ticking a
   topic updates each subject's coverage bar. Covers Biology, Chemistry, Physics,
   Geography, Math 1 & 2, English, Higher Chinese, and Inquiry & Advocacy,
   rebuilt from the 2026 Y4 curriculum maps and assessment frameworks.
-- **Focus Timer** — Begin Day / End Day tracking around Pomodoro presets
+- **Focus Timer** — completion confetti and a brief encouragement message, plus Begin Day / End Day tracking around Pomodoro presets
   (Classic 25/5, Deep Work 50/10, Quick Sprint 15/3, Custom). Actual running
   focus intervals count as study; every other minute inside the day window is
   automatically counted as break/non-study time.
