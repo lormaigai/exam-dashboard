@@ -460,6 +460,11 @@
   @media(prefers-reduced-motion:reduce){.reveal-pending{opacity:1; transform:none;}.reveal-visible,.block-cheer:not(:empty){animation:none;}.masthead-welcome{transition:none;}}
   /* ===== Preview sample behind sign-up ===== */
   body.preview-mode .masthead-right, body.preview-mode .save-indicator{display:none;}
+  .auth-guest{width:100%; margin-top:12px; padding:12px; background:transparent; color:var(--ink); border:2px solid var(--ink); cursor:pointer; font-size:12px; letter-spacing:1px; text-transform:uppercase;}
+  .auth-guest:hover{background:var(--ink); color:var(--paper);}
+  .guest-bar{display:none; position:fixed; left:50%; bottom:16px; transform:translateX(-50%); z-index:900; max-width:calc(100vw - 24px); align-items:center; gap:12px; padding:10px 14px; background:var(--theme-dark); color:var(--on-dark); border:2px solid var(--ink); box-shadow:4px 5px 0 rgba(0,0,0,.26); font-size:11.5px; letter-spacing:.4px;}
+  body.guest-mode .guest-bar{display:flex;}
+  .guest-bar button{background:var(--paper); color:var(--ink); border:2px solid var(--ink); padding:6px 10px; cursor:pointer; font-size:11px; letter-spacing:1px; text-transform:uppercase; white-space:nowrap;}
   /* ===== Onboarding: path choice / templates / guided builder ===== */
   .path-cards{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:24px 0;}
   @media(max-width:650px){.path-cards{grid-template-columns:1fr;}}
@@ -486,6 +491,11 @@
 </head>
 <body>
 
+<div class="guest-bar mono" id="guestBar" role="status">
+  <span>Guest preview: sample data, nothing is saved.</span>
+  <button type="button" id="guestSignIn">Sign in / Create account</button>
+</div>
+
 <!-- ============ AUTH GATE (first screen) ============ -->
 <div class="auth-gate hidden" id="authGate" role="dialog" aria-modal="true" aria-label="Create an account or sign in">
   <div class="auth-card-wrap">
@@ -510,6 +520,7 @@
         </div>
         <button class="auth-submit mono" id="authSubmit" type="submit">Sign in</button>
       </form>
+      <button class="auth-guest mono" id="authGuest" type="button">Preview without an account</button>
       <div class="auth-forgot mono" id="authForgot">Forgot password?</div>
       <div class="auth-foot mono">Your progress is saved to your account and synced across devices.</div>
     </div>
@@ -4160,6 +4171,7 @@ let startedUserId = null;
 async function startApp(session){
   previewMode = false;
   document.body.classList.remove('preview-mode');
+  document.body.classList.remove('guest-mode');
   document.body.style.overflow = '';
   appShell.inert = false;
   appShell.removeAttribute('aria-hidden');
@@ -4204,9 +4216,30 @@ function showGate(){
   closeSubjectOnboarding();
   dismissEditCoach(false);
   enterPreviewMode();
+  document.body.classList.remove('guest-mode');
   setAuthMode('signup');
   authGate.classList.remove('hidden');
 }
+/* Guest preview: close the account form and let visitors use the sample
+   dashboard. previewMode stays true, so saveAll() writes nothing locally or
+   to the cloud: no account data is read or written. */
+function enterGuestMode(){
+  authGate.classList.add('hidden');
+  document.body.classList.add('guest-mode');
+  appShell.inert = false;
+  appShell.removeAttribute('aria-hidden');
+  document.body.style.overflow = '';
+}
+document.getElementById('authGuest').addEventListener('click', enterGuestMode);
+document.getElementById('guestSignIn').addEventListener('click', ()=>{
+  document.body.classList.remove('guest-mode');
+  appShell.inert = true;
+  appShell.setAttribute('aria-hidden','true');
+  document.body.style.overflow = 'hidden';
+  window.scrollTo(0,0);
+  setAuthMode('signup');
+  authGate.classList.remove('hidden');
+});
 
 async function initAuth(){
   const { data:{ session } } = await sb.auth.getSession();
